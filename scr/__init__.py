@@ -2,8 +2,15 @@
 # Skribi's shell #
 ##################
 
-# main scope of shell
 import os
+import skribi
+
+
+def execute(input):
+    pass
+
+
+# main scope of shell
 
 scope = True
 path = 'scr/'
@@ -30,8 +37,8 @@ while scope:
         print('\t- help: show this help')
         print('\t- ls: list files in current directory')
         print('\t- cd: change directory')
-        print('\t- exec')
-        print('\t- run')
+        print('\t- exec: execute a file in Skribi')
+        print('\t- run: run a line of code in Skribi')
 
     # list files
     elif user_input == 'ls':
@@ -47,3 +54,16 @@ while scope:
             print('\nChanged directory to ' + path)
         else:
             print('\nDirectory not found!')
+
+    # execute file
+    elif user_input == 'exec':
+        file_name = input('\nFile name: ')
+        if os.path.isfile(path + file_name):
+            pass  # TODO
+        else:
+            print('\nFile not found!')
+
+    # run line of code
+    elif user_input == 'run':
+        line = input("\nLine: ")
+        execute(line)
