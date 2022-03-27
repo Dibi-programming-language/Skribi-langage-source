@@ -5,17 +5,16 @@
 import os
 import skribi
 
-
 # main scope of shell
 
 scope = True
-path = 'src/'
+path = './'
+
+# welcome message
+print("Skribi's Shell")
+print("Type 'help' for help")
 
 while scope:
-
-    # welcome message
-    print("Skribi's Shell")
-    print("Type 'help' for help")
 
     # user input
     user_input = input('(' + path + ') -> ')
