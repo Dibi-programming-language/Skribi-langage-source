@@ -9,7 +9,7 @@ import skribi
 # main scope of shell
 
 scope = True
-path = 'scr/'
+path = 'src/'
 
 while scope:
 
