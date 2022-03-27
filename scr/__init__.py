@@ -6,10 +6,6 @@ import os
 import skribi
 
 
-def execute(input):
-    pass
-
-
 # main scope of shell
 
 scope = True
@@ -59,11 +55,15 @@ while scope:
     elif user_input == 'exec':
         file_name = input('\nFile name: ')
         if os.path.isfile(path + file_name):
-            pass  # TODO
+            # read file
+            with open(path + file_name, 'r') as f:
+                file_content = f.read()
+            # execute file
+            skribi.execute(file_content, True)
         else:
             print('\nFile not found!')
 
     # run line of code
     elif user_input == 'run':
         line = input("\nLine: ")
-        execute(line)
+        skribi.execute(line, False)
