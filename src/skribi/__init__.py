@@ -2,10 +2,9 @@
 # Skribi language module #
 # ====================== #
 
-import program
-import skribi_file
-
 # instance of Program class
+from src.skribi import program, skribi_file
+
 program_instance = program.Program()
 
 # shell's file
