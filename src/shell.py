@@ -3,7 +3,7 @@
 ##################
 
 import os
-import skribi
+from src.skribi.main import execute
 
 # main scope of shell
 
@@ -58,11 +58,15 @@ while scope:
             with open(path + file_name, 'r') as f:
                 file_content = f.read()
             # execute file
-            skribi.execute(file_content, True)
+            execute(file_content, True)
         else:
             print('\nFile not found!')
 
     # run line of code
     elif user_input == 'run':
         line = input("\nLine: ")
-        skribi.execute(line, False)
+        execute(line, False)
+
+    # unknown command
+    else:
+        print('\nUnknown command! Make sure you typed it correctly with no arguments!')

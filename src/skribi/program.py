@@ -1,13 +1,13 @@
 # ================== #
 # class of a program #
 # ================== #
-
-from tokens import *
+from src.skribi.skribi_file import SkribiFile
+from src.skribi.tokens import Lexer
 
 
 class Program:
 
-    def analyse(self, file):
+    def analyse(self, file: SkribiFile) -> None:
         """
         Execute the file
         :param file:
@@ -15,15 +15,14 @@ class Program:
         """
 
         # first step: transform the file into a list of tokens
-        lexer = Lexer(file)
+        lexer = Lexer(file.get_content())
         for token in lexer:
             print(token)
 
         # second step: analyse the list of tokens
-        # parser = Parser(lexer.tokens)
-        # parser.analyse()
+        # parser = Parser(tokens)
+        # parser. ......
 
         # third step: execute the program
-        # interpreter = Interpreter(parser.program)
-        # interpreter.analyse()
-        pass
+        # interpreter = Interpreter(......)
+        # interpreter. ....

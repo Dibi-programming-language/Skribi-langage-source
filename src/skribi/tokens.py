@@ -28,6 +28,7 @@ class Lexer:
         self.text = text
         self.pos = 0
         self.current_char = self.text[self.pos]
+        print("end of init")
 
     def advance(self):
         self.pos += 1
@@ -35,6 +36,7 @@ class Lexer:
             self.current_char = None
         else:
             self.current_char = self.text[self.pos]
+        print("end of advance")
 
     def skip_whitespace(self):
         while self.current_char is not None and self.current_char.isspace():
@@ -75,5 +77,6 @@ class Lexer:
     def __iter__(self):
         while self.current_char is not None:
             token = self.get_next_token()
+            print(token)
             yield token
 

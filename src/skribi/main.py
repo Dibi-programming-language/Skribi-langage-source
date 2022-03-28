@@ -13,6 +13,7 @@ shell_file = skribi_file.SkribiFile(None)
 
 def execute(code, file):
     """ Execute code in Skribi """
+    print("Executing code in Skribi...")
     if file:
         program_instance.analyse(skribi_file.SkribiFile(code))
     else:
