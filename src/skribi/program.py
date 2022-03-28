@@ -2,36 +2,28 @@
 # class of a program #
 # ================== #
 
+from tokens import *
+
+
 class Program:
 
-    def execute(self, file):
+    def analyse(self, file):
         """
         Execute the file
         :param file:
         :return:
         """
+
+        # first step: transform the file into a list of tokens
+        lexer = Lexer(file)
+        for token in lexer:
+            print(token)
+
+        # second step: analyse the list of tokens
+        # parser = Parser(lexer.tokens)
+        # parser.analyse()
+
+        # third step: execute the program
+        # interpreter = Interpreter(parser.program)
+        # interpreter.analyse()
         pass
-
-
-# ====== #
-# tokens #
-# ====== #
-
-TT_INT = 'TT_INT'
-TT_FLOAT = 'FLOAT'
-TT_PLUS = 'PLUS'
-TT_PLUS_DIBI = 'PLUS_DIBI'
-
-class Token:
-
-    def __init__(self, type_, value):
-        self.type = type_
-        self.value = value
-
-    def __repr__(self):
-        if self.value: return f'{self.type}:{self.value}'
-        return f'{self.type}'
-
-# ============== #
-# class of LEXER #
-# ============== #
