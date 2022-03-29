@@ -8,3 +8,6 @@ class SkribiFile:
 
     def set_content(self, content):
         self.content = content
+
+    def get_content(self):
+        return self.content
