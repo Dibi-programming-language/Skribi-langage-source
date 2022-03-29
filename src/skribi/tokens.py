@@ -2,10 +2,11 @@
 # tokens #
 # ====== #
 
-TT_INT = 'TT_INT'
+TT_INT = 'INT'
 TT_FLOAT = 'FLOAT'
-TT_PLUS = 'PLUS'
-TT_PLUS_DIBI = 'PLUS_DIBI'
+TT_STRING = 'STRING'
+TT_OPERATOR = 'OPERATOR'
+TT_BRACKET = 'BRACKET'
 
 
 class Token:
@@ -28,7 +29,6 @@ class Lexer:
         self.text = text
         self.pos = 0
         self.current_char = self.text[self.pos]
-        print("end of init")
 
     def advance(self):
         self.pos += 1
@@ -36,7 +36,6 @@ class Lexer:
             self.current_char = None
         else:
             self.current_char = self.text[self.pos]
-        print("end of advance")
 
     def skip_whitespace(self):
         while self.current_char is not None and self.current_char.isspace():
@@ -79,4 +78,3 @@ class Lexer:
             token = self.get_next_token()
             print(token)
             yield token
-
