@@ -46,7 +46,14 @@ class Lexer:
         while self.current_char is not None and self.current_char.isdigit():
             result += self.current_char
             self.advance()
-        return int(result)
+        if self.current_char == '.':
+            result += self.current_char
+            self.advance()
+            while self.current_char is not None and self.current_char.isdigit():
+                result += self.current_char
+                self.advance()
+            return Token(TT_FLOAT, float(result))
+        return Token(TT_INT, int(result))
 
     def get_next_token(self):
         while self.current_char is not None:
@@ -56,15 +63,31 @@ class Lexer:
                 continue
 
             if self.current_char.isdigit():
-                return Token(TT_INT, self.integer())
+                return self.integer()
 
             if self.current_char == '+':
                 self.advance()
-                return Token(TT_PLUS, '+')
+                return Token(TT_OPERATOR, '+')
 
-            if self.current_char == '+':
+            if self.current_char == '-':
                 self.advance()
-                return Token(TT_PLUS_DIBI, '+')
+                return Token(TT_OPERATOR, '-')
+
+            if self.current_char == '*':
+                self.advance()
+                return Token(TT_OPERATOR, '*')
+
+            if self.current_char == '/':
+                self.advance()
+                return Token(TT_OPERATOR, '/')
+
+            if self.current_char == '(':
+                self.advance()
+                return Token(TT_BRACKET, '(')
+
+            if self.current_char == ')':
+                self.advance()
+                return Token(TT_BRACKET, ')')
 
             self.error()
 
