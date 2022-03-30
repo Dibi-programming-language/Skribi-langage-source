@@ -2,10 +2,11 @@
 # tokens #
 # ====== #
 
-TT_INT = 'TT_INT'
+TT_INT = 'INT'
 TT_FLOAT = 'FLOAT'
-TT_PLUS = 'PLUS'
-TT_PLUS_DIBI = 'PLUS_DIBI'
+TT_STRING = 'STRING'
+TT_OPERATOR = 'OPERATOR'
+TT_BRACKET = 'BRACKET'
 
 
 class Token:
@@ -28,7 +29,6 @@ class Lexer:
         self.text = text
         self.pos = 0
         self.current_char = self.text[self.pos]
-        print("end of init")
 
     def advance(self):
         self.pos += 1
@@ -36,7 +36,6 @@ class Lexer:
             self.current_char = None
         else:
             self.current_char = self.text[self.pos]
-        print("end of advance")
 
     def skip_whitespace(self):
         while self.current_char is not None and self.current_char.isspace():
@@ -47,7 +46,27 @@ class Lexer:
         while self.current_char is not None and self.current_char.isdigit():
             result += self.current_char
             self.advance()
-        return int(result)
+        if self.current_char == '.':
+            result += self.current_char
+            self.advance()
+            while self.current_char is not None and self.current_char.isdigit():
+                result += self.current_char
+                self.advance()
+            return Token(TT_FLOAT, float(result))
+        return Token(TT_INT, int(result))
+
+    def string(self, sep='"'):
+        result = ''
+        backslash = False
+        while self.current_char is not None and (self.current_char != sep or backslash):
+            result += self.current_char
+            if self.current_char == '\\' and not backslash:
+                backslash = True
+            else:
+                backslash = False
+            self.advance()
+        self.advance()
+        return Token(TT_STRING, result)
 
     def get_next_token(self):
         while self.current_char is not None:
@@ -57,15 +76,34 @@ class Lexer:
                 continue
 
             if self.current_char.isdigit():
-                return Token(TT_INT, self.integer())
+                return self.integer()
 
             if self.current_char == '+':
                 self.advance()
-                return Token(TT_PLUS, '+')
+                return Token(TT_OPERATOR, '+')
 
-            if self.current_char == '+':
+            if self.current_char == '-':
                 self.advance()
-                return Token(TT_PLUS_DIBI, '+')
+                return Token(TT_OPERATOR, '-')
+
+            if self.current_char == '*':
+                self.advance()
+                return Token(TT_OPERATOR, '*')
+
+            if self.current_char == '/':
+                self.advance()
+                return Token(TT_OPERATOR, '/')
+
+            if self.current_char == '(':
+                self.advance()
+                return Token(TT_BRACKET, '(')
+
+            if self.current_char == ')':
+                self.advance()
+                return Token(TT_BRACKET, ')')
+
+            if self.current_char == '"':
+                return self.string()
 
             self.error()
 
@@ -79,4 +117,3 @@ class Lexer:
             token = self.get_next_token()
             print(token)
             yield token
-
