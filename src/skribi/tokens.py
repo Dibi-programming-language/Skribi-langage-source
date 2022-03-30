@@ -55,6 +55,19 @@ class Lexer:
             return Token(TT_FLOAT, float(result))
         return Token(TT_INT, int(result))
 
+    def string(self, sep='"'):
+        result = ''
+        backslash = False
+        while self.current_char is not None and (self.current_char != sep or backslash):
+            result += self.current_char
+            if self.current_char == '\\' and not backslash:
+                backslash = True
+            else:
+                backslash = False
+            self.advance()
+        self.advance()
+        return Token(TT_STRING, result)
+
     def get_next_token(self):
         while self.current_char is not None:
 
@@ -88,6 +101,9 @@ class Lexer:
             if self.current_char == ')':
                 self.advance()
                 return Token(TT_BRACKET, ')')
+
+            if self.current_char == '"':
+                return self.string()
 
             self.error()
 
