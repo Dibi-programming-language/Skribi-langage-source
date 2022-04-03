@@ -1,3 +1,6 @@
+from src.skribi.custom_exception import SkribiException, ExceptionLine
+from src.skribi.skribi_file import SkribiFile
+
 # ====== #
 # tokens #
 # ====== #
@@ -25,10 +28,12 @@ class Token:
 # ===== #
 
 class Lexer:
-    def __init__(self, text):
+    def __init__(self, text, file: SkribiFile):
         self.text = text
         self.pos = 0
         self.current_char = self.text[self.pos]
+        self.line = 1
+        self.file = file
 
     def advance(self):
         self.pos += 1
@@ -105,12 +110,16 @@ class Lexer:
             if self.current_char == '"':
                 return self.string()
 
-            self.error()
+            if self.current_char == '\n':
+                self.line += 1
+
+            return self.error()
 
         return Token(None, None)
 
     def error(self):
-        raise Exception('Invalid character')
+        return SkribiException(
+            f'Invalid character: {self.current_char}', "Tokenizer", (ExceptionLine(self.line, self.file.get_path())))
 
     def __iter__(self):
         while self.current_char is not None:
