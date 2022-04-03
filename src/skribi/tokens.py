@@ -105,7 +105,7 @@ class Lexer:
             if self.current_char == '"':
                 return self.string()
 
-            self.error()
+            return
 
         return Token(None, None)
 
