@@ -15,7 +15,7 @@ class Program:
         """
 
         # first step: transform the file into a list of tokens
-        lexer = Lexer(file.get_content())
+        lexer = Lexer(file.get_content(), file)
         for token in lexer:
             print(token)
 
