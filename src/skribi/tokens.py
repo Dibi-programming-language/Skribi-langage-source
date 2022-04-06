@@ -10,6 +10,7 @@ TT_FLOAT = 'FLOAT'
 TT_STRING = 'STRING'
 TT_OPERATOR = 'OPERATOR'
 TT_BRACKET = 'BRACKET'
+TT_NEWLINE = 'NEWLINE'
 
 
 class Token:
@@ -112,6 +113,7 @@ class Lexer:
 
             if self.current_char == '\n':
                 self.line += 1
+                return Token("NEWLINE", self.line)
 
             return self.error()
 

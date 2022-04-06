@@ -66,8 +66,7 @@ class Parser:
         self.index = 0
         self.current_token = None
         self.current_node = None
-        self.current_line = None
-        self.current_column = None
+        self.current_line = 0
 
     # Parse
     def parse(self, tokens: list):
@@ -75,42 +74,13 @@ class Parser:
         self.index = 0
         self.current_token = None
         self.current_node = None
-        self.current_line = None
-        self.current_column = None
+        self.current_line = 0
         self.next_token()
         return self.parse_expr()
 
     # Parse expression
     def parse_expr(self):
-        self.current_node = self.parse_term()
-        while self.current_token.value in ["+", "-", "*", "/", "^"]:
-            self.current_node = OperatorNode(self.current_token, self.current_node, self.parse_term())
-            self.next_token()
-        return self.current_node
-
-    # Parse term
-    def parse_term(self):
-        self.current_node = self.parse_factor()
-        while self.current_token.value in ["+", "-", "*", "/", "^"]:
-            self.current_node = OperatorNode(self.current_token, self.current_node, self.parse_factor())
-            self.next_token()
-        return self.current_node
-
-    # Parse factor
-    def parse_factor(self):
-        if self.current_token.type == "number":
-            self.current_node = NumberNode(self.current_token)
-            self.next_token()
-        elif self.current_token.type == "left_parenthesis":
-            self.next_token()
-            self.current_node = self.parse_expr()
-            if self.current_token.type == "right_parenthesis":
-                self.next_token()
-            else:
-                raise SkribiException("Missing right parenthesis", "parsing")
-        else:
-            raise SkribiException("Unexpected token: " + str(self.current_token.value), "parsing")
-        return self.current_node
+        pass
 
     def next_token(self):
         if self.index >= len(self.tokens):
@@ -118,6 +88,9 @@ class Parser:
             return
         self.current_token = self.tokens[self.index]
         self.index += 1
-        self.current_line = self.current_token.line
-        self.current_column = self.current_token.column
+        # si le token est une nouvelle ligne, ajouter une ligne au compteur de ligne
+        if self.current_token.type == "NEWLINE":
+            self.current_line += 1
+            # je ne passe pas au prochain token pour que le programme puisse donner une erreur
+
         return
