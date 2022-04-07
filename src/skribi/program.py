@@ -4,6 +4,7 @@
 from src.skribi.skribi_file import SkribiFile
 from src.skribi.tokens import Lexer
 from src.skribi.custom_exception import SkribiException, ExceptionLine
+from src.skribi.parser import Parser
 
 
 class Program:
@@ -24,8 +25,11 @@ class Program:
             tokens.append(token)
 
         # second step: analyse the list of tokens
-        # parser = Parser(tokens)
-        # parser. ......
+        parser = Parser()
+        result = parser.parse(tokens)
+        if isinstance(result, SkribiException):
+            result.print_complete_error()
+            return
 
         # third step: execute the program
         # interpreter = Interpreter(......)

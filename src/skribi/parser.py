@@ -80,7 +80,31 @@ class Parser:
 
     # Parse expression
     def parse_expr(self):
-        pass
+        return self.parse_math_expr()
+
+    # Parse math expression
+    def parse_math_expr(self):
+        # tant que le token courant est un nombre, on l'ajoute à la liste
+        current_numbers = []
+        while self.current_token.type == "INT" or self.current_token.type == "FLOAT":
+            current_numbers.append(self.current_token)
+            self.next_token()
+        # tant que le token courant est un opérateur : prendre l'opérateur et les 2 nombres précédents (en partant de
+        # la fin de la liste)
+        if len(current_numbers) == 0:
+            return SkribiException("Missing operand", "parsing")
+        current_operator = current_numbers[-1]  # le premier opérateur est le dernier nombre
+        current_numbers.pop()
+        while self.current_token.type == "OPERATOR":
+            if len(current_numbers) == 0:
+                return SkribiException("Missing operand", "parsing")
+            current_operator = OperatorNode(self.current_token, current_numbers[-1], current_operator)
+            current_numbers.pop()
+            self.next_token()
+        # retourner le noeud, /!\ s'il reste des nombres à la fin, error
+        if len(current_numbers) > 0:
+            return SkribiException("Missing operator", "parsing")
+        return current_operator
 
     def next_token(self):
         if self.index >= len(self.tokens):
