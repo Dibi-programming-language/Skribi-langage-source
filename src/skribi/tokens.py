@@ -10,6 +10,7 @@ TT_FLOAT = 'FLOAT'
 TT_STRING = 'STRING'
 TT_OPERATOR = 'OPERATOR'
 TT_BRACKET = 'BRACKET'
+TT_NEWLINE = 'NEWLINE'
 
 
 class Token:
@@ -112,6 +113,7 @@ class Lexer:
 
             if self.current_char == '\n':
                 self.line += 1
+                return Token("NEWLINE", self.line)
 
             return self.error()
 
@@ -119,10 +121,12 @@ class Lexer:
 
     def error(self):
         return SkribiException(
-            f'Invalid character: {self.current_char}', "Tokenizer", (ExceptionLine(self.line, self.file.get_path())))
+            f'Invalid character: {self.current_char}', "Tokenizer", [ExceptionLine(self.line, self.file.get_path())])
 
     def __iter__(self):
         while self.current_char is not None:
             token = self.get_next_token()
-            print(token)
+            if isinstance(token, SkribiException):
+                token.print_complete_error()
+                return token
             yield token

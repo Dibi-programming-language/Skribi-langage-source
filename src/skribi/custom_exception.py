@@ -8,7 +8,7 @@ class ExceptionLine(Exception):
         self.file = file
 
     def __str__(self):
-        return self.line + " in " + self.file
+        return str(self.line) + " in " + self.file
 
 
 class SkribiException(Exception):
@@ -17,7 +17,7 @@ class SkribiException(Exception):
     """
 
     # when = token / parse / execute; lines = list of lines
-    def __init__(self, message, when, lines=None):
+    def __init__(self, message, when, lines:list=None):
         self.message = message
         self.when = when
         self.lines = lines
@@ -30,4 +30,4 @@ class SkribiException(Exception):
         print("When " + self.when)
         if self.lines is not None:
             for line in self.lines:
-                print("\t at:", line)
+                print("\t at: line", line)
