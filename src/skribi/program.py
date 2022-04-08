@@ -32,5 +32,4 @@ class Program:
             return
 
         # third step: execute the program
-        # interpreter = Interpreter(......)
-        # interpreter. ....
+        print(result.evaluate())
