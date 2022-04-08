@@ -87,7 +87,7 @@ class Parser:
         # tant que le token courant est un nombre, on l'ajoute à la liste
         current_numbers = []
         while self.current_token.type == "INT" or self.current_token.type == "FLOAT":
-            current_numbers.append(self.current_token)
+            current_numbers.append(NumberNode(self.current_token))
             self.next_token()
         # tant que le token courant est un opérateur : prendre l'opérateur et les 2 nombres précédents (en partant de
         # la fin de la liste)
