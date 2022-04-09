@@ -47,7 +47,7 @@ class Lexer:
         while self.current_char is not None and self.current_char.isspace():
             self.advance()
 
-    def integer(self):
+    def integer(self, negative=1):
         result = ''
         while self.current_char is not None and self.current_char.isdigit():
             result += self.current_char
@@ -58,8 +58,8 @@ class Lexer:
             while self.current_char is not None and self.current_char.isdigit():
                 result += self.current_char
                 self.advance()
-            return Token(TT_FLOAT, float(result))
-        return Token(TT_INT, int(result))
+            return Token(TT_FLOAT, float(result) * negative)
+        return Token(TT_INT, int(result) * negative)
 
     def string(self, sep='"'):
         result = ''
@@ -90,6 +90,9 @@ class Lexer:
 
             if self.current_char == '-':
                 self.advance()
+                # si le prochain caractère est un chiffre, c'est un nombre négatif
+                if self.current_char is not None and self.current_char.isdigit():
+                    return self.integer(-1)
                 return Token(TT_OPERATOR, '-')
 
             if self.current_char == '*':

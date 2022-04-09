@@ -84,25 +84,25 @@ class Parser:
 
     # Parse math expression
     def parse_math_expr(self):
-        # tant que le token courant est un nombre, on l'ajoute à la liste
-        current_numbers = []
-        while self.current_token.type == "INT" or self.current_token.type == "FLOAT":
-            current_numbers.append(NumberNode(self.current_token))
-            self.next_token()
-        # tant que le token courant est un opérateur : prendre l'opérateur et les 2 nombres précédents (en partant de
-        # la fin de la liste)
-        if len(current_numbers) == 0:
-            return SkribiException("Missing operand", "parsing")
-        current_operator = current_numbers[-1]  # le premier opérateur est le dernier nombre
-        current_numbers.pop()
-        while self.current_token.type == "OPERATOR":
-            if len(current_numbers) == 0:
-                return SkribiException("Missing operand", "parsing")
-            current_operator = OperatorNode(self.current_token, current_numbers[-1], current_operator)
-            current_numbers.pop()
-            self.next_token()
-        # retourner le noeud, /!\ s'il reste des nombres à la fin, error
-        if len(current_numbers) > 0:
+        # si le token n'est pas un FLOAT ou un INT, je lève une exception
+        if self.current_token.type != "FLOAT" and self.current_token.type != "INT":
+            return SkribiException("Expected a number, got: " + str(self.current_token.value), "parsing")
+        current_operator = NumberNode(self.current_token)
+        self.next_token()
+        # tant que le token est un FLOAT ou un INT ou une opération, je répète l'opération : si le token est un FLOAT
+        # ou un INT, je l'ajoute à la pile sinon j'enlève de la pile le dernier élément et je prends un NumberNode
+        numbers_pile = []
+        while self.current_token.type == "FLOAT" or self.current_token.type == "INT"\
+                or self.current_token.type == "OPERATOR":
+            if self.current_token.type == "FLOAT" or self.current_token.type == "INT":
+                numbers_pile.append(NumberNode(self.current_token))
+                self.next_token()
+            else:
+                if len(numbers_pile) < 1:
+                    return SkribiException("Expected a number, got: " + str(self.current_token.value), "parsing")
+                current_operator = OperatorNode(self.current_token, numbers_pile.pop(), current_operator)
+                self.next_token()
+        if len(numbers_pile) > 0:
             return SkribiException("Missing operator", "parsing")
         return current_operator
 
