@@ -17,7 +17,9 @@ class ContainVariables:
         if isinstance(b, SkribiException):
             return b
         elif not b:
-            self.variables[name] = variable
+            # variable not exist, return an error
+            return SkribiException("Variable '{}' not found, please create it before use it".format(name), "interpreter"
+                                   , current_scope.trace())
 
     def get_variable(self, name: str, current_scope):
         if name in self.variables:
