@@ -39,6 +39,15 @@ class ContainVariables:
                 return True
         elif self.parent:
             return self.parent.check_and_set_variable_in_parent(name, variable, current_scope)
+        else:
+            return False
+
+    def create_variable(self, name: str, variable, current_scope) -> SkribiException or None:
+        if name in self.variables:
+            return SkribiException("Variable '{}' already exists".format(name), "interpreter", current_scope.trace())
+        else:
+            self.variables[name] = variable
+            return None
 
 
 # ====================== #
