@@ -18,8 +18,8 @@ class ContainVariables:
             return b
         elif not b:
             # variable not exist, return an error
-            return SkribiException("Variable '{}' not found, please create it before use it".format(name), "interpreter"
-                                   , current_scope.trace())
+            return SkribiException("Variable '{}' not found, please create it before use it".format(name),
+                                   "interpreter", current_scope.trace())
 
     def get_variable(self, name: str, current_scope):
         if name in self.variables:
@@ -54,8 +54,9 @@ class ContainVariables:
 # class of a Skribi file #
 # ====================== #
 
-class SkribiFile:
+class SkribiFile(ContainVariables):
     def __init__(self, content, path):
+        super().__init__()
         self.content = content
         self.path = path
 
