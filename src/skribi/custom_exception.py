@@ -17,7 +17,7 @@ class SkribiException(Exception):
     """
 
     # when = token / parse / execute; lines = list of lines
-    def __init__(self, message, when, lines:list=None):
+    def __init__(self, message, when, lines: list = None):
         self.message = message
         self.when = when
         self.lines = lines

@@ -9,8 +9,13 @@ TT_INT = 'INT'
 TT_FLOAT = 'FLOAT'
 TT_STRING = 'STRING'
 TT_OPERATOR = 'OPERATOR'
+TT_COMPARAISON = 'COMPARAISON'
+TT_BINARY_OPERATOR = 'BINARY_OPERATOR'
 TT_BRACKET = 'BRACKET'
 TT_NEWLINE = 'NEWLINE'
+TT_COMMENT = 'COMMENT'
+TT_IDENTIFIER = 'IDENTIFIER'
+TT_EQUAL = 'EQUAL'
 
 
 class Token:
@@ -20,7 +25,8 @@ class Token:
         self.value = value
 
     def __repr__(self):
-        if self.value: return f'{self.type}:{self.value}'
+        if self.value:
+            return f'{self.type}:{self.value}'
         return f'{self.type}'
 
 
@@ -74,6 +80,13 @@ class Lexer:
         self.advance()
         return Token(TT_STRING, result)
 
+    def identifier(self):
+        result = ''
+        while self.current_char is not None and self.current_char.isalnum():
+            result += self.current_char
+            self.advance()
+        return Token(TT_IDENTIFIER, result)
+
     def get_next_token(self):
         while self.current_char is not None:
 
@@ -116,7 +129,39 @@ class Lexer:
 
             if self.current_char == '\n':
                 self.line += 1
+                self.advance()
                 return Token("NEWLINE", self.line)
+
+            if self.current_char == '=':
+                self.advance()
+                if self.current_char == '=':
+                    self.advance()
+                    return Token(TT_COMPARAISON, '==')
+                return Token(TT_EQUAL, '=')
+
+            if self.current_char == '!':
+                self.advance()
+                if self.current_char == '=':
+                    self.advance()
+                    return Token(TT_COMPARAISON, '!=')
+                return Token(TT_BINARY_OPERATOR, '!')
+
+            if self.current_char == '<':
+                self.advance()
+                if self.current_char == '=':
+                    self.advance()
+                    return Token(TT_COMPARAISON, '<=')
+                return Token(TT_COMPARAISON, '<')
+
+            if self.current_char == '>':
+                self.advance()
+                if self.current_char == '=':
+                    self.advance()
+                    return Token(TT_COMPARAISON, '>=')
+                return Token(TT_COMPARAISON, '>')
+
+            if self.current_char.isalpha():
+                return self.identifier()
 
             return self.error()
 

@@ -6,7 +6,7 @@ from custom_exception import *
 # element that can contain variables #
 # ================================== #
 
-class ContainVariables:
+class ContainsVariables:
 
     def __init__(self, parent=None):
         self.parent = parent
@@ -18,8 +18,8 @@ class ContainVariables:
             return b
         elif not b:
             # variable not exist, return an error
-            return SkribiException("Variable '{}' not found, please create it before use it".format(name), "interpreter"
-                                   , current_scope.trace())
+            return SkribiException("Variable '{}' not found, please create it before use it".format(name),
+                                   "interpreter", current_scope.trace())
 
     def get_variable(self, name: str, current_scope):
         if name in self.variables:
@@ -54,10 +54,14 @@ class ContainVariables:
 # class of a Skribi file #
 # ====================== #
 
-class SkribiFile:
+class SkribiFile(ContainsVariables):
     def __init__(self, content, path):
+        super().__init__()
         self.content = content
         self.path = path
+        self.lexer = None
+        self.parser = None
+        self.result = None
 
     def set_content(self, content):
         self.content = content
