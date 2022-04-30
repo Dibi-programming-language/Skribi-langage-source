@@ -6,7 +6,7 @@ from custom_exception import *
 # element that can contain variables #
 # ================================== #
 
-class ContainVariables:
+class ContainsVariables:
 
     def __init__(self, parent=None):
         self.parent = parent
@@ -54,11 +54,14 @@ class ContainVariables:
 # class of a Skribi file #
 # ====================== #
 
-class SkribiFile(ContainVariables):
+class SkribiFile(ContainsVariables):
     def __init__(self, content, path):
         super().__init__()
         self.content = content
         self.path = path
+        self.lexer = None
+        self.parser = None
+        self.result = None
 
     def set_content(self, content):
         self.content = content
