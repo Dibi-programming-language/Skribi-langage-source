@@ -1,5 +1,5 @@
-from variables_and_types import *
-from custom_exception import *
+from src.skribi.variables_and_types import *
+from src.skribi.custom_exception import *
 
 
 # ================================== #
