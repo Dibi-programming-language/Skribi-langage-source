@@ -22,16 +22,4 @@ class Variable:
 # Types in Skribi               #
 # ============================= #
 
-class BaseType:
-    """
-    A base type is a type that can be used in a variable.
-    """
 
-    def __init__(self, name):
-        self.name = name
-
-    def __str__(self):
-        return self.name
-
-    def __repr__(self):
-        return self.name
