@@ -39,4 +39,7 @@ class BaseType:
 
         return self.extends.extends_type(other)
 
+# Custom types
+
+
 
