@@ -5,16 +5,26 @@
 # Imports
 from src.skribi.tokens import Token
 from src.skribi.custom_exception import SkribiException, ExceptionLine
+from src.skribi.skribi_file import ContainsVariables
 
 
 # --------------------------------------------------------------------------- #
 # Nodes                                                                       #
 # --------------------------------------------------------------------------- #
 
+# class Node that can be evaluated
+class EvaluableNode(object):
+    def __init__(self, token):
+        self.token = token
+
+    def evaluate(self):
+        pass
+
 # Number node
-class NumberNode(object):
+class NumberNode(EvaluableNode):
     # Constructor with token
     def __init__(self, token: Token):
+        super().__init__(token)
         self.token = token
 
     # String representation
@@ -27,9 +37,10 @@ class NumberNode(object):
 
 
 # Operator node
-class OperatorNode(object):
+class OperatorNode(EvaluableNode):
     # Constructor with token and 2 left nodes (reverse polish notation)
     def __init__(self, token: Token, left1, left2):
+        super().__init__(token)
         self.token = token
         self.left1 = left1
         self.left2 = left2
@@ -52,6 +63,35 @@ class OperatorNode(object):
             return self.left1.evaluate() ** self.left2.evaluate()
         else:
             return SkribiException("Unknown operator: " + str(self.token.value), "evaluation")
+
+# Node for a variable declaration
+class VariableNode(object):
+    """
+    Node for a variable declaration. Syntax: [name]:<optional type> = [value]
+    """
+
+    # constructor with value and name and optional type
+    def __init__(self, name: Token, value: EvaluableNode, type_: Token = None):
+        self.name = name
+        self.value = value
+        self.type_ = type_
+
+    # String representation
+    def __str__(self):
+        if self.type_ is None:
+            return str(self.name.value) + " = " + str(self.value.evaluate())
+        else:
+            return str(self.name.value) + ":" + str(self.type_.value) + " = " + str(self.value.evaluate())
+
+    # Execute TODO : il faut avant faire les variables
+    def execute(self, scope: ContainsVariables):
+        if self.type_ is None:
+            if scope.check_name(self.name.value):
+                scope.set_variable(self.name.value, self.value.evaluate(), scope)
+            else:
+                scope.create_variable(self.name.value, self.value.evaluate(), scope)
+        else:
+            pass
 
 
 # --------------------------------------------------------------------------- #

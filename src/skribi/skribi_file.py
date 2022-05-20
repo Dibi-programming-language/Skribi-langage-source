@@ -42,6 +42,14 @@ class ContainsVariables:
         else:
             return False
 
+    def check_name(self, name: str) -> SkribiException or None:
+        if name in self.variables:
+            return True
+        elif self.parent:
+            return self.parent.check_name(name)
+        else:
+            return False
+
     def create_variable(self, name: str, variable, current_scope) -> SkribiException or None:
         if name in self.variables:
             return SkribiException("Variable '{}' already exists".format(name), "interpreter", current_scope.trace())
