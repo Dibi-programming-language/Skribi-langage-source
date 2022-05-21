@@ -2,7 +2,7 @@
 # exception for custom errors in skribi #
 # ===================================== #
 
-class ExceptionLine(Exception):
+class ExceptionLine:
     def __init__(self, line, file):
         self.line = line
         self.file = file

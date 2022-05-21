@@ -13,12 +13,13 @@ from src.skribi.skribi_file import ContainsVariables
 # --------------------------------------------------------------------------- #
 
 # class Node that can be evaluated
-class EvaluableNode(object):
+class EvaluableNode:
     def __init__(self, token):
         self.token = token
 
     def evaluate(self):
         pass
+
 
 # Number node
 class NumberNode(EvaluableNode):
@@ -64,8 +65,9 @@ class OperatorNode(EvaluableNode):
         else:
             return SkribiException("Unknown operator: " + str(self.token.value), "evaluation")
 
+
 # Node for a variable declaration
-class VariableNode(object):
+class VariableNode:
     """
     Node for a variable declaration. Syntax: [name]:<optional type> = [value]
     """
@@ -132,7 +134,7 @@ class Parser:
         # tant que le token est un FLOAT ou un INT ou une opération, je répète l'opération : si le token est un FLOAT
         # ou un INT, je l'ajoute à la pile sinon j'enlève de la pile le dernier élément et je prends un NumberNode
         numbers_pile = []
-        while self.current_token.type == "FLOAT" or self.current_token.type == "INT"\
+        while self.current_token.type == "FLOAT" or self.current_token.type == "INT" \
                 or self.current_token.type == "OPERATOR":
             if self.current_token.type == "FLOAT" or self.current_token.type == "INT":
                 numbers_pile.append(NumberNode(self.current_token))
