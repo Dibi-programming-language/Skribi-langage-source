@@ -39,7 +39,30 @@ class BaseType:
 
         return self.extends.extends_type(other)
 
+
 # Custom types
 
+class PrimitiveType(BaseType):
+    """
+    A primitive type is a type defined by the language.
+    """
+
+    def __init__(self, name, scope, extends=None):
+        super().__init__(name, scope, is_primitive=True, extends=extends)
+
+
+class CustomType(BaseType):
+    """
+    A custom type is a type defined by the user.
+    """
+
+    def __init__(self, name, scope, extends=None):
+        super().__init__(name, scope, extends=extends)
+
+
+class Function:
+    """
+    A function has input and output types and a body with many nodes
+    """
 
 
