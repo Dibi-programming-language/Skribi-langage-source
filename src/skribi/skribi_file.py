@@ -1,5 +1,5 @@
-from variables_and_types import *
-from custom_exception import *
+from src.skribi.variables_and_types import *
+from src.skribi.custom_exception import *
 
 
 # ================================== #
@@ -39,6 +39,14 @@ class ContainsVariables:
                 return True
         elif self.parent:
             return self.parent.check_and_set_variable_in_parent(name, variable, current_scope)
+        else:
+            return False
+
+    def check_name(self, name: str) -> SkribiException or None:
+        if name in self.variables:
+            return True
+        elif self.parent:
+            return self.parent.check_name(name)
         else:
             return False
 
