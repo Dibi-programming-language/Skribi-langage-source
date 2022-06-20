@@ -135,3 +135,25 @@ class SkribiFile(ContainsVariables, ContainsTypes):
 
     def get_path(self):
         return self.path
+
+
+# ====================== #
+# class of a scope stack #
+# ====================== #
+
+class ScopeStack:
+    def __init__(self):
+        self.stack = []
+
+    def push(self, scope):
+        self.stack.append(scope)
+
+    def pop(self):
+        return self.stack.pop()
+
+    def get_current_scope(self):
+        return self.stack[-1]
+
+    def get_trace(self):
+        for scope in self.stack:
+            yield scope.trace()

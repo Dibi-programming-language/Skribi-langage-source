@@ -5,12 +5,15 @@
 # Imports
 from src.skribi.tokens import Token
 from src.skribi.custom_exception import SkribiException, ExceptionLine
-from src.skribi.skribi_file import ContainsVariables
+from src.skribi.skribi_file import ScopeStack
 
 
 # --------------------------------------------------------------------------- #
 # Nodes                                                                       #
 # --------------------------------------------------------------------------- #
+
+scope_stack = ScopeStack()
+
 
 # class Node that can be evaluated
 class EvaluableNode:
@@ -18,6 +21,14 @@ class EvaluableNode:
         self.token = token
 
     def evaluate(self):
+        pass
+
+
+class ExecutableNode:
+    def __init__(self, token):
+        self.token = token
+
+    def execute(self):
         pass
 
 
@@ -63,17 +74,18 @@ class OperatorNode(EvaluableNode):
         elif self.token.value == "^":
             return self.left1.evaluate() ** self.left2.evaluate()
         else:
-            return SkribiException("Unknown operator: " + str(self.token.value), "evaluation")
+            return SkribiException("Unknown operator: " + str(self.token.value), "evaluation", scope_stack.get_trace())
 
 
 # Node for a variable declaration
-class VariableNode:
+class VariableNode(ExecutableNode):
     """
     Node for a variable declaration. Syntax: [name]:<optional type> = [value]
     """
 
     # constructor with value and name and optional type
-    def __init__(self, name: Token, value: EvaluableNode, type_: Token = None):
+    def __init__(self, name: Token, value: EvaluableNode, token, type_: Token = None):
+        super().__init__(token)
         self.name = name
         self.value = value
         self.type_ = type_
@@ -86,12 +98,14 @@ class VariableNode:
             return str(self.name.value) + ":" + str(self.type_.value) + " = " + str(self.value.evaluate())
 
     # Execute TODO : il faut avant faire les variables
-    def execute(self, scope: ContainsVariables):
+    def execute(self):
         if self.type_ is None:
-            if scope.check_name(self.name.value):
-                scope.set_variable(self.name.value, self.value.evaluate(), scope)
+            if scope_stack.get_current_scope().check_name(self.name.value):
+                scope_stack.get_current_scope()\
+                    .set_variable(self.name.value, self.value.evaluate(), scope_stack.get_current_scope())
             else:
-                scope.create_variable(self.name.value, self.value.evaluate(), scope)
+                scope_stack.get_current_scope()\
+                    .create_variable(self.name.value, self.value.evaluate(), scope_stack.get_current_scope())
         else:
             pass
 
