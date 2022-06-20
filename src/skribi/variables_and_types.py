@@ -1,3 +1,5 @@
+from src.skribi.type_model import *
+
 # ============================= #
 # Variables and types in Skribi #
 # ============================= #
@@ -21,5 +23,36 @@ class Variable:
 # ============================= #
 # Types in Skribi               #
 # ============================= #
+
+# Primitive types
+
+class NumberType(PrimitiveType):
+    """
+    A number type is a type that can be used to store a number.
+    """
+
+    def __init__(self, scope, name="aritmi"):
+        super().__init__(name, scope)
+
+
+class StringType(PrimitiveType):
+    """
+    A string type is a type that can be used to store a string.
+    """
+
+    def __init__(self, scope):
+        super().__init__("cartais", scope)
+
+
+class IntType(NumberType):
+    """
+    A int type is a type that can be used to store an integer.
+    """
+
+    def __init__(self, scope):
+        super().__init__(scope, "integi")
+
+
+
 
 
