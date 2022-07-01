@@ -110,13 +110,8 @@ class VariableNode(ExecutableNode):
             pass
 
 
-class ScopeNodeTemp:
-    def get_node(self, index):
-        pass
-
-
-class ScopeNode(ScopeNodeTemp):
-    def __init__(self, nodes: list[ExecutableNode | ScopeNodeTemp], token):
+class ScopeNode:
+    def __init__(self, nodes: list[ExecutableNode | 'ScopeNode'], token):
         super().__init__(token)
         self.nodes = nodes
 
