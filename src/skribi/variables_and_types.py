@@ -1,8 +1,27 @@
 from src.skribi.type_model import *
 
-# ============================= #
-# Variables and types in Skribi #
-# ============================= #
+
+# ============= #
+# Types actions #
+# ============= #
+
+# Enum for the different types of actions
+# ....
+
+# ============= #
+
+class ActionOnType:
+    """
+    An action on a type.
+    """
+
+    def __init__(self, name):
+        self.name = name
+
+
+# =================== #
+# Variables in Skribi #
+# =================== #
 
 class Variable:
     """
@@ -20,9 +39,9 @@ class Variable:
         return str(self.value) + " " + str(self.type)
 
 
-# ============================= #
-# Types in Skribi               #
-# ============================= #
+# =============== #
+# Types in Skribi #
+# =============== #
 
 # Primitive types
 
@@ -51,8 +70,3 @@ class IntType(NumberType):
 
     def __init__(self, scope):
         super().__init__(scope, "integi")
-
-
-
-
-
