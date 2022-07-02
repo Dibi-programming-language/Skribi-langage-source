@@ -1,3 +1,6 @@
+#!/usr/bin/env python3
+# *-* coding:utf-8 *-*
+
 # this file is the class for the type model and the class for custom types
 
 class BaseType:

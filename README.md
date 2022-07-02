@@ -9,3 +9,10 @@ Links :
 - [Dirtybiologistan wiki](https://dirtybiologistan.fandom.com/fr/wiki/Dirtybiologistan)
 - [Skribi discord](https://discord.gg/eGYQVGd4k3)
 - [Dibi discord](https://discord.gg/CKnqUxQaMq)
+
+
+## Run
+
+You can use shell.py
+
+WARNING : please use this directory as the working directory, not 'src'.

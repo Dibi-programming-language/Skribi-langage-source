@@ -1,3 +1,6 @@
+#!/usr/bin/env python3
+# *-* coding:utf-8 *-*
+
 from src.skribi.custom_exception import SkribiException, ExceptionLine
 from src.skribi.skribi_file import SkribiFile
 
