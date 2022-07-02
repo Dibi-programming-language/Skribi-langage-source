@@ -29,8 +29,7 @@ class SkribiException(Exception):
         return self.message
 
     def print_complete_error(self):
-        print("Error", self.message)
-        print("When " + self.when)
+        print(f"Error when {self.when} : {self.message}")
         if self.lines is not None:
             for line in self.lines:
-                print("\t at: line", line)
+                print("\t at line", line)

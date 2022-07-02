@@ -6,7 +6,7 @@
 # ================== #
 from src.skribi.skribi_file import SkribiFile
 from src.skribi.tokens import Lexer
-from src.skribi.custom_exception import SkribiException, ExceptionLine
+from src.skribi.custom_exception import SkribiException
 from src.skribi.parser import Parser
 
 

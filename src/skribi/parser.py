@@ -7,7 +7,7 @@
 
 # Imports
 from src.skribi.tokens import Token
-from src.skribi.custom_exception import SkribiException, ExceptionLine
+from src.skribi.custom_exception import SkribiException
 from src.skribi.skribi_file import ScopeStack
 
 
@@ -144,7 +144,7 @@ class Parser:
     # Parse math expression
     def parse_math_expr(self):
         # si le token n'est pas un FLOAT ou un INT, je lève une exception
-        if self.current_token.type != "FLOAT" and self.current_token.type != "INT":
+        if self.current_token.type not in ["FLOAT", "INT"]:
             return SkribiException("Expected a number, got: " + str(self.current_token.value), "parsing")
         current_operator = NumberNode(self.current_token)
         self.next_token()
