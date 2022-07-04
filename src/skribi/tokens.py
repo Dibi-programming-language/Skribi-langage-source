@@ -32,6 +32,9 @@ class Token:
             return f'{self.type}:{self.value}'
         return f'{self.type}'
 
+    def copy(self):
+        return Token(self.type, self.value)
+
 
 # ===== #
 # lexer #

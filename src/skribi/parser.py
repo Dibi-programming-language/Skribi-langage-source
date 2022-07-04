@@ -26,6 +26,9 @@ class EvaluableNode:
     def evaluate(self):
         pass
 
+    def copy(self):
+        return EvaluableNode(self.token.copy())
+
 
 class ExecutableNode:
     def __init__(self, token):
@@ -33,6 +36,9 @@ class ExecutableNode:
 
     def execute(self):
         pass
+
+    def copy(self):
+        return ExecutableNode(self.token.copy())
 
 
 # Number node
@@ -49,6 +55,9 @@ class NumberNode(EvaluableNode):
     # Evaluate
     def evaluate(self):
         return self.token.value
+
+    def copy(self):
+        return NumberNode(self.token.copy())
 
 
 # Operator node
@@ -78,6 +87,9 @@ class OperatorNode(EvaluableNode):
             return self.left1.evaluate() ** self.left2.evaluate()
         else:
             return SkribiException("Unknown operator: " + str(self.token.value), "evaluation", scope_stack.get_trace())
+
+    def copy(self):
+        return OperatorNode(self.token.copy(), self.left1.copy(), self.left2.copy())
 
 
 # Node for a variable declaration
@@ -111,6 +123,9 @@ class VariableNode(ExecutableNode):
                     .create_variable(self.name.value, self.value.evaluate(), scope_stack.get_current_scope())
         else:
             pass
+
+    def copy(self):
+        return VariableNode(self.name.copy(), self.value.copy(), self.token.copy(), self.type_.copy())
 
 
 # --------------------------------------------------------------------------- #
@@ -159,7 +174,7 @@ class Parser:
             else:
                 if len(numbers_pile) < 1:
                     return SkribiException("Expected a number, got: " + str(self.current_token.value), "parsing")
-                current_operator = OperatorNode(self.current_token, numbers_pile.pop(), current_operator)
+                current_operator = OperatorNode(self.current_token, numbers_pile.pop().copy(), current_operator.copy())
                 self.next_token()
         if len(numbers_pile) > 0:
             return SkribiException("Missing operator", "parsing")
