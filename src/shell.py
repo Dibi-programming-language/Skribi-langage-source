@@ -1,8 +1,14 @@
+#!/usr/bin/env python3
+# *-* coding:utf-8 *-*
+
 ##################
 # Skribi's shell #
 ##################
 
+# IMPORTS
+# Builtin python modules imports
 import os
+# Skribi imports
 from src.skribi.main import execute
 
 # main scope of shell
