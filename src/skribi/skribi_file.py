@@ -1,4 +1,6 @@
-from src.skribi.variables_and_types import *
+#!/usr/bin/env python3
+# *-* coding:utf-8 *-*
+
 from src.skribi.custom_exception import *
 
 

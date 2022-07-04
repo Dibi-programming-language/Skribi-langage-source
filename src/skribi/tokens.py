@@ -1,3 +1,6 @@
+#!/usr/bin/env python3
+# *-* coding:utf-8 *-*
+
 from src.skribi.custom_exception import SkribiException, ExceptionLine
 from src.skribi.skribi_file import SkribiFile
 
@@ -28,6 +31,9 @@ class Token:
         if self.value:
             return f'{self.type}:{self.value}'
         return f'{self.type}'
+
+    def copy(self):
+        return Token(self.type, self.value)
 
 
 # ===== #

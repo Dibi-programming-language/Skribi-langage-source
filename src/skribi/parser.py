@@ -1,10 +1,13 @@
+#!/usr/bin/env python3
+# *-* coding:utf-8 *-*
+
 ###############################################################################
 # Nodes and parser for the Skribi language.                                   #
 ###############################################################################
 
 # Imports
 from src.skribi.tokens import Token
-from src.skribi.custom_exception import SkribiException, ExceptionLine
+from src.skribi.custom_exception import SkribiException
 from src.skribi.skribi_file import ScopeStack
 
 
@@ -23,6 +26,9 @@ class EvaluableNode:
     def evaluate(self):
         pass
 
+    def copy(self):
+        return EvaluableNode(self.token.copy())
+
 
 class ExecutableNode:
     def __init__(self, token):
@@ -30,6 +36,9 @@ class ExecutableNode:
 
     def execute(self):
         pass
+
+    def copy(self):
+        return ExecutableNode(self.token.copy())
 
 
 # Number node
@@ -46,6 +55,9 @@ class NumberNode(EvaluableNode):
     # Evaluate
     def evaluate(self):
         return self.token.value
+
+    def copy(self):
+        return NumberNode(self.token.copy())
 
 
 # Operator node
@@ -75,6 +87,9 @@ class OperatorNode(EvaluableNode):
             return self.left1.evaluate() ** self.left2.evaluate()
         else:
             return SkribiException("Unknown operator: " + str(self.token.value), "evaluation", scope_stack.get_trace())
+
+    def copy(self):
+        return OperatorNode(self.token.copy(), self.left1.copy(), self.left2.copy())
 
 
 # Node for a variable declaration
@@ -108,6 +123,9 @@ class VariableNode(ExecutableNode):
                     .create_variable(self.name.value, self.value.evaluate(), scope_stack.get_current_scope())
         else:
             pass
+
+    def copy(self):
+        return VariableNode(self.name.copy(), self.value.copy(), self.token.copy(), self.type_.copy())
 
 
 class ScopeNode:
@@ -151,26 +169,28 @@ class Parser:
     # Parse math expression
     def parse_math_expr(self):
         # si le token n'est pas un FLOAT ou un INT, je lève une exception
-        if self.current_token.type != "FLOAT" and self.current_token.type != "INT":
+        if self.current_token.type not in ["FLOAT", "INT"]:
             return SkribiException("Expected a number, got: " + str(self.current_token.value), "parsing")
-        current_operator = NumberNode(self.current_token)
+
+        number_stack = [NumberNode(self.current_token)]
         self.next_token()
+
         # tant que le token est un FLOAT ou un INT ou une opération, je répète l'opération : si le token est un FLOAT
         # ou un INT, je l'ajoute à la pile sinon j'enlève de la pile le dernier élément et je prends un NumberNode
-        numbers_pile = []
-        while self.current_token.type == "FLOAT" or self.current_token.type == "INT" \
-                or self.current_token.type == "OPERATOR":
-            if self.current_token.type == "FLOAT" or self.current_token.type == "INT":
-                numbers_pile.append(NumberNode(self.current_token))
+        while self.current_token.type in ["FLOAT", "INT", "OPERATOR"]:
+            if self.current_token.type in ["FLOAT", "INT"]:
+                number_stack.append(NumberNode(self.current_token))
                 self.next_token()
             else:
-                if len(numbers_pile) < 1:
+                if len(number_stack) < 1:
                     return SkribiException("Expected a number, got: " + str(self.current_token.value), "parsing")
-                current_operator = OperatorNode(self.current_token, numbers_pile.pop(), current_operator)
+                a = number_stack.pop()
+                b = number_stack.pop()
+                number_stack.append(OperatorNode(self.current_token, b.copy(), a.copy()))
                 self.next_token()
-        if len(numbers_pile) > 0:
+        if len(number_stack) != 1:
             return SkribiException("Missing operator", "parsing")
-        return current_operator
+        return number_stack[0]
 
     def next_token(self):
         if self.index >= len(self.tokens):
