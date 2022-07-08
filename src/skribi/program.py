@@ -4,10 +4,10 @@
 # ================== #
 # class of a program #
 # ================== #
-from src.skribi.skribi_file import SkribiFile
-from src.skribi.tokens import Lexer
-from src.skribi.custom_exception import SkribiException
-from src.skribi.parser import Parser
+from .skribi_file import SkribiFile
+from .tokens import Lexer
+from .custom_exception import SkribiException
+from .parser import Parser
 
 
 class Program:

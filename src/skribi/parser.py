@@ -6,9 +6,9 @@
 ###############################################################################
 
 # Imports
-from src.skribi.tokens import Token
-from src.skribi.custom_exception import SkribiException
-from src.skribi.skribi_file import ScopeStack
+from .tokens import Token
+from .custom_exception import SkribiException
+from .skribi_file import ScopeStack
 
 
 # --------------------------------------------------------------------------- #
@@ -129,7 +129,7 @@ class VariableNode(ExecutableNode):
 
 
 class ScopeNode:
-    def __init__(self, nodes: list[ExecutableNode | 'ScopeNode'], token):
+    def __init__(self, nodes: list[ExecutableNode or 'ScopeNode'], token):
         super().__init__(token)
         self.nodes = nodes
 

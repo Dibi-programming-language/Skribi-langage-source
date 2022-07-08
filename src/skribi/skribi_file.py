@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # *-* coding:utf-8 *-*
 
-from src.skribi.custom_exception import *
+from .custom_exception import *
 
 
 # ================================== #
