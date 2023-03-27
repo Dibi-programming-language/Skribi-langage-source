@@ -10,7 +10,11 @@ class ExceptionLine:
         self.line = line
         self.file = file
 
+    # String Representation
     def __str__(self):
+        return str(self.line) + " in " + self.file
+
+    def __repr__(self):
         return str(self.line) + " in " + self.file
 
 
@@ -25,7 +29,11 @@ class SkribiException(Exception):
         self.when = when
         self.lines = lines
 
+    # String Representation
     def __str__(self):
+        return self.message
+
+    def __repr__(self):
         return self.message
 
     def print_complete_error(self):

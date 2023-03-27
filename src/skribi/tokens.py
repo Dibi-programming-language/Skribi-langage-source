@@ -27,6 +27,12 @@ class Token:
         self.type = type_
         self.value = value
 
+    # String Representation
+    def __str__(self):
+        if self.value:
+            return f'{self.type}:{self.value}'
+        return f'{self.type}'
+
     def __repr__(self):
         if self.value:
             return f'{self.type}:{self.value}'
@@ -47,6 +53,13 @@ class Lexer:
         self.current_char = self.text[self.pos]
         self.line = 1
         self.file = file
+        
+    # String Representation
+    def __str__(self):
+        return str(self.__dict__)
+        
+    def __repr__(self):
+        return str(self.__dict__)
 
     def advance(self):
         self.pos += 1

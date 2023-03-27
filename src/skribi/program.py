@@ -14,6 +14,13 @@ class Program:
 
     def __init__(self):
         self.files = []
+        
+    # String Representation
+    def __str__(self):
+        return str(self.__dict__)
+    
+    def __repr__(self):
+        return str(self.__dict__)
 
     def analyse(self, file: SkribiFile) -> None:
         """

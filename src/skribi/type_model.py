@@ -15,6 +15,7 @@ class BaseType:
         self.is_primitive = is_primitive
         self.scope.add_type(self)
 
+    # String Representation
     def __str__(self):
         return self.name
 
@@ -49,7 +50,6 @@ class CustomType(BaseType):
     A custom type is a type that is not defined in the language.
     """
 
-
     def __init__(self, name, scope, extends=None, is_primitive=False):
         super().__init__(name, scope, extends, is_primitive)
 
@@ -57,6 +57,13 @@ class CustomType(BaseType):
         self.methods = []
 
         self.scope.add_type(self)
+        
+    # String Representation
+    def __str__(self):
+        return str(self.__dict__)
+    
+    def __repr__(self):
+        return str(self.__dict__)
 
         
 primitives_types = []
@@ -70,6 +77,13 @@ class PrimitiveType(BaseType):
     def __init__(self, name, extends=None):
         super().__init__(name, None, is_primitive=True, extends=extends)
         primitives_types.append(self)
+        
+    # String Representation
+    def __str__(self):
+        return str(self.__dict__)
+    
+    def __repr__(self):
+        return str(self.__dict__)
 
 
 class Function:

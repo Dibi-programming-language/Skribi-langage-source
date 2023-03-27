@@ -13,6 +13,13 @@ class ContainsVariables:
     def __init__(self, parent=None):
         self.parent = parent
         self.variables = {}
+        
+    # String Representation
+    def __str__(self):
+        return str(self.__dict__)
+    
+    def __repr__(self):
+        return str(self.__dict__)
 
     def set_variable(self, name: str, variable, current_scope) -> SkribiException or None:
         b = self.check_and_set_variable_in_parent(name, variable, current_scope)
@@ -69,6 +76,13 @@ class ContainsTypes:
     def __init__(self, parent=None):
         self.parent = parent
         self.types = {}
+        
+    # String Representation
+    def __str__(self):
+        return str(self.__dict__)
+    
+    def __repr__(self):
+        return str(self.__dict__)
 
     def set_type(self, name: str, type_, current_scope) -> SkribiException or None:
         b = self.check_and_set_type_in_parent(name, type_, current_scope)
@@ -128,6 +142,13 @@ class SkribiFile(ContainsVariables, ContainsTypes):
         self.lexer = None
         self.parser = None
         self.result = None
+        
+    # String Representation
+    def __str__(self):
+        return str(self.__dict__)
+    
+    def __repr__(self):
+        return str(self.__dict__)
 
     def set_content(self, content):
         self.content = content
@@ -140,6 +161,13 @@ class SkribiFile(ContainsVariables, ContainsTypes):
 class ScopeStack:
     def __init__(self):
         self.stack = []
+        
+    # String Representation
+    def __str__(self):
+        return str(self.__dict__)
+    
+    def __repr__(self):
+        return str(self.__dict__)
 
     def push(self, scope):
         self.stack.append(scope)

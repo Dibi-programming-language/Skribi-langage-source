@@ -22,6 +22,13 @@ scope_stack = ScopeStack()
 class EvaluableNode:
     def __init__(self, token):
         self.token = token
+        
+    # String Representation
+    def __str__(self):
+        return str(self.__dict__)
+    
+    def __repr__(self):
+        return str(self.__dict__)
 
     def evaluate(self):
         pass
@@ -33,6 +40,13 @@ class EvaluableNode:
 class ExecutableNode:
     def __init__(self, token):
         self.token = token
+        
+    # String Representation
+    def __str__(self):
+        return str(self.__dict__)
+    
+    def __repr__(self):
+        return str(self.__dict__)
 
     def execute(self):
         pass
@@ -50,6 +64,9 @@ class NumberNode(EvaluableNode):
 
     # String representation
     def __str__(self):
+        return str(self.token.value)
+    
+    def __repr__(self):
         return str(self.token.value)
 
     # Evaluate
@@ -71,6 +88,9 @@ class OperatorNode(EvaluableNode):
 
     # String representation
     def __str__(self):
+        return str(self.token.value) + "(" + str(self.left1) + ", " + str(self.left2) + ")"
+    
+    def __repr__(self):
         return str(self.token.value) + "(" + str(self.left1) + ", " + str(self.left2) + ")"
 
     # Evaluate
@@ -111,6 +131,12 @@ class VariableNode(ExecutableNode):
             return str(self.name.value) + " = " + str(self.value.evaluate())
         else:
             return str(self.name.value) + ":" + str(self.type_.value) + " = " + str(self.value.evaluate())
+        
+    def __repr__(self):
+        if self.type_ is None:
+            return str(self.name.value) + " = " + str(self.value.evaluate())
+        else:
+            return str(self.name.value) + ":" + str(self.type_.value) + " = " + str(self.value.evaluate())
 
     # Execute TODO : il faut avant faire les variables
     def execute(self):
@@ -141,6 +167,13 @@ class Parser:
         self.current_token = None
         self.current_node = None
         self.current_line = 0
+        
+    # String Representation
+    def __str__(self):
+        return str(self.__dict__)
+    
+    def __repr__(self):
+        return str(self.__dict__)
 
     # Parse
     def parse(self, tokens: list):
