@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # *-* coding:utf-8 *-*
 
-from src.skribi.custom_exception import *
+from skribi.custom_exception import *
 
 
 # ================================== #
@@ -131,12 +131,6 @@ class SkribiFile(ContainsVariables, ContainsTypes):
 
     def set_content(self, content):
         self.content = content
-
-    def get_content(self):
-        return self.content
-
-    def get_path(self):
-        return self.path
 
 
 # ====================== #

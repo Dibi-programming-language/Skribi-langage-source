@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # *-* coding:utf-8 *-*
 
-from src.skribi.type_model import *
+from skribi.type_model import *
 
 # ============================= #
 # Variables and types in Skribi #

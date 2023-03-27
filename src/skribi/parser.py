@@ -6,9 +6,9 @@
 ###############################################################################
 
 # Imports
-from src.skribi.tokens import Token
-from src.skribi.custom_exception import SkribiException
-from src.skribi.skribi_file import ScopeStack
+from skribi.tokens import Token
+from skribi.custom_exception import SkribiException
+from skribi.skribi_file import ScopeStack
 
 
 # --------------------------------------------------------------------------- #

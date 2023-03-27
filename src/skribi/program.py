@@ -4,10 +4,10 @@
 # ================== #
 # class of a program #
 # ================== #
-from src.skribi.skribi_file import SkribiFile
-from src.skribi.tokens import Lexer
-from src.skribi.custom_exception import SkribiException
-from src.skribi.parser import Parser
+from skribi.skribi_file import SkribiFile
+from skribi.tokens import Lexer
+from skribi.custom_exception import SkribiException
+from skribi.parser import Parser
 
 
 class Program:
@@ -25,7 +25,7 @@ class Program:
         self.files.append(file)
 
         # first step: transform the file into a list of tokens
-        file.lexer = Lexer(file.get_content(), file)
+        file.lexer = Lexer(file.content, file)
         tokens = []
         for token in file.lexer:
             if isinstance(token, SkribiException):

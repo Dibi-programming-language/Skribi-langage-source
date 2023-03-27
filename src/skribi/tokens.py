@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 # *-* coding:utf-8 *-*
 
-from src.skribi.custom_exception import SkribiException, ExceptionLine
-from src.skribi.skribi_file import SkribiFile
+from skribi.custom_exception import SkribiException, ExceptionLine
+from skribi.skribi_file import SkribiFile
 
 # ====== #
 # tokens #
@@ -175,7 +175,7 @@ class Lexer:
 
     def error(self):
         return SkribiException(
-            f'Invalid character: {self.current_char}', "Tokenizer", [ExceptionLine(self.line, self.file.get_path())])
+            f'Invalid character: {self.current_char}', "Tokenizer", [ExceptionLine(self.line, self.file.path)])
 
     def __iter__(self):
         while self.current_char is not None:
