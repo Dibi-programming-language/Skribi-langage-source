@@ -9,7 +9,7 @@
 # Builtin python modules imports
 import os
 # Skribi imports
-from src.skribi.main import execute
+from skribi.main import execute
 
 # main scope of shell
 

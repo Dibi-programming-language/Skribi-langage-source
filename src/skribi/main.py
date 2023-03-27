@@ -6,7 +6,7 @@
 # ====================== #
 
 # instance of Program class
-from src.skribi import program, skribi_file
+from skribi import program, skribi_file
 
 program_instance = program.Program()
 
