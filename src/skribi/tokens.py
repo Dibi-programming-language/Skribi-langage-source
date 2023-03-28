@@ -127,6 +127,10 @@ class Lexer:
                     return self.integer(-1)
                 return Token(TT_OPERATOR, '-')
 
+            if self.current_char == '^':
+                self.advance()
+                return Token(TT_OPERATOR, '^')
+
             if self.current_char == '*':
                 self.advance()
                 return Token(TT_OPERATOR, '*')

@@ -10,6 +10,8 @@ from skribi.tokens import Token
 from skribi.custom_exception import SkribiException
 from skribi.skribi_file import ScopeStack
 
+# TODO debug
+from skribi.debug import *
 
 # --------------------------------------------------------------------------- #
 # Nodes                                                                       #
@@ -195,39 +197,51 @@ class Parser:
         # création de l'array qui va stocker les tokens du calcul
         calc = []
 
+        # arrays qui contienntent l'emplacement de opérateurs
+        op_priorities = {'^':0, '*':1, '/':1, '+':2, '-':2, "==":3, "!=":3, '>':3, '<':3, "<=":3, ">=":3}
+        op_locations = {0:[], 1:[], 2:[], 3:[]}
+
         # remplissage de l'array calc
         while self.current_token.type in ["FLOAT", "INT", "OPERATOR"]:
             if self.current_token.type == "OPERATOR":
                 calc.append(OperatorNode(self.current_token,None,None))
+                op_locations[op_priorities[self.current_token.value]].append(len(calc)-1)
             else:
                 calc.append(NumberNode(self.current_token))
             self.next_token()
+        
 
         # copie de calc dans une chaîne de caractères dans le cas d'un erreur
         str_calc = ""
         for i in range(len(calc)):
             str_calc += str(calc[i].token.value) + ' '
+        
 
-        i = 0
-        # power operator
-        while i < len(calc):
-            if calc[i].token.value == "^": calc = calc[:i-1] + [OperatorNode(calc[i].token,calc[i-1],calc[i+1])] + calc[i+2:]
-            else: i += 1
-        i = 0
-        while i < len(calc): # sum dif
-            if calc[i].token.value in ("*","/"):
-                calc = calc[:i-1] + [OperatorNode(calc[i].token,calc[i-1],calc[i+1])] + calc[i+2:]
-            else: i += 1
-        i = 0
-        while i < len(calc): # sum dif
-            if calc[i].token.value in ("+","-"):
-                calc = calc[:i-1] + [OperatorNode(calc[i].token,calc[i-1],calc[i+1])] + calc[i+2:]
-            else: i += 1
-        i = 0
-        while i < len(calc): # sum dif
-            if calc[i].token.value in ("==","!=",">","<",">=","<="):
-                calc = calc[:i-1] + [OperatorNode(calc[i].token,calc[i-1],calc[i+1])] + calc[i+2:]
-            else: i += 1
+        #
+        #  CALCUL
+        #
+        # i gère les priorités
+        #  (voir op_priorities pour comprendre à quoi correspond chaque chiffre)
+        #
+        # j parcours les listes op_locations
+        #  il permet d'exécuter des commande par rapport à chaque opérations
+        #
+        # k parcours les priorités inférieurs à i
+        #  il va permettre de décrémenter l'emplacement des opérations
+        #
+        # l parcours les listes op_locations des priorités inférieures
+        #  il décrémente de 2 tous les emplacements
+
+        for i in (0,1,2,3):
+            offset = 0
+            for j in op_locations[i]:
+                j -= offset
+                calc = calc[:j-1] + [OperatorNode(calc[j].token,calc[j-1],calc[j+1])] + calc[j+2:]
+                offset += 2
+                for k in range(i+1,3):
+                    for l in range(len(op_locations[k])):
+                        if op_locations[k][l] > j: op_locations[k][l] -= 2
+        
         if len(calc) != 1:
             return SkribiException(f'Missing operation in ({str_calc[:-1]})', "calculing")
         return(calc[0])
