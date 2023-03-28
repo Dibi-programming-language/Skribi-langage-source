@@ -1,5 +1,11 @@
+# ======= # NE PAS UTILISER EN PROD
+# WARNING # DEBUG UNIQUEMENT
+# ======= # PENSEZ A SUPPRIMER APRES UTILISATION
 
 def debug_print(instance, name="Debug", first_prefix="", second_prefix="", root = None, equality = " = "):
+    """
+    DEBUG - ne pas utiliser en prod. Permet d'afficher récursivement l'arbre d'un objet. La première condition permet d'éviter le stackoverflow dans les dépendances circulaires.
+    """
     if root == instance:
         print(first_prefix, name + equality + "Debug tree root")
     else:
@@ -34,12 +40,12 @@ class DebugCount:
         self.value = -1
         self.name = name
     
-    # permet de compter dans la console afin de se repérer dans l'exécution d'un code
+    # permet de compter dans la console afin de se repérer dans l'exécution d'un code. NE PAS UTILISER EN PROD
     def i(self, add = 1):
         self.value += add
         print(' '+self.name, self.value)
 
-
+# NE PAS UTILISER EN PROD
 def debug(*values, name = "Debug"):
     print(' '+name, end=' ')
     for val in values:
