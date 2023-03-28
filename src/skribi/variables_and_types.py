@@ -16,6 +16,7 @@ class Variable:
         self.value = value
         self.type = base_type
 
+    # String Representation
     def __str__(self):
         return str(self.value)
 
@@ -36,6 +37,13 @@ class NumberType(PrimitiveType):
 
     def __init__(self, scope, name="aritmi"):
         super().__init__(name, scope)
+        
+    # String Representation
+    def __str__(self):
+        return str(self.__dict__)
+    
+    def __repr__(self):
+        return str(self.__dict__)
 
 
 class StringType(PrimitiveType):
@@ -45,6 +53,13 @@ class StringType(PrimitiveType):
 
     def __init__(self, scope):
         super().__init__("cartais", scope)
+        
+    # String Representation
+    def __str__(self):
+        return str(self.__dict__)
+    
+    def __repr__(self):
+        return str(self.__dict__)
 
 
 class IntType(NumberType):
@@ -54,6 +69,13 @@ class IntType(NumberType):
 
     def __init__(self, scope):
         super().__init__(scope, "integi")
+        
+    # String Representation
+    def __str__(self):
+        return str(self.__dict__)
+    
+    def __repr__(self):
+        return str(self.__dict__)
 
 
 

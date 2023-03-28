@@ -22,6 +22,13 @@ scope_stack = ScopeStack()
 class EvaluableNode:
     def __init__(self, token):
         self.token = token
+        
+    # String Representation
+    def __str__(self):
+        return str(self.__dict__)
+    
+    def __repr__(self):
+        return str(self.__dict__)
 
     def evaluate(self):
         pass
@@ -33,6 +40,13 @@ class EvaluableNode:
 class ExecutableNode:
     def __init__(self, token):
         self.token = token
+        
+    # String Representation
+    def __str__(self):
+        return str(self.__dict__)
+    
+    def __repr__(self):
+        return str(self.__dict__)
 
     def execute(self):
         pass
@@ -50,6 +64,9 @@ class NumberNode(EvaluableNode):
 
     # String representation
     def __str__(self):
+        return str(self.token.value)
+    
+    def __repr__(self):
         return str(self.token.value)
 
     # Evaluate
@@ -71,6 +88,9 @@ class OperatorNode(EvaluableNode):
 
     # String representation
     def __str__(self):
+        return str(self.token.value) + "(" + str(self.left1) + ", " + str(self.left2) + ")"
+    
+    def __repr__(self):
         return str(self.token.value) + "(" + str(self.left1) + ", " + str(self.left2) + ")"
 
     # Evaluate
@@ -111,6 +131,12 @@ class VariableNode(ExecutableNode):
             return str(self.name.value) + " = " + str(self.value.evaluate())
         else:
             return str(self.name.value) + ":" + str(self.type_.value) + " = " + str(self.value.evaluate())
+        
+    def __repr__(self):
+        if self.type_ is None:
+            return str(self.name.value) + " = " + str(self.value.evaluate())
+        else:
+            return str(self.name.value) + ":" + str(self.type_.value) + " = " + str(self.value.evaluate())
 
     # Execute TODO : il faut avant faire les variables
     def execute(self):
@@ -141,6 +167,13 @@ class Parser:
         self.current_token = None
         self.current_node = None
         self.current_line = 0
+        
+    # String Representation
+    def __str__(self):
+        return str(self.__dict__)
+    
+    def __repr__(self):
+        return str(self.__dict__)
 
     # Parse
     def parse(self, tokens: list):
@@ -158,29 +191,47 @@ class Parser:
 
     # Parse math expression
     def parse_math_expr(self):
-        # si le token n'est pas un FLOAT ou un INT, je lève une exception
-        if self.current_token.type not in ["FLOAT", "INT"]:
-            return SkribiException("Expected a number, got: " + str(self.current_token.value), "parsing")
 
-        number_stack = [NumberNode(self.current_token)]
-        self.next_token()
+        # création de l'array qui va stocker les tokens du calcul
+        calc = []
 
-        # tant que le token est un FLOAT ou un INT ou une opération, je répète l'opération : si le token est un FLOAT
-        # ou un INT, je l'ajoute à la pile sinon j'enlève de la pile le dernier élément et je prends un NumberNode
+        # remplissage de l'array calc
         while self.current_token.type in ["FLOAT", "INT", "OPERATOR"]:
-            if self.current_token.type in ["FLOAT", "INT"]:
-                number_stack.append(NumberNode(self.current_token))
-                self.next_token()
+            if self.current_token.type == "OPERATOR":
+                calc.append(OperatorNode(self.current_token,None,None))
             else:
-                if len(number_stack) < 1:
-                    return SkribiException("Expected a number, got: " + str(self.current_token.value), "parsing")
-                a = number_stack.pop()
-                b = number_stack.pop()
-                number_stack.append(OperatorNode(self.current_token, b.copy(), a.copy()))
-                self.next_token()
-        if len(number_stack) != 1:
-            return SkribiException("Missing operator", "parsing")
-        return number_stack[0]
+                calc.append(NumberNode(self.current_token))
+            self.next_token()
+
+        # copie de calc dans une chaîne de caractères dans le cas d'un erreur
+        str_calc = ""
+        for i in range(len(calc)):
+            str_calc += str(calc[i].token.value) + ' '
+
+        i = 0
+        # power operator
+        while i < len(calc):
+            if calc[i].token.value == "^": calc = calc[:i-1] + [OperatorNode(calc[i].token,calc[i-1],calc[i+1])] + calc[i+2:]
+            else: i += 1
+        i = 0
+        while i < len(calc): # sum dif
+            if calc[i].token.value in ("*","/"):
+                calc = calc[:i-1] + [OperatorNode(calc[i].token,calc[i-1],calc[i+1])] + calc[i+2:]
+            else: i += 1
+        i = 0
+        while i < len(calc): # sum dif
+            if calc[i].token.value in ("+","-"):
+                calc = calc[:i-1] + [OperatorNode(calc[i].token,calc[i-1],calc[i+1])] + calc[i+2:]
+            else: i += 1
+        i = 0
+        while i < len(calc): # sum dif
+            if calc[i].token.value in ("==","!=",">","<",">=","<="):
+                calc = calc[:i-1] + [OperatorNode(calc[i].token,calc[i-1],calc[i+1])] + calc[i+2:]
+            else: i += 1
+        if len(calc) != 1:
+            return SkribiException(f'Missing operation in ({str_calc[:-1]})', "calculing")
+        return(calc[0])
+
 
     def next_token(self):
         if self.index >= len(self.tokens):

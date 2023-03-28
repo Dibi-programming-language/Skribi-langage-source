@@ -27,6 +27,12 @@ class Token:
         self.type = type_
         self.value = value
 
+    # String Representation
+    def __str__(self):
+        if self.value:
+            return f'{self.type}:{self.value}'
+        return f'{self.type}'
+
     def __repr__(self):
         if self.value:
             return f'{self.type}:{self.value}'
@@ -47,6 +53,13 @@ class Lexer:
         self.current_char = self.text[self.pos]
         self.line = 1
         self.file = file
+        
+    # String Representation
+    def __str__(self):
+        return str(self.__dict__)
+        
+    def __repr__(self):
+        return str(self.__dict__)
 
     def advance(self):
         self.pos += 1
@@ -59,7 +72,7 @@ class Lexer:
         while self.current_char is not None and self.current_char.isspace():
             self.advance()
 
-    def integer(self, negative=1):
+    def integer(self, sign = 1):
         result = ''
         while self.current_char is not None and self.current_char.isdigit():
             result += self.current_char
@@ -70,8 +83,8 @@ class Lexer:
             while self.current_char is not None and self.current_char.isdigit():
                 result += self.current_char
                 self.advance()
-            return Token(TT_FLOAT, float(result) * negative)
-        return Token(TT_INT, int(result) * negative)
+            return Token(TT_FLOAT, float(result) * sign)
+        return Token(TT_INT, int(result) * sign)
 
     def string(self, sep='"'):
         result = ''
