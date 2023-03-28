@@ -47,4 +47,4 @@ class Program:
             return
 
         # third step: execute the program
-        print(file.result.evaluate())
+        print(file.result.evaluate().display())

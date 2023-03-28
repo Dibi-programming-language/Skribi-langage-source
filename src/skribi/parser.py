@@ -10,8 +10,6 @@ from skribi.tokens import Token
 from skribi.custom_exception import SkribiException
 from skribi.skribi_file import ScopeStack
 
-# TODO debug
-from skribi.debug import *
 
 # --------------------------------------------------------------------------- #
 # Nodes                                                                       #
@@ -73,7 +71,7 @@ class NumberNode(EvaluableNode):
 
     # Evaluate
     def evaluate(self):
-        return self.token.value
+        return self.token
 
     def copy(self):
         return NumberNode(self.token.copy())
@@ -97,18 +95,31 @@ class OperatorNode(EvaluableNode):
 
     # Evaluate
     def evaluate(self):
-        if self.token.value == "+":
-            return self.left1.evaluate() + self.left2.evaluate()
-        elif self.token.value == "-":
-            return self.left1.evaluate() - self.left2.evaluate()
-        elif self.token.value == "*":
-            return self.left1.evaluate() * self.left2.evaluate()
-        elif self.token.value == "/":
-            return self.left1.evaluate() / self.left2.evaluate()
-        elif self.token.value == "^":
-            return self.left1.evaluate() ** self.left2.evaluate()
+        if self.token.value == '+':
+            result = self.left1.evaluate().value + self.left2.evaluate().value
+        elif self.token.value == '-':
+            result = self.left1.evaluate().value - self.left2.evaluate().value
+        elif self.token.value == '*':
+            result = self.left1.evaluate().value * self.left2.evaluate().value
+        elif self.token.value == '/':
+            result = self.left1.evaluate().value / self.left2.evaluate().value
+        elif self.token.value == '^':
+            result = self.left1.evaluate().value ** self.left2.evaluate().value
+        elif self.token.value == '==':
+            result = self.left1.evaluate().value == self.left2.evaluate().value
+        elif self.token.value == '!=':
+            result = self.left1.evaluate().value != self.left2.evaluate().value
+        elif self.token.value == '<':
+            result = self.left1.evaluate().value < self.left2.evaluate().value
+        elif self.token.value == '>':
+            result = self.left1.evaluate().value > self.left2.evaluate().value
+        elif self.token.value == '<=':
+            result = self.left1.evaluate().value <= self.left2.evaluate().value
+        elif self.token.value == '>=':
+            result = self.left1.evaluate().value >= self.left2.evaluate().value
         else:
             return SkribiException("Unknown operator: " + str(self.token.value), "evaluation", scope_stack.get_trace())
+        return Token(result.__class__.__name__.upper(),result)
 
     def copy(self):
         return OperatorNode(self.token.copy(), self.left1.copy(), self.left2.copy())
@@ -130,25 +141,25 @@ class VariableNode(ExecutableNode):
     # String representation
     def __str__(self):
         if self.type_ is None:
-            return str(self.name.value) + " = " + str(self.value.evaluate())
+            return str(self.name.value) + " = " + self.value.evaluate().display()
         else:
-            return str(self.name.value) + ":" + str(self.type_.value) + " = " + str(self.value.evaluate())
+            return str(self.name.value) + ":" + str(self.type_.value) + " = " + self.value.evaluate().display()
         
     def __repr__(self):
         if self.type_ is None:
-            return str(self.name.value) + " = " + str(self.value.evaluate())
+            return str(self.name.value) + " = " + self.value.evaluate().display()
         else:
-            return str(self.name.value) + ":" + str(self.type_.value) + " = " + str(self.value.evaluate())
+            return str(self.name.value) + ":" + str(self.type_.value) + " = " + self.value.evaluate().display()
 
     # Execute TODO : il faut avant faire les variables
     def execute(self):
         if self.type_ is None:
             if scope_stack.get_current_scope().check_name(self.name.value):
                 scope_stack.get_current_scope()\
-                    .set_variable(self.name.value, self.value.evaluate(), scope_stack.get_current_scope())
+                    .set_variable(self.name.value, self.value.evaluate().value, scope_stack.get_current_scope())
             else:
                 scope_stack.get_current_scope()\
-                    .create_variable(self.name.value, self.value.evaluate(), scope_stack.get_current_scope())
+                    .create_variable(self.name.value, self.value.evaluate().value, scope_stack.get_current_scope())
         else:
             pass
 

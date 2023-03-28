@@ -12,7 +12,6 @@ TT_INT = 'INT'
 TT_FLOAT = 'FLOAT'
 TT_STRING = 'STRING'
 TT_OPERATOR = 'OPERATOR'
-TT_COMPARAISON = 'COMPARAISON'
 TT_BINARY_OPERATOR = 'BINARY_OPERATOR'
 TT_BRACKET = 'BRACKET'
 TT_NEWLINE = 'NEWLINE'
@@ -37,6 +36,13 @@ class Token:
         if self.value:
             return f'{self.type}:{self.value}'
         return f'{self.type}'
+
+    def display(self):
+        if self.type == "BOOL":
+            if self.value:
+                return "ioial"
+            return "noial"
+        return str(self.value)
 
     def copy(self):
         return Token(self.type, self.value)
@@ -110,15 +116,21 @@ class Lexer:
         while self.current_char is not None:
 
             if self.current_char.isspace():
-                self.skip_whitespace()
-                continue
+                if self.current_char == '\n':
+                    self.line += 1
+                    self.advance()
+                    return Token("NEWLINE", self.line)
+                else:
+                    self.skip_whitespace()
+                    continue
 
             if self.current_char.isdigit():
                 return self.integer()
 
-            if self.current_char == '+':
+            if self.current_char in "+*/^":
+                char = self.current_char
                 self.advance()
-                return Token(TT_OPERATOR, '+')
+                return Token(TT_OPERATOR, char)
 
             if self.current_char == '-':
                 self.advance()
@@ -127,25 +139,10 @@ class Lexer:
                     return self.integer(-1)
                 return Token(TT_OPERATOR, '-')
 
-            if self.current_char == '^':
+            if self.current_char in "()":
+                char = self.current_char
                 self.advance()
-                return Token(TT_OPERATOR, '^')
-
-            if self.current_char == '*':
-                self.advance()
-                return Token(TT_OPERATOR, '*')
-
-            if self.current_char == '/':
-                self.advance()
-                return Token(TT_OPERATOR, '/')
-
-            if self.current_char == '(':
-                self.advance()
-                return Token(TT_BRACKET, '(')
-
-            if self.current_char == ')':
-                self.advance()
-                return Token(TT_BRACKET, ')')
+                return Token(TT_BRACKET, char)
 
             if self.current_char == '"':
                 return self.string()
@@ -159,29 +156,29 @@ class Lexer:
                 self.advance()
                 if self.current_char == '=':
                     self.advance()
-                    return Token(TT_COMPARAISON, '==')
+                    return Token(TT_OPERATOR, '==')
                 return Token(TT_EQUAL, '=')
 
             if self.current_char == '!':
                 self.advance()
                 if self.current_char == '=':
                     self.advance()
-                    return Token(TT_COMPARAISON, '!=')
+                    return Token(TT_OPERATOR, '!=')
                 return Token(TT_BINARY_OPERATOR, '!')
 
             if self.current_char == '<':
                 self.advance()
                 if self.current_char == '=':
                     self.advance()
-                    return Token(TT_COMPARAISON, '<=')
-                return Token(TT_COMPARAISON, '<')
+                    return Token(TT_OPERATOR, '<=')
+                return Token(TT_OPERATOR, '<')
 
             if self.current_char == '>':
                 self.advance()
                 if self.current_char == '=':
                     self.advance()
-                    return Token(TT_COMPARAISON, '>=')
-                return Token(TT_COMPARAISON, '>')
+                    return Token(TT_OPERATOR, '>=')
+                return Token(TT_OPERATOR, '>')
 
             if self.current_char.isalpha():
                 return self.identifier()
