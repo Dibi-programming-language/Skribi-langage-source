@@ -21,6 +21,7 @@ class DebugCount:
         self.value = -1
         self.name = name
     
+    # permet de compter dans la console afin de se repérer dans l'exécution d'un code
     def i(self, add = 1):
         self.value += add
         print(' '+self.name, self.value)
