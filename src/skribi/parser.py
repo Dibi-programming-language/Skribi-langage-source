@@ -191,29 +191,45 @@ class Parser:
 
     # Parse math expression
     def parse_math_expr(self):
-        # si le token n'est pas un FLOAT ou un INT, je lève une exception
-        if self.current_token.type not in ["FLOAT", "INT"]:
-            return SkribiException("Expected a number, got: " + str(self.current_token.value), "parsing")
 
-        number_stack = [NumberNode(self.current_token)]
-        self.next_token()
+        # création de l'array qui va stocker les tokens du calcul
+        calc = []
 
-        # tant que le token est un FLOAT ou un INT ou une opération, je répète l'opération : si le token est un FLOAT
-        # ou un INT, je l'ajoute à la pile sinon j'enlève de la pile le dernier élément et je prends un NumberNode
+        # remplissage de l'array calc
+        i = 0
         while self.current_token.type in ["FLOAT", "INT", "OPERATOR"]:
-            if self.current_token.type in ["FLOAT", "INT"]:
-                number_stack.append(NumberNode(self.current_token))
-                self.next_token()
+            if self.current_token.type == "OPERATOR":
+                calc.append(OperatorNode(self.current_token,None,None))
             else:
-                if len(number_stack) < 1:
-                    return SkribiException("Expected a number, got: " + str(self.current_token.value), "parsing")
-                a = number_stack.pop()
-                b = number_stack.pop()
-                number_stack.append(OperatorNode(self.current_token, b.copy(), a.copy()))
-                self.next_token()
-        if len(number_stack) != 1:
-            return SkribiException("Missing operator", "parsing")
-        return number_stack[0]
+                calc.append(NumberNode(self.current_token))
+            self.next_token()
+            i += 1
+        
+        # création de l'array qui va stocker les OperationNodes
+        operation_nodes = []
+
+        i = 0
+        # power operator
+        while i < len(calc):
+            if calc[i].token.value == "^": calc = calc[:i-1] + [OperatorNode(calc[i].token,calc[i-1],calc[i+1])] + calc[i+2:]
+            else: i += 1
+        i = 0
+        while i < len(calc): # sum dif
+            if calc[i].token.value in ("*","/"):
+                calc = calc[:i-1] + [OperatorNode(calc[i].token,calc[i-1],calc[i+1])] + calc[i+2:]
+            else: i += 1
+        i = 0
+        while i < len(calc): # sum dif
+            if calc[i].token.value in ("+","-"):
+                calc = calc[:i-1] + [OperatorNode(calc[i].token,calc[i-1],calc[i+1])] + calc[i+2:]
+            else: i += 1
+        i = 0
+        while i < len(calc): # sum dif
+            if calc[i].token.value in ("==","!=",">","<",">=","<="):
+                calc = calc[:i-1] + [OperatorNode(calc[i].token,calc[i-1],calc[i+1])] + calc[i+2:]
+            else: i += 1
+        return(calc[0])
+
 
     def next_token(self):
         if self.index >= len(self.tokens):
