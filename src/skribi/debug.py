@@ -9,11 +9,8 @@ def debug_print(instance, name="Debug", first_prefix="", second_prefix="", root 
             dico = instance.__dict__
             print(first_prefix, name, '('+instance.__class__.__name__+')')
             keys = tuple(dico.keys())
-            len_keys = len(keys)
-            i = 0
-            while i < len_keys-1:
-                debug_print(dico[keys[i]], keys[i], second_prefix+" ├──", second_prefix+" │  ", root)
-                i += 1
+            for key in keys:
+                debug_print(dico[key], key, second_prefix+" ├──", second_prefix+" │  ", root)
             debug_print(dico[keys[i]], keys[i], second_prefix+" └──", second_prefix+"    ", root)
         except:
             print(first_prefix, name, '=', str((instance,))[1:-2])
