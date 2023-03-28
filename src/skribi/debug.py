@@ -1,19 +1,32 @@
 
-def debug_print(instance, name="Debug", first_prefix="", second_prefix="", root = None):
+def debug_print(instance, name="Debug", first_prefix="", second_prefix="", root = None, equality = " = "):
     if root == instance:
-        print(first_prefix, name, "= Debug tree root")
+        print(first_prefix, name + equality + "Debug tree root")
     else:
         if root == None:
             root = instance
-        try:
-            dico = instance.__dict__
-            print(first_prefix, name, '('+instance.__class__.__name__+')')
-            keys = tuple(dico.keys())
-            for key in keys:
-                debug_print(dico[key], key, second_prefix+" ├──", second_prefix+" │  ", root)
-            debug_print(dico[keys[i]], keys[i], second_prefix+" └──", second_prefix+"    ", root)
-        except:
-            print(first_prefix, name, '=', str((instance,))[1:-2])
+        if instance.__class__ in (list,tuple):
+            simple = True
+            for item in instance:
+                if not type(item) in (int,float,bool):
+                    simple = False
+            if simple:
+                print(first_prefix, name + equality + instance.__repr__())
+            else:
+                print(first_prefix, name, '('+instance.__class__.__name__+')')
+                for i in range(len(instance)-1):
+                    debug_print(instance[i], "", second_prefix+" ╠══", second_prefix+" ║  ", root, "")
+                debug_print(instance[-1], "", second_prefix+" ╚══", second_prefix+"    ", root, "")
+        else:
+            try:
+                dico = instance.__dict__
+                print(first_prefix, name, '('+instance.__class__.__name__+')')
+                keys = tuple(dico.keys())
+                for key in keys[:-1]:
+                    debug_print(dico[key], key, second_prefix+" ├──", second_prefix+" │  ", root)
+                debug_print(dico[keys[-1]], keys[-1], second_prefix+" └──", second_prefix+"    ", root)
+            except:
+                print(first_prefix, name + equality + instance.__repr__())
 
 
 class DebugCount:
