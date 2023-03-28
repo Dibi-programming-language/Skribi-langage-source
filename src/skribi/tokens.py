@@ -72,7 +72,7 @@ class Lexer:
         while self.current_char is not None and self.current_char.isspace():
             self.advance()
 
-    def integer(self, negative=1):
+    def integer(self, sign = 1):
         result = ''
         while self.current_char is not None and self.current_char.isdigit():
             result += self.current_char
@@ -83,8 +83,8 @@ class Lexer:
             while self.current_char is not None and self.current_char.isdigit():
                 result += self.current_char
                 self.advance()
-            return Token(TT_FLOAT, float(result) * negative)
-        return Token(TT_INT, int(result) * negative)
+            return Token(TT_FLOAT, float(result) * sign)
+        return Token(TT_INT, int(result) * sign)
 
     def string(self, sep='"'):
         result = ''

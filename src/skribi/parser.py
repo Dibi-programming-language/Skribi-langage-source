@@ -196,17 +196,17 @@ class Parser:
         calc = []
 
         # remplissage de l'array calc
-        i = 0
         while self.current_token.type in ["FLOAT", "INT", "OPERATOR"]:
             if self.current_token.type == "OPERATOR":
                 calc.append(OperatorNode(self.current_token,None,None))
             else:
                 calc.append(NumberNode(self.current_token))
             self.next_token()
-            i += 1
-        
-        # création de l'array qui va stocker les OperationNodes
-        operation_nodes = []
+
+        # copie de calc dans une chaîne de caractères dans le cas d'un erreur
+        str_calc = ""
+        for i in range(len(calc)):
+            str_calc += str(calc[i].token.value) + ' '
 
         i = 0
         # power operator
@@ -228,6 +228,8 @@ class Parser:
             if calc[i].token.value in ("==","!=",">","<",">=","<="):
                 calc = calc[:i-1] + [OperatorNode(calc[i].token,calc[i-1],calc[i+1])] + calc[i+2:]
             else: i += 1
+        if len(calc) != 1:
+            return SkribiException(f'Missing operation in ({str_calc[:-1]})', "calculing")
         return(calc[0])
 
 
