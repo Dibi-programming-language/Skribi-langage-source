@@ -14,7 +14,6 @@ TT_STRING = 'STRING'
 TT_OPERATOR = 'OPERATOR'
 TT_BINARY_OPERATOR = 'BINARY_OPERATOR'
 TT_BRACKET = 'BRACKET'
-TT_NEWLINE = 'NEWLINE'
 TT_COMMENT = 'COMMENT'
 TT_IDENTIFIER = 'IDENTIFIER'
 TT_EQUAL = 'EQUAL'
@@ -116,13 +115,8 @@ class Lexer:
         while self.current_char is not None:
 
             if self.current_char.isspace():
-                if self.current_char == '\n':
-                    self.line += 1
-                    self.advance()
-                    return Token("NEWLINE", self.line)
-                else:
-                    self.skip_whitespace()
-                    continue
+                self.skip_whitespace()
+                continue
 
             if self.current_char.isdigit():
                 return self.integer()
