@@ -5,26 +5,23 @@
 ////////////////////
 
 // Import
-use std::{env, io};
+use std::{env};
 
 // Main
 fn main() {
     let args: Vec<_> = env::args().collect(); // get the command line arguments
-    let mut path: String = Default::default();
+    let path: String = args[1].clone();
     let extension: Vec<&str> = vec!["sk", "skribi"];
 
     // Get the path of the file to run
-    if args.len() > 1 {
-        path = args[1].clone();
-    } else {
-        println!("Please enter a path: ");
-        let _ = io::stdin().read_line(&mut path);
+    if args.len() == 1 {
+        println!("Please specify the file to run");
+        return;
     }
 
-    // Check if the file is a skribi file
-    if !extension.contains(&path.split(".").last().unwrap()) {
-        println!("Not a skribi file");
-        println!("{}",path.split(".").last().unwrap());
+    // Check if the file has the right extension
+    if !extension.contains(&path.split('.').last().unwrap()) {
+        println!("Not a valid file extension");
         return;
     }
 
