@@ -5,7 +5,7 @@
 ////////////////////
 
 // Import
-use skribi_language_source::clear;
+use skribi_language_source::{clear, read};
 use std::{env, io};
 
 // Main
@@ -36,5 +36,6 @@ fn main() {
     }
 
     // TODO read the file
-    println!("Path: {}", path);
+    let lines = read(&path);
+    println!("{:?}", lines)
 }

@@ -1,5 +1,5 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="Run skribi-language-source" type="CargoCommandRunConfiguration" factoryName="Cargo Command">
+  <configuration default="false" name="Debug skribi interpret " type="CargoCommandRunConfiguration" factoryName="Cargo Command">
     <option name="command" value="run test.sk /interpret-debug" />
     <option name="workingDirectory" value="file://$PROJECT_DIR$" />
     <option name="emulateTerminal" value="true" />
