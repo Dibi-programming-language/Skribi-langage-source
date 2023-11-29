@@ -1,4 +1,4 @@
-use std::process::{Command, exit};
+use std::process::{exit, Command};
 use std::{
     fs::File,
     io::{self, BufRead},
@@ -35,7 +35,7 @@ pub fn read(file_name: &str) -> Vec<String> {
                         lines.push(text);
                     }
                     Err(err) => {
-                        if (err.kind() == io::ErrorKind::InvalidData) {
+                        if err.kind() == io::ErrorKind::InvalidData {
                             error("Impossible to read file: Bad encoding");
                         }
                         error("Impossible to read file: Unknown error");
@@ -44,9 +44,9 @@ pub fn read(file_name: &str) -> Vec<String> {
             }
         }
         Err(err) => {
-            if (err.kind() == io::ErrorKind::NotFound) {
+            if err.kind() == io::ErrorKind::NotFound {
                 error("Impossible to open file: File not found");
-            } else if (err.kind() == io::ErrorKind::PermissionDenied) {
+            } else if err.kind() == io::ErrorKind::PermissionDenied {
                 error("Impossible to open file: Permission denied");
             }
             error("Impossible to open file: Unknown error")
