@@ -4,11 +4,12 @@
 // Skribi's shell //
 ////////////////////
 
+mod interpret;
 mod pre_run;
 
 // Import
-use crate::pre_run::get_path;
-pub use pre_run::get_instructions;
+use interpret::main as interpret;
+use pre_run::{get_instructions, get_path};
 use skribi_language_source::{clear, read};
 use std::env;
 
@@ -16,7 +17,7 @@ use std::env;
 fn main() {
     // parameters
     let flag_char = "/"; // if it was "-", it would sometimes interfere with cargo's flags
-    let extension: Vec<String> = vec!["sk".to_string(), "skribi".to_string()];
+    let extension: Vec<String> = vec!["skrb".to_string(), "skribi".to_string()];
 
     // generic parameters
     let args: Vec<_> = env::args().collect(); // get the command line arguments
@@ -26,7 +27,7 @@ fn main() {
         clear();
     }
 
-    let path = get_path(args, flag_char);
+    let path = get_path(args.clone(), flag_char);
 
     // Check if the file has the right extension
     if !extension.contains(&String::from(path.split('.').last().unwrap())) {
@@ -36,9 +37,9 @@ fn main() {
     // Read the file
     let lines = read(&path);
 
-    // Remove the comments, be careful to not remove the comments in strings
+    // Remove the comments and split the code into instructions
     let code = get_instructions(lines);
 
-    // TODO interpret the code
-    println!("{:?}", code);
+    // interpret the code
+    interpret(code, args);
 }

@@ -1,6 +1,6 @@
 <component name="ProjectRunConfigurationManager">
   <configuration default="false" name="Run skribi code" type="CargoCommandRunConfiguration" factoryName="Cargo Command">
-    <option name="command" value="run test.sk" />
+    <option name="command" value="run test.skrb" />
     <option name="workingDirectory" value="file://$PROJECT_DIR$" />
     <option name="emulateTerminal" value="true" />
     <option name="channel" value="DEFAULT" />

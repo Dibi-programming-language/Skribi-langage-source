@@ -54,3 +54,20 @@ pub fn read(file_name: &str) -> Vec<String> {
     }
     lines
 }
+pub fn capsule_str(line: String) -> Vec<String> {
+    let mut capsule: Vec<String> = vec![String::from("")];
+    let mut capsule_len = 0;
+    let mut is_string = false;
+    for (i, c) in line.chars().enumerate() {
+        if c == '"' && (i == 0 || line.chars().nth(i - 1).unwrap() != '\\') {
+            capsule[capsule_len] += "\"";
+            is_string = !is_string;
+        } else if c == ' ' && !is_string {
+            capsule.push(String::new());
+            capsule_len += 1;
+        } else {
+            capsule[capsule_len] += &c.to_string();
+        }
+    }
+    capsule
+}

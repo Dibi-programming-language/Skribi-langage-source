@@ -17,8 +17,8 @@ pub fn get_instructions(lines: Vec<String>) -> Vec<String> {
     let mut in_string = false;
     let mut in_comment = false;
     let mut code: Vec<String> = vec![String::new()];
+    let mut code_len = 0;
     for line in lines.iter() {
-        let code_len = code.len() - 1;
         code[code_len] += " ";
         let current_line = line.trim();
         for (i, c) in current_line.chars().enumerate() {
@@ -50,6 +50,7 @@ pub fn get_instructions(lines: Vec<String>) -> Vec<String> {
                     if c == ';' && !in_string {
                         code[code_len] = code[code_len].trim().to_string();
                         code.push(String::new());
+                        code_len += 1;
                     } else {
                         code[code_len] += &c.to_string();
                     }
@@ -60,7 +61,6 @@ pub fn get_instructions(lines: Vec<String>) -> Vec<String> {
             error("Unclosed string on line {}")
         }
     }
-    let code_len = code.len() - 1;
     code[code_len] = code[code_len].trim().to_string();
     code
 }
