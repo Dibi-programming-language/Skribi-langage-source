@@ -54,17 +54,31 @@ pub fn read(file_name: &str) -> Vec<String> {
     }
     lines
 }
-pub fn capsule_str(line: String) -> Vec<String> {
+pub fn capsule_words(line: String) -> Vec<String> {
     let mut capsule: Vec<String> = vec![String::from("")];
     let mut capsule_len = 0;
     let mut is_string = false;
+    let mut in_par: u8 = 0;
     for (i, c) in line.chars().enumerate() {
         if c == '"' && (i == 0 || line.chars().nth(i - 1).unwrap() != '\\') {
             capsule[capsule_len] += "\"";
             is_string = !is_string;
-        } else if c == ' ' && !is_string {
-            capsule.push(String::new());
-            capsule_len += 1;
+        } else if !is_string {
+            if c == '(' {
+                in_par += 1;
+                capsule[capsule_len] += "(";
+            } else if c == ')' {
+                if in_par == 0 {
+                    error("Unexpected ')'");
+                }
+                capsule[capsule_len] += ")";
+                in_par -= 1;
+            } else if c == ' ' && in_par == 0 {
+                capsule.push(String::new());
+                capsule_len += 1;
+            } else {
+                capsule[capsule_len] += &c.to_string();
+            }
         } else {
             capsule[capsule_len] += &c.to_string();
         }

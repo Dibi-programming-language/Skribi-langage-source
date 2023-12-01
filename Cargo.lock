@@ -3,5 +3,5 @@
 version = 3
 
 [[package]]
-name = "skribi-language-source"
+name = "skribi_language_source"
 version = "0.1.0"

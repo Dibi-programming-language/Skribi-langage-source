@@ -1,4 +1,4 @@
-use skribi_language_source::{capsule_str, error};
+use skribi_language_source::{capsule_words, error};
 
 pub fn main(code: Vec<String>, _args: Vec<String>) {
     // main loop of the interpreter
@@ -6,7 +6,7 @@ pub fn main(code: Vec<String>, _args: Vec<String>) {
     let mut line_number: u16 = 0;
     while is_running {
         // get the instructions on the current line
-        let line = capsule_str(code[line_number as usize].clone());
+        let line = capsule_words(code[line_number as usize].clone());
         interpret(line, line_number);
         line_number += 1;
         if line_number >= code.len() as u16 {
