@@ -13,6 +13,6 @@ Links :
 
 ## Run
 
-You can use shell.py
+You can use ``cargo run <file to run>`` to run the project.
 
 WARNING : please use this directory as the working directory, not 'src'.
