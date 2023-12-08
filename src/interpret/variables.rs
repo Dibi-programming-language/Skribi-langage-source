@@ -23,6 +23,7 @@ pub(crate) struct VariableStruct {
     scope_level: u8, // 0 is global, this is used to remove variables when exiting it's scope
     is_constant: bool,
     is_set: bool,
+    type_name: String,
 }
 
 impl VariableStruct {
@@ -40,30 +41,26 @@ impl VariableStruct {
 
         // check if the variable type are the same
         match value {
-            VariableType::String(_) => match &self.value {
-                VariableType::String(_) => {}
-                _ => {
+            VariableType::String(_) => {
+                if &self.type_name != "string" {
                     error("Cannot set variable to string");
                 }
-            },
-            VariableType::Integer(_) => match &self.value {
-                VariableType::Integer(_) => {}
-                _ => {
+            }
+            VariableType::Integer(_) => {
+                if &self.type_name != "int" {
                     error("Cannot set variable to integer");
                 }
-            },
-            VariableType::Float(_) => match &self.value {
-                VariableType::Float(_) => {}
-                _ => {
+            }
+            VariableType::Float(_) => {
+                if &self.type_name != "float" {
                     error("Cannot set variable to float");
                 }
-            },
-            VariableType::Boolean(_) => match &self.value {
-                VariableType::Boolean(_) => {}
-                _ => {
+            }
+            VariableType::Boolean(_) => {
+                if &self.type_name != "bool" {
                     error("Cannot set variable to boolean");
                 }
-            },
+            }
             VariableType::Unset => {
                 error("Cannot set variable to unset");
             }
@@ -174,6 +171,7 @@ pub(crate) fn new_variable(line: Vec<String>, scope_level: u8) -> (VariableStruc
             scope_level: if is_global { 0 } else { scope_level },
             is_constant,
             is_set: line_length == 3,
+            type_name: line[i].clone(),
         },
         line[i + 1].clone(),
     )
