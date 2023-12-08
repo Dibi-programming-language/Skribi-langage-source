@@ -22,9 +22,9 @@ pub fn clear() {
 /**
  * This function print an error message in red and stop the program
  */
-pub fn error(message: &str, line: u8) {
+pub fn error(message: &str, line: u16) {
     //print the error message in red
-    println!("\x1b[31mError: {}\x1b[0m", message);
+    println!("\x1b[31mError: {} in instruction {}\x1b[0m", message, line + 1);
     exit(0);
 }
 /**
@@ -44,20 +44,20 @@ pub fn read(file_name: &str) -> Vec<String> {
                     }
                     Err(err) => {
                         if err.kind() == io::ErrorKind::InvalidData {
-                            error("Cannot read file: Bad encoding");
+                            error("Cannot read file: Bad encoding", 0);
                         }
-                        error("Cannot read file: Unknown error");
+                        error("Cannot read file: Unknown error", 0);
                     }
                 }
             }
         }
         Err(err) => {
             if err.kind() == io::ErrorKind::NotFound {
-                error("Cannot open file: File not found");
+                error("Cannot open file: File not found", 0);
             } else if err.kind() == io::ErrorKind::PermissionDenied {
-                error("Cannot open file: Permission denied");
+                error("Cannot open file: Permission denied", 0);
             }
-            error("Cannot open file: Unknown error")
+            error("Cannot open file: Unknown error", 0)
         }
     }
     lines
@@ -72,7 +72,7 @@ pub fn read(file_name: &str) -> Vec<String> {
  *
  * ["Hello,", "I'm", "coding", "in", "skribi language", "(a programming language)"]
  */
-pub fn capsule_words(line: String) -> Vec<String> {
+pub fn capsule_words(line: String, line_number: u16) -> Vec<String> {
     let mut capsule: Vec<String> = vec![String::from("")];
     let mut capsule_len = 0;
     let mut is_string = false;
@@ -91,7 +91,7 @@ pub fn capsule_words(line: String) -> Vec<String> {
             // test if the string is exiting parenthesis
             } else if c == ')' {
                 if in_par == 0 {
-                    error("Unexpected ')'");
+                    error("Unexpected ')'", line_number);
                 }
                 capsule[capsule_len] += ")";
                 in_par -= 1;

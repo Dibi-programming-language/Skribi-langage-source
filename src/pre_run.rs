@@ -78,7 +78,7 @@ pub fn get_instructions(lines: Vec<String>) -> Vec<String> {
             }
         }
         if in_string {
-            error("Unclosed string on line {}")
+            error("Unclosed string", code_len as u16);
         }
     }
     code[code_len] = code[code_len].trim().to_string();

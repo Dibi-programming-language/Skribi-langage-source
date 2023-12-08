@@ -30,10 +30,10 @@ impl VariableStruct {
     /**
      * Change the value of the variable
      */
-    pub fn set_value(&mut self, value: VariableType) {
+    pub fn set_value(&mut self, value: VariableType, line: u16) {
         // check if the variable is constant
         if self.is_constant {
-            error("Cannot redefine value of constant");
+            error("Cannot redefine value of constant", line);
         }
         if !self.is_set {
             self.is_set = true
@@ -43,26 +43,38 @@ impl VariableStruct {
         match value {
             VariableType::String(_) => {
                 if &self.type_name != "string" {
-                    error(("Cannot set ".to_string() + &self.type_name + " to string").as_str());
+                    error(
+                        ("Cannot set ".to_string() + &self.type_name + " to string").as_str(),
+                        line,
+                    );
                 }
             }
             VariableType::Integer(_) => {
                 if &self.type_name != "int" {
-                    error(("Cannot set ".to_string() + &self.type_name + " to int").as_str());
+                    error(
+                        ("Cannot set ".to_string() + &self.type_name + " to int").as_str(),
+                        line,
+                    );
                 }
             }
             VariableType::Float(_) => {
                 if &self.type_name != "float" {
-                    error(("Cannot set ".to_string() + &self.type_name + " to float").as_str());
+                    error(
+                        ("Cannot set ".to_string() + &self.type_name + " to float").as_str(),
+                        line,
+                    );
                 }
             }
             VariableType::Boolean(_) => {
                 if &self.type_name != "bool" {
-                    error(("Cannot set ".to_string() + &self.type_name + " to bool").as_str());
+                    error(
+                        ("Cannot set ".to_string() + &self.type_name + " to bool").as_str(),
+                        line,
+                    );
                 }
             }
             VariableType::Unset => {
-                error("Cannot set variable to unset");
+                error("Cannot set variable to unset", line);
             }
         }
 
@@ -71,9 +83,9 @@ impl VariableStruct {
     /**
      * Return the value of the variable
      */
-    pub fn get_value(&mut self) -> &VariableType {
+    pub fn get_value(&mut self, line: u16) -> &VariableType {
         if !self.is_set {
-            error("Variable was never initialized")
+            error("Variable was never initialized", line)
         }
         &self.value
     }
@@ -82,7 +94,11 @@ impl VariableStruct {
 /**
  * This function is used to create a new variable
  */
-pub(crate) fn new_variable(line: Vec<String>, scope_level: u8) -> (VariableStruct, String) {
+pub(crate) fn new_variable(
+    line: Vec<String>,
+    scope_level: u8,
+    line_number: u16,
+) -> (VariableStruct, String) {
     let mut is_constant = false;
     let mut is_private = false;
     let mut is_global = false;
@@ -103,7 +119,7 @@ pub(crate) fn new_variable(line: Vec<String>, scope_level: u8) -> (VariableStruc
         i += 1;
     }
     if is_global && is_private {
-        error("Variable cannot be both global and private");
+        error("Variable cannot be both global and private", line_number);
     }
     if line[0] == line[1] {
         error(
@@ -111,6 +127,7 @@ pub(crate) fn new_variable(line: Vec<String>, scope_level: u8) -> (VariableStruc
                 + line[0].to_string().as_str()
                 + " in variable declaration")
                 .as_str(),
+            line_number,
         );
     }
 
@@ -120,9 +137,15 @@ pub(crate) fn new_variable(line: Vec<String>, scope_level: u8) -> (VariableStruc
     let line_length = line.len() - i;
 
     if line_length < 2 {
-        error("Syntax error")
+        error(
+            "Syntax error: variable declaration need at least a type and a name",
+            line_number,
+        );
     } else if line_length > 3 {
-        error("Syntax error")
+        error(
+            "Syntax error: variable declaration can only have a type, a name and a value",
+            line_number,
+        );
     } else if line_length == 3 {
         // is a value is specified get the type and value of the variable
         match line[i].clone().as_str() {
@@ -139,7 +162,7 @@ pub(crate) fn new_variable(line: Vec<String>, scope_level: u8) -> (VariableStruc
                 var = VariableType::Boolean(line[i + 2].parse::<bool>().unwrap());
             }
             _ => {
-                error("Unknown variable type");
+                error("Unknown variable type", line_number);
             }
         }
     } else {
@@ -158,7 +181,7 @@ pub(crate) fn new_variable(line: Vec<String>, scope_level: u8) -> (VariableStruc
                 var = VariableType::Boolean(false);
             }
             _ => {
-                error("Unknown variable type");
+                error("Unknown variable type", line_number);
             }
         }
     }

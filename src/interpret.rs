@@ -1,6 +1,6 @@
 mod variables;
 
-use crate::interpret::variables::{new_variable, VariableStruct, VariableType};
+use crate::interpret::variables::{new_variable, VariableStruct};
 use skribi_language_source::{capsule_words, error};
 use std::collections::HashMap;
 
@@ -13,7 +13,7 @@ pub fn main(code: Vec<String>, _args: Vec<String>) {
     let mut _variables: HashMap<String, VariableStruct> = HashMap::new();
     while is_running {
         // get the instructions on the current line
-        let line = capsule_words(code[line_number as usize].clone());
+        let line = capsule_words(code[line_number as usize].clone(), line_number);
         interpret(line, line_number, &mut _variables);
         line_number += 1;
         if line_number >= code.len() as u16 - 1 {
@@ -30,9 +30,12 @@ fn interpret(line: Vec<String>, line_number: u16, variables: &mut HashMap<String
     match line[0].as_str() {
         "pu" | "fu" | "ju" => {
             // create a new variable
-            let (mut temp, name) = new_variable(line, scope_level);
+            let (temp, name) = new_variable(line, scope_level, line_number);
             (*variables).insert(name, temp);
         }
-        _ => error(("Unknown command on line ".to_string() + &line_number.to_string()).as_str()),
+        _ => error(
+            ("Unknown command on line ".to_string() + &line_number.to_string()).as_str(),
+            line_number,
+        ),
     }
 }
