@@ -2,11 +2,11 @@
 
 Skribi is a programming language for writing code in Dibi.
 
-Dibi is a langage for the Dirtybiologistan micronation.
+Dibi is a langage for the Dibistan micronation.
 
 Links :
-- [Dibi](https://dibi-dictionary.herokuapp.com/)
-- [Dirtybiologistan wiki](https://dirtybiologistan.fandom.com/fr/wiki/Dirtybiologistan)
+- [Dibi dictionary](http://dibi-leksiro.fr/app/)
+- [Dibistan wiki](https://dibistan.fandom.com/fr/wiki/Dibistan)
 - [Skribi discord](https://discord.gg/eGYQVGd4k3)
 - [Dibi discord](https://discord.gg/CKnqUxQaMq)
 
