@@ -15,6 +15,7 @@ pub(crate) struct VariableStruct {
     pub(crate) value: VariableType,
     pub(crate) scope_level: u8, // 0 is global, this is used to remove variables when exiting it's scope
     is_constant: bool,
+    is_set: bool,
 }
 
 impl VariableStruct {
@@ -33,19 +34,30 @@ impl VariableStruct {
         value: VariableType,
         scope_level: u8,
         is_constant: bool,
+        is_set: bool,
     ) -> VariableStruct {
         VariableStruct {
             name,
             value,
             scope_level,
             is_constant,
+            is_set,
         }
     }
     pub fn set_value(&mut self, value: VariableType) {
         if self.is_constant {
             error("Cannot redefine value of constant");
         }
+        if !self.is_set {
+            self.is_set = true
+        }
         self.value = value;
+    }
+    pub fn get_value(&mut self) -> &VariableType {
+        if !self.is_set {
+            error("Variable not initialized")
+        }
+        &self.value
     }
 }
 
@@ -83,24 +95,54 @@ pub(crate) fn new_variable(line: Vec<String>, scope_level: u8) -> VariableStruct
 
     let mut var = VariableType::Null;
 
-    match line[i].clone().as_str() {
-        "string" => {
-            var = VariableType::String(line[i + 2].to_string());
+    let line_length = line.len() - i;
+
+    if line_length < 2 {
+        error("Syntax error")
+    } else if line_length > 3 {
+        error("Syntax error")
+    } else if line_length == 3 {
+        match line[i].clone().as_str() {
+            "string" => {
+                var = VariableType::String(line[i + 2].to_string());
+            }
+            "int" => {
+                var = VariableType::Integer(line[i + 2].parse::<i32>().unwrap());
+            }
+            "float" => {
+                var = VariableType::Float(line[i + 2].parse::<f32>().unwrap());
+            }
+            "bool" => {
+                var = VariableType::Boolean(line[i + 2].parse::<bool>().unwrap());
+            }
+            "null" => error("Syntax error"),
+            _ => {
+                error("Unknown variable type");
+            }
         }
-        "int" => {
-            var = VariableType::Integer(line[i + 2].parse::<i32>().unwrap());
-        }
-        "float" => {
-            var = VariableType::Float(line[i + 2].parse::<f32>().unwrap());
-        }
-        "bool" => {
-            var = VariableType::Boolean(line[i + 2].parse::<bool>().unwrap());
-        }
-        "null" => {
-            var = VariableType::Null;
-        }
-        _ => {
-            error("Unknown variable type");
+    } else {
+        match line[i].clone().as_str() {
+            "string" => {
+                var = VariableType::String("".to_string());
+            }
+            "int" => {
+                var = VariableType::Integer(0);
+            }
+            "float" => {
+                var = VariableType::Float(0.0);
+            }
+            "bool" => {
+                var = VariableType::Boolean(false);
+            }
+            "null" => {
+                if !is_constant {
+                    error("Null type cannot be mutable")
+                }
+                var = VariableType::Null;
+            }
+            _ => {
+                error("Unknown variable type");
+            }
         }
     }
 
@@ -109,5 +151,6 @@ pub(crate) fn new_variable(line: Vec<String>, scope_level: u8) -> VariableStruct
         var,
         if is_global { 0 } else { scope_level },
         is_constant,
+        line[i].clone().as_str() == "null" || line_length == 3,
     )
 }
