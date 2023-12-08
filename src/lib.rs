@@ -36,20 +36,20 @@ pub fn read(file_name: &str) -> Vec<String> {
                     }
                     Err(err) => {
                         if err.kind() == io::ErrorKind::InvalidData {
-                            error("Impossible to read file: Bad encoding");
+                            error("Cannot read file: Bad encoding");
                         }
-                        error("Impossible to read file: Unknown error");
+                        error("Cannot read file: Unknown error");
                     }
                 }
             }
         }
         Err(err) => {
             if err.kind() == io::ErrorKind::NotFound {
-                error("Impossible to open file: File not found");
+                error("Cannot open file: File not found");
             } else if err.kind() == io::ErrorKind::PermissionDenied {
-                error("Impossible to open file: Permission denied");
+                error("Cannot open file: Permission denied");
             }
-            error("Impossible to open file: Unknown error")
+            error("Cannot open file: Unknown error")
         }
     }
     lines
