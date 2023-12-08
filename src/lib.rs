@@ -22,7 +22,7 @@ pub fn clear() {
 /**
  * This function print an error message in red and stop the program
  */
-pub fn error(message: &str) {
+pub fn error(message: &str, line: u8) {
     //print the error message in red
     println!("\x1b[31mError: {}\x1b[0m", message);
     exit(0);

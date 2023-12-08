@@ -31,9 +31,6 @@ fn interpret(line: Vec<String>, line_number: u16, variables: &mut HashMap<String
         "pu" | "fu" | "ju" => {
             // create a new variable
             let (mut temp, name) = new_variable(line, scope_level);
-            println!("{:?}", temp.get_value());
-            temp.set_value(VariableType::String("Hello".to_string()));
-            println!("{:?}", temp.get_value());
             (*variables).insert(name, temp);
         }
         _ => error(("Unknown command on line ".to_string() + &line_number.to_string()).as_str()),

@@ -43,22 +43,22 @@ impl VariableStruct {
         match value {
             VariableType::String(_) => {
                 if &self.type_name != "string" {
-                    error("Cannot set variable to string");
+                    error(("Cannot set ".to_string() + &self.type_name + " to string").as_str());
                 }
             }
             VariableType::Integer(_) => {
                 if &self.type_name != "int" {
-                    error("Cannot set variable to integer");
+                    error(("Cannot set ".to_string() + &self.type_name + " to int").as_str());
                 }
             }
             VariableType::Float(_) => {
                 if &self.type_name != "float" {
-                    error("Cannot set variable to float");
+                    error(("Cannot set ".to_string() + &self.type_name + " to float").as_str());
                 }
             }
             VariableType::Boolean(_) => {
                 if &self.type_name != "bool" {
-                    error("Cannot set variable to boolean");
+                    error(("Cannot set ".to_string() + &self.type_name + " to bool").as_str());
                 }
             }
             VariableType::Unset => {
