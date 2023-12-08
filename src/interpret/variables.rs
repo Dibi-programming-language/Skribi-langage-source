@@ -38,6 +38,37 @@ impl VariableStruct {
             self.is_set = true
         }
 
+        // check if the variable type are the same
+        match value {
+            VariableType::String(_) => match &self.value {
+                VariableType::String(_) => {}
+                _ => {
+                    error("Cannot set variable to string");
+                }
+            },
+            VariableType::Integer(_) => match &self.value {
+                VariableType::Integer(_) => {}
+                _ => {
+                    error("Cannot set variable to integer");
+                }
+            },
+            VariableType::Float(_) => match &self.value {
+                VariableType::Float(_) => {}
+                _ => {
+                    error("Cannot set variable to float");
+                }
+            },
+            VariableType::Boolean(_) => match &self.value {
+                VariableType::Boolean(_) => {}
+                _ => {
+                    error("Cannot set variable to boolean");
+                }
+            },
+            VariableType::Unset => {
+                error("Cannot set variable to unset");
+            }
+        }
+
         self.value = value;
     }
     /**
