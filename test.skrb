@@ -4,4 +4,3 @@ pu int private 3;
 ju int constant 3;
 fu ju int global_constant 3;
 pu ju int private_constant 3;
-pu fu int private_global 3;

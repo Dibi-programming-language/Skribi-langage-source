@@ -13,7 +13,9 @@ use pre_run::{get_instructions, get_path};
 use skribi_language_source::{clear, read};
 use std::env;
 
-// Main
+/**
+ * Launch the interpreter
+ */
 fn main() {
     // parameters
     let flag_char = "/"; // if it was "-", it would sometimes interfere with cargo's flags
