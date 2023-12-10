@@ -1,6 +1,11 @@
 use skribi_language_source::error;
 use std::io;
 
+/**
+ * This function is used to get the path of the file to run
+ *
+ * The path can either be passed as an argument or entered in the terminal
+ */
 pub fn get_path(args: Vec<String>, flag_char: &str) -> String {
     let mut path = String::new();
     // Get the path of the file to run
@@ -13,40 +18,55 @@ pub fn get_path(args: Vec<String>, flag_char: &str) -> String {
     }
     path
 }
+/**
+ * This function formats the code to be interpreted
+ *
+ * It typically removes comments and splits the code into instructions while keeping strings intact
+ */
 pub fn get_instructions(lines: Vec<String>) -> Vec<String> {
     let mut in_string = false;
     let mut in_comment = false;
     let mut code: Vec<String> = vec![String::new()];
     let mut code_len = 0;
+
+    // iterate over the lines of code
     for line in lines.iter() {
         code[code_len] += " ";
         let current_line = line.trim();
+
+        // iterate over the characters of the current line
         for (i, c) in current_line.chars().enumerate() {
-            let is_max = i == current_line.trim().len() - 1;
             if !in_string && c == '/' {
-                if !is_max {
+                if i != current_line.trim().len() - 1 {
+                    // check if the current character is the start of a comment that ends at the end of the line
                     if current_line.chars().nth(i + 1).unwrap() == '/' {
                         code[code_len] = code[code_len].trim().to_string();
                         break;
                     }
-                    if current_line.chars().nth(i + 1).unwrap() == '*' {
+                    // check if the current character is the start of a comment that ends somewhere else
+                    else if current_line.chars().nth(i + 1).unwrap() == '*' {
                         in_comment = true;
                     }
                 }
+                // check if the current character is the end of a comment
                 if i != 0 && in_comment && current_line.chars().nth(i - 1).unwrap() == '*' {
                     in_comment = false;
                     continue;
                 }
             }
             if !in_comment {
+                // check if the current character is a string delimiter
                 if c == '"' && (i == 0 || current_line.chars().nth(i - 1).unwrap() != '\\') {
                     in_string = !in_string;
                     code[code_len] += "\"";
-                } else if in_string
+                }
+                // if the current character is a space and the previous character is a space, don't add it to the code
+                else if in_string
                     || !(code[code_len].len() != 0
                         && c == ' '
                         && code[code_len].chars().last().unwrap() == ' ')
                 {
+                    // split the code into instructions when a semicolon is encountered
                     if c == ';' && !in_string {
                         code[code_len] = code[code_len].trim().to_string();
                         code.push(String::new());
@@ -58,7 +78,7 @@ pub fn get_instructions(lines: Vec<String>) -> Vec<String> {
             }
         }
         if in_string {
-            error("Unclosed string on line {}")
+            error("Unclosed string", code_len as u16);
         }
     }
     code[code_len] = code[code_len].trim().to_string();
