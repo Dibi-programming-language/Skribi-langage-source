@@ -13,6 +13,7 @@ pub enum VariableType {
     Boolean(bool),
     Unset,
 }
+
 /**
  * This is the struct that stores everything about a variable (name, value, scope level, etc.)
  */
@@ -20,7 +21,8 @@ pub enum VariableType {
 pub(crate) struct VariableStruct {
     name: String,
     value: VariableType,
-    scope_level: u8, // 0 is global, this is used to remove variables when exiting it's scope
+    scope_level: u8,
+    // 0 is global, this is used to remove variables when exiting it's scope
     is_constant: bool,
     is_set: bool,
     type_name: String,
@@ -80,6 +82,7 @@ impl VariableStruct {
 
         self.value = value;
     }
+
     /**
      * Return the value of the variable
      */
@@ -99,33 +102,39 @@ pub(crate) fn new_variable(
     scope_level: u8,
     line_number: u16,
 ) -> (VariableStruct, String) {
+
+    // Check "pu", "fu" and "ju" keywords
     let mut is_constant = false;
     let mut is_private = false;
     let mut is_global = false;
-    let mut i = 0;
+    let mut modifiers_number = 0;
     let args = line[0..2].to_vec();
 
-    // get the type of the variable (global, private, constant)
+    // get the modifiers of the variable (global, private, constant)
+    // if there is only 1 modifier, we do not have to check if he is in the first position because the type will be unknown.
     if args.contains(&"pu".to_string()) {
         is_private = true;
-        i += 1;
+        modifiers_number += 1;
     }
     if args.contains(&"fu".to_string()) {
         is_global = true;
-        i += 1;
+        modifiers_number += 1;
     }
     if args.contains(&"ju".to_string()) {
         is_constant = true;
-        i += 1;
+        modifiers_number += 1;
     }
     if is_global && is_private {
         error("Variable cannot be both global and private", line_number);
     }
+
+    // line[0] is : base keyword or type. line[1] is : base keyword, type or name. We can't use the keyword twice, and
+    // a keyword name cannot be used as a type. In the same way, a type name cannot be used as a variable name
     if line[0] == line[1] {
         error(
-            ("Syntax error: to many ".to_string()
+            ("Syntax error: to many \"".to_string()
                 + line[0].to_string().as_str()
-                + " in variable declaration")
+                + "\" in variable declaration. The problem is one of the following. You cannot use a keyword like \"pu\", \"ju\" or \"fu\" twice. A keyword cannot be used as a type name. A type cannot be used as a variable name. In any case, your line is not allowed.")
                 .as_str(),
             line_number,
         );
@@ -134,7 +143,7 @@ pub(crate) fn new_variable(
     // create an empty variable
     let mut var = VariableType::Unset;
 
-    let line_length = line.len() - i;
+    let line_length = line.len() - modifiers_number;
 
     if line_length < 2 {
         error(
@@ -147,19 +156,22 @@ pub(crate) fn new_variable(
             line_number,
         );
     } else if line_length == 3 {
-        // is a value is specified get the type and value of the variable
-        match line[i].clone().as_str() {
+        // if a value is specified get the type and value of the variable
+        match line[modifiers_number].clone().as_str() {
             "string" => {
-                var = VariableType::String(line[i + 2].to_string());
+                var = VariableType::String(line[modifiers_number + 2].to_string());
             }
             "int" => {
-                var = VariableType::Integer(line[i + 2].parse::<i32>().unwrap());
+                var = VariableType::Integer(line[modifiers_number + 2].parse::<i32>().unwrap());
             }
             "float" => {
-                var = VariableType::Float(line[i + 2].parse::<f32>().unwrap());
+                var = VariableType::Float(line[modifiers_number + 2].parse::<f32>().unwrap());
             }
             "bool" => {
-                var = VariableType::Boolean(line[i + 2].parse::<bool>().unwrap());
+                var = VariableType::Boolean(line[modifiers_number + 2].parse::<bool>().unwrap());
+            }
+            "ju" | "fu" | "pu" => {
+                error("Unknown variable type. A modifier is used in the position of the type. Consider switching.", line_number);
             }
             _ => {
                 error("Unknown variable type", line_number);
@@ -167,7 +179,7 @@ pub(crate) fn new_variable(
         }
     } else {
         // if no values are specified set a default value for the variable
-        match line[i].clone().as_str() {
+        match line[modifiers_number].clone().as_str() {
             "string" => {
                 var = VariableType::String("".to_string());
             }
@@ -180,6 +192,9 @@ pub(crate) fn new_variable(
             "bool" => {
                 var = VariableType::Boolean(false);
             }
+            "ju" | "fu" | "pu" => {
+                error("Unknown variable type. A modifier is used in the position of the type. Consider switching.", line_number);
+            }
             _ => {
                 error("Unknown variable type", line_number);
             }
@@ -189,13 +204,13 @@ pub(crate) fn new_variable(
     // return the variable
     (
         VariableStruct {
-            name: line[i + 1].clone(),
+            name: line[modifiers_number + 1].clone(),
             value: var,
             scope_level: if is_global { 0 } else { scope_level },
             is_constant,
             is_set: line_length == 3,
-            type_name: line[i].clone(),
+            type_name: line[modifiers_number].clone(),
         },
-        line[i + 1].clone(),
+        line[modifiers_number + 1].clone(),
     )
 }
