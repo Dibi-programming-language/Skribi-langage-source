@@ -18,6 +18,7 @@ pub fn get_path(args: Vec<String>, flag_char: &str) -> String {
     }
     path
 }
+
 /**
  * This function formats the code to be interpreted
  *
@@ -63,8 +64,8 @@ pub fn get_instructions(lines: Vec<String>) -> Vec<String> {
                 // if the current character is a space and the previous character is a space, don't add it to the code
                 else if in_string
                     || !(code[code_len].len() != 0
-                        && c == ' '
-                        && code[code_len].chars().last().unwrap() == ' ')
+                    && c == ' '
+                    && code[code_len].chars().last().unwrap() == ' ')
                 {
                     // split the code into instructions when a semicolon is encountered
                     if c == ';' && !in_string {

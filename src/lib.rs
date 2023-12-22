@@ -3,6 +3,7 @@ use std::{
     fs::File,
     io::{self, BufRead},
 };
+
 /**
  * This function clear the shell
  */
@@ -19,6 +20,7 @@ pub fn clear() {
         },
     }
 }
+
 /**
  * This function print an error message in red and stop the program
  */
@@ -27,6 +29,16 @@ pub fn error(message: &str, line: u16) {
     println!("\x1b[31mError: {} in instruction {}\x1b[0m", message, line + 1);
     exit(0);
 }
+
+/**
+ * This function print an error message in red and stop the program
+ */
+pub fn error_multiple_lines(message: &str, line_from: u16, line_to: u16) {
+    //print the error message in red
+    println!("\x1b[31mError: {} in from instruction {} to instruction {}\x1b[0m", message, line_from + 1, line_to + 1);
+    exit(0);
+}
+
 /**
  * This function read all the content from a file and return a vector of String, each string being a line of the file
  */
@@ -62,6 +74,7 @@ pub fn read(file_name: &str) -> Vec<String> {
     }
     lines
 }
+
 /**
  * This function split a String on every space, except if the space is in a string or in parenthesis
  *
@@ -88,18 +101,18 @@ pub fn capsule_words(line: String, line_number: u16) -> Vec<String> {
             if c == '(' {
                 in_par += 1;
                 capsule[capsule_len] += "(";
-            // test if the string is exiting parenthesis
+                // test if the string is exiting parenthesis
             } else if c == ')' {
                 if in_par == 0 {
                     error("Unexpected ')'", line_number);
                 }
                 capsule[capsule_len] += ")";
                 in_par -= 1;
-            // test if the current character is between 2 words
+                // test if the current character is between 2 words
             } else if c == ' ' && in_par == 0 {
                 capsule.push(String::new());
                 capsule_len += 1;
-            // add the character to the current word
+                // add the character to the current word
             } else {
                 capsule[capsule_len] += &c.to_string();
             }
