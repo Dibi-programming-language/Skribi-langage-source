@@ -171,10 +171,14 @@ pub(crate) fn new_variable(
                 var = VariableType::Boolean(line[modifiers_number + 2].parse::<bool>().unwrap());
             }
             "ju" | "fu" | "pu" => {
-                error("Unknown variable type. A modifier is used in the position of the type. Consider switching.", line_number);
+                error("Unknown variable type. A modifier is used in the position of the type. Consider switching", line_number);
             }
             _ => {
-                error("Unknown variable type", line_number);
+                // Call the error function with "Unknown variable type [variable type]" as argument
+                error(
+                    ("Unknown variable type ".to_string() + &line[modifiers_number]).as_str(),
+                    line_number,
+                );
             }
         }
     } else {
