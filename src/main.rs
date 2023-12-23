@@ -34,8 +34,13 @@ fn main() {
     // Check if the file has the right extension
     if !extension.contains(&String::from(path.split('.').last().unwrap())) {
         println!("Not a valid file extension");
+        println!("Valid file extensions:");
+        for ext in extension {
+            println!("\t{}", ext);
+        }
         return;
     }
+    
     // Read the file
     let lines = read(&path);
 
