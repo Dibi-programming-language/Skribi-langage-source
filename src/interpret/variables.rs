@@ -14,6 +14,13 @@ pub enum VariableType {
     Unset,
 }
 
+// Associated names for the VariableType enum
+const STRING_NAME: &str = "string";
+const INTEGER_NAME: &str = "int";
+const FLOAT_NAME: &str = "float";
+const BOOLEAN_NAME: &str = "bool";
+const UNSET_NAME: &str = "unset";
+
 /**
  * This is the struct that stores everything about a variable (name, value, scope level, etc.)
  */
@@ -44,39 +51,39 @@ impl VariableStruct {
         // check if the variable type are the same
         match value {
             VariableType::String(_) => {
-                if &self.type_name != "string" {
+                if &self.type_name != STRING_NAME {
                     error(
-                        ("Cannot set ".to_string() + &self.type_name + " to string").as_str(),
+                        ("Cannot set ".to_string() + &self.type_name + " to " + STRING_NAME).as_str(),
                         line,
                     );
                 }
             }
             VariableType::Integer(_) => {
-                if &self.type_name != "int" {
+                if &self.type_name != INTEGER_NAME {
                     error(
-                        ("Cannot set ".to_string() + &self.type_name + " to int").as_str(),
+                        ("Cannot set ".to_string() + &self.type_name + " to " + INTEGER_NAME).as_str(),
                         line,
                     );
                 }
             }
             VariableType::Float(_) => {
-                if &self.type_name != "float" {
+                if &self.type_name != FLOAT_NAME {
                     error(
-                        ("Cannot set ".to_string() + &self.type_name + " to float").as_str(),
+                        ("Cannot set ".to_string() + &self.type_name + " to " + FLOAT_NAME).as_str(),
                         line,
                     );
                 }
             }
             VariableType::Boolean(_) => {
-                if &self.type_name != "bool" {
+                if &self.type_name != BOOLEAN_NAME {
                     error(
-                        ("Cannot set ".to_string() + &self.type_name + " to bool").as_str(),
+                        ("Cannot set ".to_string() + &self.type_name + " to " + BOOLEAN_NAME).as_str(),
                         line,
                     );
                 }
             }
             VariableType::Unset => {
-                error("Cannot set variable to unset", line);
+                error(("Cannot set a variable to ".to_string() + UNSET_NAME).as_str(), line);
             }
         }
 
@@ -158,16 +165,16 @@ pub(crate) fn new_variable(
     } else if line_length == 3 {
         // if a value is specified get the type and value of the variable
         match line[modifiers_number].clone().as_str() {
-            "string" => {
+            STRING_NAME => {
                 var = VariableType::String(line[modifiers_number + 2].to_string());
             }
-            "int" => {
+            INTEGER_NAME => {
                 var = VariableType::Integer(line[modifiers_number + 2].parse::<i32>().unwrap());
             }
-            "float" => {
+            FLOAT_NAME => {
                 var = VariableType::Float(line[modifiers_number + 2].parse::<f32>().unwrap());
             }
-            "bool" => {
+            BOOLEAN_NAME => {
                 var = VariableType::Boolean(line[modifiers_number + 2].parse::<bool>().unwrap());
             }
             "ju" | "fu" | "pu" => {
@@ -184,16 +191,16 @@ pub(crate) fn new_variable(
     } else {
         // if no values are specified set a default value for the variable
         match line[modifiers_number].clone().as_str() {
-            "string" => {
+            STRING_NAME => {
                 var = VariableType::String("".to_string());
             }
-            "int" => {
+            INTEGER_NAME => {
                 var = VariableType::Integer(0);
             }
-            "float" => {
+            FLOAT_NAME => {
                 var = VariableType::Float(0.0);
             }
-            "bool" => {
+            BOOLEAN_NAME => {
                 var = VariableType::Boolean(false);
             }
             "ju" | "fu" | "pu" => {
