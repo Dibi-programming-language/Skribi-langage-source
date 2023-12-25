@@ -1,6 +1,7 @@
 // fu = global, pu = private, ju = constant
 fu int global 3;
-pu pomme private 3;
 ju int constant 3;
 fu ju int global_constant 3;
 pu ju int private_constant 3;
+// throw an error
+pu pomme private 3;

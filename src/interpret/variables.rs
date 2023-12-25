@@ -15,10 +15,10 @@ pub enum VariableType {
 }
 
 // Associated names for the VariableType enum
-const STRING_NAME: &str = "string";
-const INTEGER_NAME: &str = "int";
-const FLOAT_NAME: &str = "float";
-const BOOLEAN_NAME: &str = "bool";
+const STRING_NAME: &str = "skr"; // From "skribi" in dibi
+const INTEGER_NAME: &str = "int"; // From "integi" in dibi
+const FLOAT_NAME: &str = "dar"; // From "daritmi" in dibi
+const BOOLEAN_NAME: &str = "ioi"; // From "ioi" in dibi
 const UNSET_NAME: &str = "unset";
 
 /**
