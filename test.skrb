@@ -3,5 +3,11 @@ fu int global 3;
 ju int constant 3;
 fu ju int global_constant 3;
 pu ju int private_constant 3;
+skr_app 1 global;
+skr_app 2 constant;
+skr_app 1 global_constant;
+skr_app 1 private_constant;
+// throw an error
+skr_app 1 private;
 // throw an error
 pu pomme private 3;
