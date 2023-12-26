@@ -23,6 +23,13 @@ const BOOLEAN_NAME: &str = "ioi"; // From "ioi" in dibi
 const UNSET_NAME: &str = "unset";
 
 /**
+ * This function is used to check if a word is a variable type
+ */
+pub(crate) fn is_variable_type(type_name: &str) -> bool {
+    type_name == STRING_NAME || type_name == INTEGER_NAME || type_name == FLOAT_NAME || type_name == BOOLEAN_NAME
+}
+
+/**
  * This is the struct that stores everything about a variable (name, value, scope level, etc.)
  */
 #[derive(Debug)]
@@ -119,7 +126,7 @@ impl Clone for VariableStruct {
  * This function is used to create a new variable
  */
 pub(crate) fn new_variable(
-    line: Vec<String>,
+    line: &Vec<String>,
     scope_level: u8,
     line_number: u16,
 ) -> (VariableStruct, String) {

@@ -1,7 +1,7 @@
 mod variables;
 mod native_call;
 
-use crate::interpret::variables::{new_variable, VariableStruct};
+use crate::interpret::variables::{is_variable_type, new_variable, VariableStruct};
 use skribi_language_source::{capsule_words, error};
 use std::collections::HashMap;
 
@@ -29,26 +29,38 @@ Interpret a line of code
 fn interpret(line: Vec<String>, line_number: u16, variables: &mut HashMap<String, VariableStruct>) {
     let scope_level: u8 = 1;
 
-    match line[0].as_str() {
+    let word = line[0].as_str();
+    match word {
         "skr_app" => {
             // TEMPORARY - Call a native function
             native_call::native_call(line, line_number, variables);
         }
         "pu" | "fu" | "ju" => {
-            // create a new variable
-            let (temp, name) = new_variable(line, scope_level, line_number);
-            // check if the variable already exists
-            if variables.contains_key(&name) {
+            create_variable(&line, line_number, variables, scope_level);
+        }
+        // In all other cases, a last check with a condition is made to see if the line is a variable assignment :
+        _ => {
+            if is_variable_type(word) {
+                create_variable(&line, line_number, variables, scope_level);
+            } else {
                 error(
-                    ("Variable ".to_string() + &name + " already exists").as_str(),
+                    ("Unknown command on line ".to_string() + &line_number.to_string()).as_str(),
                     line_number,
                 );
             }
-            (*variables).insert(name, temp);
         }
-        _ => error(
-            ("Unknown command on line ".to_string() + &line_number.to_string()).as_str(),
-            line_number,
-        ),
     }
+}
+
+fn create_variable(line: &Vec<String>, line_number: u16, variables: &mut HashMap<String, VariableStruct>, scope_level: u8) {
+    // create a new variable
+    let (temp, name) = new_variable(line, scope_level, line_number);
+    // check if the variable already exists
+    if variables.contains_key(&name) {
+        error(
+            ("Variable ".to_string() + &name + " already exists").as_str(),
+            line_number,
+        );
+    }
+    (*variables).insert(name, temp);
 }

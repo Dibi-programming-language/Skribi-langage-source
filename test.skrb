@@ -1,5 +1,5 @@
 // fu = global, pu = private, ju = constant
-fu skr my_skr "Hello, World!";
+skr my_skr "Hello, World!";
 skr_app 2 my_skr;
 fu int global 1;
 ju int constant 2;
