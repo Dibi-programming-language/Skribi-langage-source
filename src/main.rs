@@ -20,7 +20,7 @@ const FLAG_CHAR: &str = "/"; // if it was "-", it would sometimes interfere with
  */
 fn main() {
     // parameters
-    const EXTENSION: Vec<String> = vec!["skrb".to_string(), "skribi".to_string()];
+    let extension: Vec<String> = vec!["skrb".to_string(), "skribi".to_string()];
 
     // generic parameters
     let args: Vec<_> = env::args().collect(); // get the command line arguments
@@ -33,10 +33,10 @@ fn main() {
     let path = get_path(args.clone(), FLAG_CHAR);
 
     // Check if the file has the right extension
-    if !EXTENSION.contains(&String::from(path.split('.').last().unwrap())) {
+    if !extension.contains(&String::from(path.split('.').last().unwrap())) {
         println!("Not a valid file extension");
         println!("Valid file extensions:");
-        for ext in EXTENSION {
+        for ext in extension {
             println!("\t{}", ext);
         }
         return;

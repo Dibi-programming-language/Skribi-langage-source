@@ -6,6 +6,7 @@ use skribi_language_source::error;
  * This is the variable type (rust) used to store the value of a variable (skribi)
  */
 #[derive(Debug)]
+#[derive(Clone)]
 pub enum VariableType {
     String(String),
     Integer(i32),
@@ -98,6 +99,19 @@ impl VariableStruct {
             error("Variable was never initialized", line)
         }
         &self.value
+    }
+}
+
+impl Clone for VariableStruct {
+    fn clone(&self) -> Self {
+        VariableStruct {
+            name: self.name.clone(),
+            value: self.value.clone(), // Assuming VariableType implements Clone
+            scope_level: self.scope_level,
+            is_constant: self.is_constant,
+            is_set: self.is_set,
+            type_name: self.type_name.clone(),
+        }
     }
 }
 

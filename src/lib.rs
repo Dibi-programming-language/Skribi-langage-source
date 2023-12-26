@@ -94,7 +94,6 @@ pub fn capsule_words(line: String, line_number: u16) -> Vec<String> {
     for (i, c) in line.chars().enumerate() {
         // test if the current character is a string delimiter
         if c == '"' && (i == 0 || line.chars().nth(i - 1).unwrap() != '\\') {
-            capsule[capsule_len] += "\"";
             is_string = !is_string;
         } else if !is_string {
             // test if the string is entering parenthesis

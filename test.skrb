@@ -1,12 +1,15 @@
 // fu = global, pu = private, ju = constant
-fu int global 3;
-ju int constant 3;
+fu skr my_skr "Hello, World!";
+skr_app 2 my_skr;
+fu int global 1;
+ju int constant 2;
 fu ju int global_constant 3;
-pu ju int private_constant 3;
+pu ju int private_constant 4;
 skr_app 1 global;
 skr_app 2 constant;
 skr_app 1 global_constant;
 skr_app 1 private_constant;
+skr_app 2 private_constant;
 // throw an error
 skr_app 1 private;
 // throw an error

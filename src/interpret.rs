@@ -32,7 +32,7 @@ fn interpret(line: Vec<String>, line_number: u16, variables: &mut HashMap<String
     match line[0].as_str() {
         "skr_app" => {
             // TEMPORARY - Call a native function
-
+            native_call::native_call(line, line_number, variables);
         }
         "pu" | "fu" | "ju" => {
             // create a new variable
