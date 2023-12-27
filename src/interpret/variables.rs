@@ -64,7 +64,7 @@ impl Variable {
             VariableType::String(_) => {
                 if &self.type_name != STRING_NAME {
                     error(
-                        &format!("Cannot set {} to {}", self.type_name, STRING_NAME),
+                        &format!("Cannot set {} ({}) to {}", self.name, self.type_name, STRING_NAME),
                         line,
                     );
                 }
@@ -72,7 +72,7 @@ impl Variable {
             VariableType::Integer(_) => {
                 if &self.type_name != INTEGER_NAME {
                     error(
-                        &format!("Cannot set {} to {}", self.type_name, INTEGER_NAME),
+                        &format!("Cannot set {} ({}) to {}", self.name, self.type_name, INTEGER_NAME),
                         line,
                     );
                 }
@@ -80,7 +80,7 @@ impl Variable {
             VariableType::Float(_) => {
                 if &self.type_name != FLOAT_NAME {
                     error(
-                        &format!("Cannot set {} to {}", self.type_name, FLOAT_NAME),
+                        &format!("Cannot set {} ({}) to {}", self.name, self.type_name, FLOAT_NAME),
                         line,
                     );
                 }
@@ -88,7 +88,7 @@ impl Variable {
             VariableType::Boolean(_) => {
                 if &self.type_name != BOOLEAN_NAME {
                     error(
-                        &format!("Cannot set {} to {}", self.type_name, BOOLEAN_NAME),
+                        &format!("Cannot set {} ({}) to {}", self.name, self.type_name, BOOLEAN_NAME),
                         line,
                     );
                 }

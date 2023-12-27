@@ -42,6 +42,8 @@ fn interpret(line: Vec<String>, line_number: u16, variables: &mut HashMap<String
         _ => {
             if is_variable_type(word) {
                 create_variable(&line, line_number, variables, scope_level);
+            } else if variables.contains_key(word) {
+                // TODO: assign a value to a variable
             } else {
                 error(
                     ("Unknown command on line ".to_string() + &line_number.to_string()).as_str(),
