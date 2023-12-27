@@ -30,7 +30,7 @@ fn main() {
         clear();
     }
 
-    let path = get_path(args.clone(), FLAG_CHAR);
+    let path = get_path(args.clone());
 
     // Check if the file has the right extension
     if !extension.contains(&String::from(path.split('.').last().unwrap())) {

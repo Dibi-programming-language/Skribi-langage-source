@@ -1,15 +1,16 @@
 use skribi_language_source::error;
 use std::io;
+use crate::FLAG_CHAR;
 
 /**
  * This function is used to get the path of the file to run
  *
  * The path can either be passed as an argument or entered in the terminal
  */
-pub fn get_path(args: Vec<String>, flag_char: &str) -> String {
+pub fn get_path(args: Vec<String>) -> String {
     let mut path = String::new();
     // Get the path of the file to run
-    if args.len() > 1 && !args[1].starts_with(flag_char) {
+    if args.len() > 1 && !args[1].starts_with(FLAG_CHAR) {
         path = args[1].clone();
     } else {
         println!("Enter a file to run");

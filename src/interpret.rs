@@ -1,7 +1,7 @@
 mod variables;
 mod native_call;
 
-use crate::interpret::variables::{is_variable_type, new_variable, Variable};
+use crate::interpret::variables::{is_variable_type, Variable};
 use skribi_language_source::{capsule_words, error};
 use std::collections::HashMap;
 
