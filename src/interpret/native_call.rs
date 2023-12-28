@@ -2,9 +2,7 @@ use std::collections::HashMap;
 use skribi_language_source::error;
 use crate::interpret::variables::{Variable, VariableType};
 
-/**
- * This function is used to print the value of a variable
- */
+/// This function is used to print the value of a variable
 pub(crate) fn print_variable(variable_type: &VariableType, line: u16) {
     match variable_type {
         VariableType::String(value) => {
@@ -26,9 +24,7 @@ pub(crate) fn print_variable(variable_type: &VariableType, line: u16) {
     }
 }
 
-/**
- * This function is used to interpret a line of code that call a native function
- */
+/// This function is used to interpret a line of code that call a native function
 pub(crate) fn native_call(line: Vec<String>, line_number: u16, variables: &mut HashMap<String, Variable>) {
     // get the number of the function
     let function_name = line[1].parse::<u8>().unwrap();

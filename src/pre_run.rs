@@ -2,11 +2,9 @@ use skribi_language_source::error;
 use std::io;
 use crate::FLAG_CHAR;
 
-/**
- * This function is used to get the path of the file to run
- *
- * The path can either be passed as an argument or entered in the terminal
- */
+/// This function is used to get the path of the file to run
+///
+/// The path can either be passed as an argument or entered in the terminal
 pub fn get_path(args: Vec<String>) -> String {
     let mut path = String::new();
     // Get the path of the file to run
@@ -20,11 +18,9 @@ pub fn get_path(args: Vec<String>) -> String {
     path
 }
 
-/**
- * This function formats the code to be interpreted
- *
- * It typically removes comments and splits the code into instructions while keeping strings intact
- */
+/// This function formats the code to be interpreted
+///
+/// It typically removes comments and splits the code into instructions while keeping strings intact
 pub fn get_instructions(lines: Vec<String>) -> Vec<String> {
     let mut in_string = false;
     let mut in_comment = false;

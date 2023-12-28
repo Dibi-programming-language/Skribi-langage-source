@@ -2,9 +2,7 @@ use skribi_language_source::error;
 
 // the #[derive(Debug)] is used to allow the struct to be printed with the {:?} format, this is NOT a comment
 
-/**
- * This is the variable type (rust) used to store the value of a variable (skribi)
- */
+/// This is the variable type (rust) used to store the value of a variable (skribi)
 #[derive(Debug, Clone)]
 pub enum VariableType {
     String(String),
@@ -25,16 +23,12 @@ const BOOLEAN_NAME: &str = "ioi";
 // From "ioi" in dibi
 const UNSET_NAME: &str = "unset";
 
-/**
- * This function is used to check if a word is a variable type
- */
+/// This function is used to check if a word is a variable type
 pub(crate) fn is_variable_type(type_name: &str) -> bool {
     type_name == STRING_NAME || type_name == INTEGER_NAME || type_name == FLOAT_NAME || type_name == BOOLEAN_NAME
 }
 
-/**
- * This is the struct that stores everything about a variable (name, value, scope level, etc.)
- */
+/// This is the struct that stores everything about a variable (name, value, scope level, etc.)
 #[derive(Debug, Clone)]
 pub(crate) struct Variable {
     name: String,
@@ -47,9 +41,8 @@ pub(crate) struct Variable {
 }
 
 impl Variable {
-    /**
-     * Change the value of the variable
-     */
+
+    /// Change the value of the variable
     pub fn set_value(&mut self, value: VariableType, line: u16) {
         // check if the variable is constant
         if self.is_constant {
@@ -101,9 +94,7 @@ impl Variable {
         self.value = value;
     }
 
-    /**
-     * Return the value of the variable
-     */
+    /// Return the value of the variable
     pub fn get_value(&mut self, line: u16) -> &VariableType {
         if !self.is_set {
             error("Variable was never initialized", line)
@@ -111,6 +102,28 @@ impl Variable {
         &self.value
     }
 
+    /// Create a new variable using the arguments
+    ///
+    /// # Arguments
+    ///
+    /// ## line
+    ///
+    /// The line of code in Skribi.
+    ///
+    /// ```
+    /// <fu/pu/ju> <fu/pu/ju> [type] [name] [value]
+    /// ```
+    ///
+    /// ## scope_level
+    ///
+    /// The scope level of the variable. This number is only used to instantiate the variable in this function.
+    ///
+    /// ## line_number
+    ///
+    /// The number of the line of the instruction. This number is only used to print errors.
+    ///
+    /// WARNING - This will be replaced by a better error system in the future.
+    ///
     pub(crate) fn new(
         line: &[String],
         scope_level: u8,

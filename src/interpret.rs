@@ -5,9 +5,7 @@ use crate::interpret::variables::{is_variable_type, Variable};
 use skribi_language_source::{capsule_words, error};
 use std::collections::HashMap;
 
-/**
-Main loop of the interpreter
- */
+/// Main loop of the interpreter
 pub fn main(code: Vec<String>, _args: Vec<String>) {
     let mut line_number: u16 = 0;
     let mut is_running = line_number < code.len() as u16 - 1;
@@ -23,9 +21,8 @@ pub fn main(code: Vec<String>, _args: Vec<String>) {
     }
 }
 
-/**
-Interpret a line of code
- */
+
+/// Interpret a line of code
 fn interpret(line: Vec<String>, line_number: u16, variables: &mut HashMap<String, Variable>) {
     let scope_level: u8 = 1;
 

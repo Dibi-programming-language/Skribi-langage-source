@@ -4,9 +4,7 @@ use std::{
     io::{self, BufRead},
 };
 
-/**
- * This function clear the shell
- */
+/// This function clear the shell
 pub fn clear() {
     match Command::new("clear").status() {
         Ok(_) => {}
@@ -21,27 +19,21 @@ pub fn clear() {
     }
 }
 
-/**
- * This function print an error message in red and stop the program
- */
+/// This function print an error message in red and stop the program
 pub fn error(message: &str, line: u16) {
     //print the error message in red
     println!("\x1b[31mError: {} in instruction {}\x1b[0m", message, line + 1);
     exit(0);
 }
 
-/**
- * This function print an error message in red and stop the program
- */
+/// This function print an error message in red and stop the program
 pub fn error_multiple_lines(message: &str, line_from: u16, line_to: u16) {
     //print the error message in red
     println!("\x1b[31mError: {} in from instruction {} to instruction {}\x1b[0m", message, line_from + 1, line_to + 1);
     exit(0);
 }
 
-/**
- * This function read all the content from a file and return a vector of String, each string being a line of the file
- */
+/// This function read all the content from a file and return a vector of String, each string being a line of the file
 pub fn read(file_name: &str) -> Vec<String> {
     let mut lines: Vec<String> = vec![];
     match File::open(file_name) {
@@ -75,16 +67,14 @@ pub fn read(file_name: &str) -> Vec<String> {
     lines
 }
 
-/**
- * This function split a String on every space, except if the space is in a string or in parenthesis
- *
- * # Example
- * "Hello, I'm coding in "skribi language" (a programming language)"
- *
- * ->
- *
- * ["Hello,", "I'm", "coding", "in", "skribi language", "(a programming language)"]
- */
+/// This function split a String on every space, except if the space is in a string or in parenthesis
+///
+/// # Example
+/// "Hello, I'm coding in "skribi language" (a programming language)"
+///
+/// ->
+///
+/// ["Hello,", "I'm", "coding", "in", "skribi language", "(a programming language)"]
 pub fn capsule_words(line: String, line_number: u16) -> Vec<String> {
     let mut capsule: Vec<String> = vec![String::from("")];
     let mut capsule_len = 0;

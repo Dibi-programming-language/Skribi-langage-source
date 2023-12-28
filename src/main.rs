@@ -15,9 +15,7 @@ use std::env;
 
 const FLAG_CHAR: &str = "/"; // if it was "-", it would sometimes interfere with cargo's flags
 
-/**
- * Launch the interpreter
- */
+/// Launch the interpreter
 fn main() {
     // parameters
     let extension: Vec<String> = vec!["skrb".to_string(), "skribi".to_string()];
@@ -41,7 +39,7 @@ fn main() {
         }
         return;
     }
-    
+
     // Read the file
     let lines = read(&path);
 
