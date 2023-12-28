@@ -27,7 +27,7 @@ pub(crate) fn print_variable(variable_type: &VariableType, line: u16) {
 /// This function is used to interpret a line of code that call a native function
 pub(crate) fn native_call(line: Vec<String>, line_number: u16, variables: &mut HashMap<String, Variable>) {
     // get the number of the function
-    let function_name = line[1].parse::<u8>().unwrap();
+    let function_name = line[1].as_str();
     // get the arguments of the function
     let mut arguments: Vec<Variable> = Vec::new();
     for i in 2..line.len() {
@@ -42,13 +42,13 @@ pub(crate) fn native_call(line: Vec<String>, line_number: u16, variables: &mut H
     }
     // call the function
     match function_name {
-        1 => {
+        "print" => {
             // print the arguments
             for mut arg in arguments {
                 print_variable(arg.get_value(line_number), line_number);
             }
         }
-        2 => {
+        "println" => {
             // println the arguments
             for mut arg in arguments {
                 print_variable(arg.get_value(line_number), line_number);
