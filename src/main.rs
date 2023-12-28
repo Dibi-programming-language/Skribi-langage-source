@@ -13,6 +13,7 @@ use interpret::main as interpret;
 use pre_run::{get_instructions, get_path};
 use skribi_language_source::{clear, read};
 use std::env;
+use crate::tokens::tokenize;
 
 const FLAG_CHAR: &str = "/"; // if it was "-", it would sometimes interfere with cargo's flags
 
@@ -45,8 +46,8 @@ fn main() {
     let lines = read(&path);
 
     // Remove the comments and split the code into instructions
-    let code = get_instructions(lines);
+    let code = tokenize(lines);
 
     // interpret the code
-    interpret(code, args);
+    // interpret(code, args);
 }

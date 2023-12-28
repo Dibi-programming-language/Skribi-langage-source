@@ -33,6 +33,7 @@ enum State {
     InWord,
     // Identifier or Keyword
     InNumber,
+    InComment,
 }
 
 pub(crate) fn tokenize(file: String) -> Vec<Token> {
@@ -109,6 +110,12 @@ pub(crate) fn tokenize(file: String) -> Vec<Token> {
                     state = base_tokenize(&mut tokens, &mut current_token, &mut line, c);
                 }
             }
+            State::InComment => {
+                if c == '\n' {
+                    line += 1;
+                    state = State::Base;
+                }
+            }
         }
     }
     tokens
@@ -123,6 +130,8 @@ fn base_tokenize(tokens: &mut Vec<Token>, current_token: &mut String, line: &mut
     } else if c.is_numeric() {
         current_token.push(c);
         State::InNumber
+    } else if c == ' ' {
+        State::Base
     } else {
         let token = match c {
             ':' => Token::TwoDots,
@@ -142,10 +151,24 @@ fn base_tokenize(tokens: &mut Vec<Token>, current_token: &mut String, line: &mut
             _ => Token::Invalid
         };
         if let Token::Invalid = token {
-            error("Invalid character", *line);
+            error(&format!("Invalid character {}", c), *line);
+            State::Base
+        } else if let Token::OperatorDiv = token {
+            if let Some(var) = tokens.last() {
+                if let Token::OperatorDiv = var {
+                    tokens.remove(tokens.len() - 1);
+                    State::InComment
+                } else {
+                    tokens.push(token);
+                    State::Base
+                }
+            } else {
+                tokens.push(token);
+                State::Base
+            }
         } else {
             tokens.push(token);
+            State::Base
         }
-        State::Base
     }
 }

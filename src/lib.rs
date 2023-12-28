@@ -3,6 +3,7 @@ use std::{
     fs::File,
     io::{self, BufRead},
 };
+use std::ops::Add;
 
 /// This function clear the shell
 pub fn clear() {
@@ -34,8 +35,8 @@ pub fn error_multiple_lines(message: &str, line_from: u16, line_to: u16) {
 }
 
 /// This function read all the content from a file and return a vector of String, each string being a line of the file
-pub fn read(file_name: &str) -> Vec<String> {
-    let mut lines: Vec<String> = vec![];
+pub fn read(file_name: &str) -> String {
+    let mut result = String::new();
     match File::open(file_name) {
         Ok(file) => {
             let reader = io::BufReader::new(file);
@@ -44,7 +45,8 @@ pub fn read(file_name: &str) -> Vec<String> {
             for line in reader.lines() {
                 match line {
                     Ok(text) => {
-                        lines.push(text);
+                        result = result.clone().add(&text);
+                        result.push('\n');
                     }
                     Err(err) => {
                         if err.kind() == io::ErrorKind::InvalidData {
@@ -64,7 +66,7 @@ pub fn read(file_name: &str) -> Vec<String> {
             error("Cannot open file: Unknown error", 0)
         }
     }
-    lines
+    result
 }
 
 /// This function split a String on every space, except if the space is in a string or in parenthesis
