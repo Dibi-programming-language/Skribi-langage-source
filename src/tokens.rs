@@ -1,22 +1,28 @@
 use skribi_language_source::error;
 
-pub(crate) enum Token {
-    KeywordGlobal,
-    KeywordConstant,
-    KeywordPrivate,
+pub enum ModifierKeyword {
+    Global,
+    Constant,
+    Private,
+}
+
+pub enum Token {
+    KeywordModifier(ModifierKeyword),
     KeywordIf,
     KeywordElse,
     KeywordNativeCall,
     Identifier(String),
     String(String),
+    /// Always positive on tokenization step
     Integer(isize),
-    // Always positive on tokenization step
     Float(f32),
     Boolean(bool),
     TwoDots,
     Semicolon,
     OpenParenthesis,
     CloseParenthesis,
+    OpenBrace,
+    CloseBrace,
     OperatorAdd,
     OperatorSub,
     OperatorMul,
@@ -30,8 +36,8 @@ pub(crate) enum Token {
 enum State {
     Base,
     InString,
+    /// Identifier or keyword
     InWord,
-    // Identifier or Keyword
     InNumber,
     InComment,
 }
@@ -51,15 +57,13 @@ pub(crate) fn tokenize(file: String) -> Vec<Token> {
             }
             State::InString => {
                 if string_escape {
-                    current_token.push(
-                        match c {
-                            'n' => '\n',
-                            't' => '\t',
-                            'r' => '\r',
-                            '0' => '\0',
-                            _ => c
-                        }
-                    );
+                    current_token.push(match c {
+                        'n' => '\n',
+                        't' => '\t',
+                        'r' => '\r',
+                        '0' => '\0',
+                        _ => c,
+                    });
                     string_escape = false;
                 } else if c == '\\' {
                     string_escape = true;
@@ -76,9 +80,9 @@ pub(crate) fn tokenize(file: String) -> Vec<Token> {
                     current_token.push(c);
                 } else {
                     tokens.push(match current_token.as_str() {
-                        "fu" => Token::KeywordGlobal,
-                        "ju" => Token::KeywordConstant,
-                        "pu" => Token::KeywordPrivate,
+                        "fu" => Token::KeywordModifier(ModifierKeyword::Global),
+                        "ju" => Token::KeywordModifier(ModifierKeyword::Constant),
+                        "pu" => Token::KeywordModifier(ModifierKeyword::Private),
                         "ij" => Token::KeywordIf,
                         "sula" => Token::KeywordElse,
                         "skr_app" => Token::KeywordNativeCall,
@@ -121,7 +125,12 @@ pub(crate) fn tokenize(file: String) -> Vec<Token> {
     tokens
 }
 
-fn base_tokenize(tokens: &mut Vec<Token>, current_token: &mut String, line: &mut u16, c: char) -> State {
+fn base_tokenize(
+    tokens: &mut Vec<Token>,
+    current_token: &mut String,
+    line: &mut u16,
+    c: char,
+) -> State {
     if c == '"' {
         State::InString
     } else if c.is_alphabetic() || c == '_' {
@@ -138,6 +147,8 @@ fn base_tokenize(tokens: &mut Vec<Token>, current_token: &mut String, line: &mut
             ';' => Token::Semicolon,
             '(' => Token::OpenParenthesis,
             ')' => Token::CloseParenthesis,
+            '{' => Token::OpenBrace,
+            '}' => Token::CloseBrace,
             '+' => Token::OperatorAdd,
             '-' => Token::OperatorSub,
             '*' => Token::OperatorMul,
@@ -148,7 +159,7 @@ fn base_tokenize(tokens: &mut Vec<Token>, current_token: &mut String, line: &mut
                 *line += 1;
                 Token::NewLine
             }
-            _ => Token::Invalid
+            _ => Token::Invalid,
         };
         if let Token::Invalid = token {
             error(&format!("Invalid character {}", c), *line);
