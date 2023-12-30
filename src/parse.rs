@@ -16,7 +16,11 @@ pub enum Node {
     NativeCall(String, Vec<ValueNode>),
 }
 
-fn parse_scope(tokens: &Vec<Token>, i: &mut usize, line: &mut u16) -> Vec<Node> {
+struct Scope {
+
+}
+
+fn parse_scope(tokens: &Vec<Token>, i: &mut usize, line: &mut u16, variables: &Vec<Vec<String>>) -> Vec<Node> {
     let mut nodes: Vec<Node> = Vec::new();
     let mut not_finished = true;
 
@@ -35,7 +39,7 @@ fn parse_scope(tokens: &Vec<Token>, i: &mut usize, line: &mut u16) -> Vec<Node> 
             Token::OpenBrace => {
                 // Start a new scope
                 *i += 1;
-                let scope_nodes = parse_scope(tokens, i, line);
+                let scope_nodes = parse_scope(tokens, i, line, variables);
                 nodes.push(Node::Scope(scope_nodes));
             }
             Token::CloseBrace => {
@@ -60,7 +64,8 @@ fn parse_scope(tokens: &Vec<Token>, i: &mut usize, line: &mut u16) -> Vec<Node> 
 pub fn main(tokens: Vec<Token>) -> Vec<Node> {
     let mut line = 0;
     let mut i = 0;
-    let nodes = parse_scope(&tokens, &mut i, &mut line);
+    let vec: Vec<Vec<String>> = Vec::new();
+    let nodes = parse_scope(&tokens, &mut i, &mut line, &vec);
     if i != tokens.len() {
         error("Scope closed with } before the end", line);
     }
