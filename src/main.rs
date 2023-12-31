@@ -16,7 +16,7 @@ use pre_run::{get_instructions, get_path};
 use skribi_language_source::{clear, read};
 use std::env;
 
-const FLAG_CHAR: &str = "/"; // if it was "-", it would sometimes interfere with cargo's flags
+const FLAG_CHAR: &str = "--";
 
 /// Launch the interpreter
 fn main() {
@@ -24,10 +24,10 @@ fn main() {
     let extension: Vec<String> = vec!["skrb".to_string(), "skribi".to_string()];
 
     // generic parameters
-    let args: Vec<_> = env::args().collect(); // get the command line arguments
+    let args = env::args().collect::<Vec<_>>(); // get the command line arguments
 
     // clear the shell for the user
-    if !args.contains(&String::from(FLAG_CHAR.to_string() + "interpret-debug")) {
+    if !args.contains(&format!("{FLAG_CHAR}interpret-debug")) {
         clear();
     }
 
