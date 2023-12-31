@@ -1,7 +1,5 @@
 use skribi_language_source::error;
 
-// the #[derive(Debug)] is used to allow the struct to be printed with the {:?} format, this is NOT a comment
-
 /// This is the variable type (rust) used to store the value of a variable (skribi)
 #[derive(Debug, Clone)]
 pub enum VariableType {
