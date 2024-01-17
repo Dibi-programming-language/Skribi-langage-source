@@ -1,6 +1,7 @@
 mod parse_variables;
 mod parse_values;
 
+use std::collections::LinkedList;
 use crate::tokens::{ModifierKeyword, Token};
 use skribi_language_source::error;
 
@@ -145,6 +146,68 @@ fn parse_scope(
     }
 
     nodes
+}
+
+enum TreeElement {
+    Node(Node),
+    Token(Token)
+}
+
+// macro
+
+fn parse_scope2(
+    mut tokens: LinkedList<TreeElement>,
+    i: &mut usize,
+    line: &mut u16,
+    variables: &Vec<Vec<String>>,
+) -> Vec<Node> {
+    let mut not_finished = true;
+    let mut before: LinkedList<TreeElement> = LinkedList::new();
+    // Current node
+    let mut element: TreeElement = match tokens.pop_front() {
+        None => {
+            return Vec::new();
+        }
+        Some(n) => {
+            n
+        }
+    };
+
+    // Start an iterator with a index
+    while not_finished && *i < tokens.len() {
+        match element {
+            TreeElement::Token(_) => {
+
+            }
+            TreeElement::Node(_) => {
+
+            }
+            _ => {
+                // SKIP
+                before.push_back(element);
+                match tokens.pop_front() {
+                    None => {
+                        tokens = before;
+                        before = LinkedList::new();
+                        match tokens.pop_front() {
+                            None => {
+                                element = TreeElement::Token(Token::NewLine);
+                                not_finished = false;
+                            }
+                            Some(e) => {
+                                element = e;
+                            }
+                        }
+                    }
+                    Some(n) => {
+                        element = n;
+                    }
+                }
+            }
+        }
+    }
+
+    Vec::new()
 }
 
 pub fn main(tokens: Vec<Token>) -> Vec<Node> {
