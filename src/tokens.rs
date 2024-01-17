@@ -6,17 +6,21 @@ pub enum ModifierKeyword {
     Private,
 }
 
-pub enum Token {
-    KeywordModifier(ModifierKeyword),
-    KeywordIf,
-    KeywordElse,
-    KeywordNativeCall,
-    Identifier(String),
+pub enum ValueToken {
     String(String),
     /// Always positive on tokenization step
     Integer(isize),
     Float(f32),
     Boolean(bool),
+}
+
+pub enum Token {
+    KeywordModifier(ModifierKeyword),
+    KeywordIf,
+    KeywordElse,
+    KeywordNativeCall,
+    Value(ValueToken),
+    Identifier(String),
     TwoDots,
     Semicolon,
     OpenParenthesis,
@@ -68,7 +72,7 @@ pub(crate) fn tokenize(file: String) -> Vec<Token> {
                 } else if c == '\\' {
                     string_escape = true;
                 } else if c == '"' {
-                    tokens.push(Token::String(current_token.clone()));
+                    tokens.push(Token::Value(ValueToken::String(current_token.clone())));
                     current_token.clear();
                     state = State::Base;
                 } else {
@@ -86,8 +90,8 @@ pub(crate) fn tokenize(file: String) -> Vec<Token> {
                         "ij" => Token::KeywordIf,
                         "sula" => Token::KeywordElse,
                         "skr_app" => Token::KeywordNativeCall,
-                        "ioial" => Token::Boolean(true),
-                        "noial" => Token::Boolean(false),
+                        "ioial" => Token::Value(ValueToken::Boolean(true)),
+                        "noial" => Token::Value(ValueToken::Boolean(false)),
                         _ => Token::Identifier(current_token.clone()),
                     });
                     current_token.clear();
@@ -106,9 +110,9 @@ pub(crate) fn tokenize(file: String) -> Vec<Token> {
                     }
                 } else {
                     tokens.push(if number_is_float {
-                        Token::Float(current_token.parse().unwrap())
+                        Token::Value(ValueToken::Float(current_token.parse().unwrap()))
                     } else {
-                        Token::Integer(current_token.parse().unwrap())
+                        Token::Value(ValueToken::Integer(current_token.parse().unwrap()))
                     });
                     current_token.clear();
                     state = base_tokenize(&mut tokens, &mut current_token, &mut line, c);

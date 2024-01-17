@@ -2,7 +2,7 @@ mod parse_variables;
 mod parse_values;
 
 use std::collections::LinkedList;
-use crate::tokens::{ModifierKeyword, Token};
+use crate::tokens::{ModifierKeyword, Token, ValueToken};
 use skribi_language_source::error;
 
 pub enum ValueNode {
@@ -13,11 +13,26 @@ pub enum ValueNode {
     Unset,
 }
 
+pub enum Value {
+    ValueNode(ValueToken),
+    Operation(Operation)
+}
+
+pub enum Operation {
+    Add(Box<Value>, Box<Value>),
+    Sub(Box<Value>, Box<Value>),
+    Mul(Box<Value>, Box<Value>),
+    Div(Box<Value>, Box<Value>),
+    Mod(Box<Value>, Box<Value>),
+    Pow(Box<Value>, Box<Value>),
+}
+
 pub enum Node {
     Scope(Vec<Node>),
     NewVariable(Vec<ModifierKeyword>, String, ValueNode),
     NewValue(String, ValueNode),
     NativeCall(String, Vec<ValueNode>),
+    Operation(Operation)
 }
 
 struct ParseFunction {
@@ -176,8 +191,45 @@ fn parse_scope2(
     // Start an iterator with a index
     while not_finished && *i < tokens.len() {
         match element {
-            TreeElement::Token(_) => {
+            TreeElement::Token(Token::NewLine) => {
+                *line += 1;
+            }
+            TreeElement::Token(Token::Value(_)) => {
+                match tokens.pop_front() {
+                    None => {
+                        // SKIP
+                    }
+                    Some(token) => {
+                        match token {
+                            TreeElement::Token(Token::OperatorMul) => {
+                                match tokens.pop_front() {
+                                    None => {
 
+                                    }
+                                    Some(token) => {
+                                        match token {
+                                            TreeElement::Token(Token::Value(_)) => {
+                                                // create
+                                                let op = Operation::Mul(Box::new(Value::ValueNode(ValueToken::Integer(0))), Box::new(Value::ValueNode(ValueToken::Integer(0))));
+                                                element = TreeElement::Node(Node::Operation(op));
+                                            }
+                                            _ => {
+                                                // SKIP
+                                                before.push_back(element);
+                                                element = token;
+                                            }
+                                        }
+                                    }
+                                }
+                            },
+                            _ => {
+                                // SKIP
+                                before.push_back(element);
+                                element = token;
+                            }
+                        }
+                    }
+                }
             }
             TreeElement::Node(_) => {
 
