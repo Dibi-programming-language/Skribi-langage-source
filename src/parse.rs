@@ -5,14 +5,6 @@ use std::collections::LinkedList;
 use crate::tokens::{ModifierKeyword, Token, ValueToken};
 use skribi_language_source::error;
 
-pub enum ValueNode {
-    String(String),
-    Integer(i64),
-    Float(f64),
-    Boolean(bool),
-    Unset,
-}
-
 pub enum Value {
     ValueNode(ValueToken),
     Operation(Operation)
@@ -29,9 +21,9 @@ pub enum Operation {
 
 pub enum Node {
     Scope(Vec<Node>),
-    NewVariable(Vec<ModifierKeyword>, String, ValueNode),
-    NewValue(String, ValueNode),
-    NativeCall(String, Vec<ValueNode>),
+    NewVariable(Vec<ModifierKeyword>, String, Value),
+    NewValue(String, Value),
+    NativeCall(String, Vec<Value>),
     Operation(Operation)
 }
 
@@ -165,7 +157,8 @@ fn parse_scope(
 
 enum TreeElement {
     Node(Node),
-    Token(Token)
+    Token(Token),
+    Value(Value),
 }
 
 // macro
@@ -188,44 +181,51 @@ fn parse_scope2(
         }
     };
 
+    /* Je vais essayer de match ce patterne :
+    = value
+    > = _ value
+    > > = * -> node *
+    > > = / -> node /
+    > > = +
+    > > > != * ou / -> node +
+    > > = -
+    > > > != * ou / -> node -
+    */
+
     // Start an iterator with a index
     while not_finished && *i < tokens.len() {
         match element {
             TreeElement::Token(Token::NewLine) => {
                 *line += 1;
             }
-            TreeElement::Token(Token::Value(_)) => {
-                match tokens.pop_front() {
-                    None => {
-                        // SKIP
-                    }
-                    Some(token) => {
-                        match token {
-                            TreeElement::Token(Token::OperatorMul) => {
-                                match tokens.pop_front() {
-                                    None => {
-
-                                    }
-                                    Some(token) => {
-                                        match token {
-                                            TreeElement::Token(Token::Value(_)) => {
-                                                // create
-                                                let op = Operation::Mul(Box::new(Value::ValueNode(ValueToken::Integer(0))), Box::new(Value::ValueNode(ValueToken::Integer(0))));
-                                                element = TreeElement::Node(Node::Operation(op));
-                                            }
-                                            _ => {
-                                                // SKIP
-                                                before.push_back(element);
-                                                element = token;
-                                            }
-                                        }
-                                    }
+            TreeElement::Value(ref v0) => {
+                if let Some(token_p1) = tokens.pop_front() {
+                    if let Some(token_p2) = tokens.pop_front() {
+                        if let TreeElement::Value(v1) = token_p2 {
+                            match token_p1 {
+                                TreeElement::Token(Token::OperatorMul) => {
+                                    // create
+                                    let op = Operation::Mul(Box::new(v0), Box::new(v1));
+                                    element = TreeElement::Node(Node::Operation(op));
+                                    // décalage vers la gauche de 2 éléments en empilant à chaque fois ...
                                 }
-                            },
-                            _ => {
-                                // SKIP
-                                before.push_back(element);
-                                element = token;
+                                TreeElement::Token(Token::OperatorDiv) => {
+                                    // create
+                                    let op = Operation::Div(Box::new(v0), Box::new(v1));
+                                    element = TreeElement::Node(Node::Operation(op));
+                                    // décalage vers la gauche ...
+                                }
+                                TreeElement::Token(Token::OperatorAdd) => {
+                                    // ...
+                                }
+                                TreeElement::Token(Token::OperatorSub) => {
+
+                                }
+                                _ => {
+                                    // SKIP
+                                    before.push_back(element);
+                                    element = token_p2;
+                                }
                             }
                         }
                     }
