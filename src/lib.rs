@@ -1,8 +1,8 @@
 use std::process::{exit, Command};
-use std::{
-    fs::File,
-    io::{self, BufRead},
-};
+use std::fs;
+use std::fmt::Display;
+use std::io::{ErrorKind, stdin, stdout, Write};
+
 /**
  * This function clear the shell
  */
@@ -22,47 +22,51 @@ pub fn clear() {
 /**
  * This function print an error message in red and stop the program
  */
-pub fn error(message: &str, line: u16) {
+pub fn error<T: Display>(message: T) {
     //print the error message in red
-    println!("\x1b[31mError: {} in instruction {}\x1b[0m", message, line + 1);
+    println!("\x1b[31mError: {}\x1b[0m", message);
     exit(0);
 }
+
 /**
  * This function read all the content from a file and return a vector of String, each string being a line of the file
  */
-pub fn read(file_name: &str) -> Vec<String> {
-    let mut lines: Vec<String> = vec![];
-    match File::open(file_name) {
-        Ok(file) => {
-            let reader = io::BufReader::new(file);
+pub fn read(file_name: &str) -> String {
+    let content_option = fs::read_to_string(file_name);
 
-            // read the file line by line
-            for line in reader.lines() {
-                match line {
-                    Ok(text) => {
-                        lines.push(text);
-                    }
-                    Err(err) => {
-                        if err.kind() == io::ErrorKind::InvalidData {
-                            error("Cannot read file: Bad encoding", 0);
-                        }
-                        error("Cannot read file: Unknown error", 0);
-                    }
-                }
-            }
+    match content_option {
+        Ok(file_content) => {
+            file_content
         }
         Err(err) => {
-            if err.kind() == io::ErrorKind::NotFound {
-                error("Cannot open file: File not found", 0);
-            } else if err.kind() == io::ErrorKind::PermissionDenied {
-                error("Cannot open file: Permission denied", 0);
-            }
-            error("Cannot open file: Unknown error", 0)
+            let error_title = String::from("Cannot read file ") + "\"file_name\": ";
+            let error_message = match err.kind() {
+                ErrorKind::InvalidData => "bad encoding",
+                ErrorKind::TimedOut => "the file took too long to answer",
+                ErrorKind::PermissionDenied => "permission denied",
+                ErrorKind::NotFound => "file not found",
+                _ => "unknown error"
+            };
+            error(error_title + error_message);
+            String::new()
         }
     }
-    lines
 }
+
 /**
+ * This function ask the user for an input and return the user's answer
+*/
+pub fn input<T: Display>(message: T) -> String {
+    print!("{}", message);
+    stdout().flush().unwrap();
+
+    let mut user_input = String::new();
+    stdin().read_line(&mut user_input).unwrap();
+
+    user_input
+}
+
+/*
  * This function split a String on every space, except if the space is in a string or in parenthesis
  *
  * # Example
@@ -72,7 +76,7 @@ pub fn read(file_name: &str) -> Vec<String> {
  *
  * ["Hello,", "I'm", "coding", "in", "skribi language", "(a programming language)"]
  */
-pub fn capsule_words(line: String, line_number: u16) -> Vec<String> {
+/* pub fn capsule_words(line: String, line_number: u16) -> Vec<String> {
     let mut capsule: Vec<String> = vec![String::from("")];
     let mut capsule_len = 0;
     let mut is_string = false;
@@ -91,7 +95,7 @@ pub fn capsule_words(line: String, line_number: u16) -> Vec<String> {
             // test if the string is exiting parenthesis
             } else if c == ')' {
                 if in_par == 0 {
-                    error("Unexpected ')'", line_number);
+                    error("Unexpected ')'");
                 }
                 capsule[capsule_len] += ")";
                 in_par -= 1;
@@ -109,3 +113,4 @@ pub fn capsule_words(line: String, line_number: u16) -> Vec<String> {
     }
     capsule
 }
+*/

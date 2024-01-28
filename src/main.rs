@@ -4,13 +4,11 @@
 // Skribi's shell //
 ////////////////////
 
-mod interpret;
-mod pre_run;
+mod get_file_content;
 
 // Import
-use interpret::main as interpret;
-use pre_run::{get_instructions, get_path};
-use skribi_language_source::{clear, read};
+use get_file_content::{get_content};
+use skribi_language_source::{clear, input};
 use std::env;
 
 const FLAG_CHAR: &str = "--";
@@ -26,23 +24,11 @@ fn main() {
     let args = env::args().collect::<Vec<_>>(); // get the command line arguments
 
     // clear the shell for the user
-    if !args.contains(&format!("{FLAG_CHAR}interpret-debug")) {
+    if !args.contains(&format!("{FLAG_CHAR}compiler-debug")) {
         clear();
     }
 
-    let path = get_path(args.clone());
+    let content = get_content(args.clone(), extension);
 
-    // Check if the file has the right extension
-    if !extension.contains(&String::from(path.split('.').last().unwrap())) {
-        println!("Not a valid file extension");
-        return;
-    }
-    // Read the file
-    let lines = read(&path);
-
-    // Remove the comments and split the code into instructions
-    let code = get_instructions(lines);
-
-    // interpret the code
-    interpret(code, args);
+    println!("{}", content)
 }

@@ -1,31 +1,44 @@
-use skribi_language_source::error;
-use std::io;
+use skribi_language_source::{error, read, input};
 
 use crate::FLAG_CHAR;
 
 /**
- * This function is used to get the path of the file to run
+ * This function is used to get the content of the file to run
  *
- * The path can either be passed as an argument or entered in the terminal
+ * If the path isn't specified, the user can directly enter the content of the file
  */
-pub fn get_path(args: Vec<String>) -> String {
-    let mut path = String::new();
-    // Get the path of the file to run
+pub fn get_content(args: Vec<String>, extensions: Vec<String>) -> String {
     if args.len() > 1 && !args[1].starts_with(FLAG_CHAR) {
-        path = args[1].clone();
-    } else {
-        println!("Enter a file to run");
-        let _ = io::stdin().read_line(&mut path);
-        path = path.trim().to_string();
+        let path = args[1].clone();
+
+        // Check if the file has the right extension
+        let extension = String::from(path.split('.').last().unwrap());
+        if !extensions.contains(&extension) {
+            error("The extension \"".to_string() + &*extension + "\" is not a valid file extension");
+        }
+
+        // Read the file
+        return read(&path);
     }
-    path
+
+    let mut content = String::new();
+
+    loop {
+        let user_input = input("");
+        if user_input.trim_end() == "" {break};
+        content += &*user_input;
+    }
+
+    content
 }
-/**
+
+/*
  * This function formats the code to be interpreted
  *
  * It typically removes comments and splits the code into instructions while keeping strings intact
  */
-pub fn get_instructions(lines: Vec<String>) -> Vec<String> {
+/*
+fn get_instructions(lines: Vec<String>) -> Vec<String> {
     let mut in_string = false;
     let mut in_comment = false;
     let mut code: Vec<String> = vec![String::new()];
@@ -65,8 +78,8 @@ pub fn get_instructions(lines: Vec<String>) -> Vec<String> {
                 // if the current character is a space and the previous character is a space, don't add it to the code
                 else if in_string
                     || !(code[code_len].len() != 0
-                        && c == ' '
-                        && code[code_len].chars().last().unwrap() == ' ')
+                    && c == ' '
+                    && code[code_len].chars().last().unwrap() == ' ')
                 {
                     // split the code into instructions when a semicolon is encountered
                     if c == ';' && !in_string {
@@ -86,3 +99,4 @@ pub fn get_instructions(lines: Vec<String>) -> Vec<String> {
     code[code_len] = code[code_len].trim().to_string();
     code
 }
+*/
