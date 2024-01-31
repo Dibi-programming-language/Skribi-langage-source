@@ -5,10 +5,12 @@
 ////////////////////
 
 mod get_file_content;
+mod tokenize;
+
 
 // Import
 use get_file_content::{get_content};
-use skribi_language_source::{clear, input};
+use skribi_language_source::{clear};
 use std::env;
 
 const FLAG_CHAR: &str = "--";
@@ -30,5 +32,5 @@ fn main() {
 
     let content = get_content(args.clone(), extension);
 
-    println!("{}", content)
+    let tokens = tokenize(content);
 }
