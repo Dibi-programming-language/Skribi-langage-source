@@ -7,11 +7,11 @@
 mod get_file_content;
 mod tokenize;
 
-
 // Import
 use get_file_content::{get_content};
 use skribi_language_source::{clear};
 use std::env;
+use tokenize::{ tokenize };
 
 const FLAG_CHAR: &str = "--";
 
@@ -33,4 +33,10 @@ fn main() {
     let content = get_content(args.clone(), extension);
 
     let tokens = tokenize(content);
+
+
+    // test
+    for token in tokens {
+        println!("{:?}",token)
+    }
 }

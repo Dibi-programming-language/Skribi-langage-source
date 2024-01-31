@@ -1,7 +1,7 @@
 mod token_types;
 use token_types::{ Token };
 
-pub fn tokenize(content: String) {
+pub fn tokenize(content: String) -> Vec<Token> {
     let mut tokens: Vec<Token> = Vec::new();
     let mut current_char_index: usize = 0;
 
@@ -32,6 +32,8 @@ pub fn tokenize(content: String) {
         }
         current_char_index += 1;
     }
+
+    tokens
 }
 fn get_long_tokens(content: String, mut current_char_index: usize, current_char: char) -> (Option<Token>, usize) {
     let mut long_token: Option<Token> = None;
