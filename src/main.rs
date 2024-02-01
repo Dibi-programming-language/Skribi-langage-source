@@ -40,6 +40,7 @@ fn main() {
         match token {
             Token::StringLiteral(string) => println!("StringLiteral: {}", string),
             Token::IntLiteral(int) => println!("IntLiteral: {}", int),
+            Token::BooleanLiteral(boolean) => println!("BooleanLiteral: {}", boolean),
             _ => println!("{:?}", token),
         }
     }

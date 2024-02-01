@@ -12,5 +12,6 @@ pub enum Token {
 
     IntLiteral(i32),
     StringLiteral(String),
+    BooleanLiteral(bool),
     Exit
 }

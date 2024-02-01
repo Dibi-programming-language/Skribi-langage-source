@@ -59,7 +59,9 @@ fn get_long_tokens(content: String, mut current_char_index: usize, current_char:
 
         match word.as_str() {
             "exit" => long_token = Some(Token::Exit),
-            _ => {}
+            "true" => long_token = Some(Token::BooleanLiteral(true)),
+            "false" => long_token = Some(Token::BooleanLiteral(false)),
+            _ => {} // TODO:
         }
     }
     else if current_char == '"' {
