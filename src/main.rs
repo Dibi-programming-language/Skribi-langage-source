@@ -11,7 +11,7 @@ mod tokenize;
 use get_file_content::{get_content};
 use skribi_language_source::{clear};
 use std::env;
-use tokenize::{ tokenize };
+use tokenize::{ tokenize, Token };
 
 const FLAG_CHAR: &str = "--";
 
@@ -37,6 +37,10 @@ fn main() {
 
     // test
     for token in tokens {
-        println!("{:?}",token)
+        match token {
+            Token::StringLiteral(string) => println!("StringLiteral: {}", string),
+            Token::IntLiteral(int) => println!("IntLiteral: {}", int),
+            _ => println!("{:?}", token),
+        }
     }
 }

@@ -1,5 +1,5 @@
 mod token_types;
-use token_types::{ Token };
+pub use token_types::{ Token };
 
 pub fn tokenize(content: String) -> Vec<Token> {
     let mut tokens: Vec<Token> = Vec::new();
@@ -43,7 +43,7 @@ fn get_long_tokens(content: String, mut current_char_index: usize, current_char:
 
     if current_char.is_numeric() {
 
-        while current_char_index < content.len() && content.chars().nth(current_char_index + 1).unwrap().is_numeric() {
+        while current_char_index < content.len()-1 && content.chars().nth(current_char_index + 1).unwrap().is_numeric() {
             current_char_index += 1;
             word.push(content.chars().nth(current_char_index).unwrap());
         }
@@ -52,7 +52,7 @@ fn get_long_tokens(content: String, mut current_char_index: usize, current_char:
     }
     else if current_char.is_alphabetic() {
 
-        while current_char_index < content.len() && content.chars().nth(current_char_index + 1).unwrap().is_alphanumeric() {
+        while current_char_index < content.len()-1 && content.chars().nth(current_char_index + 1).unwrap().is_alphanumeric() {
             current_char_index += 1;
             word.push(content.chars().nth(current_char_index).unwrap());
         }
@@ -61,6 +61,23 @@ fn get_long_tokens(content: String, mut current_char_index: usize, current_char:
             "exit" => long_token = Some(Token::Exit),
             _ => {}
         }
+    }
+    else if current_char == '"' {
+        word = String::new();
+        let mut is_escaped = false;
+        let mut old_is_escaped = false;
+
+        while current_char_index < content.len()-1 && !(content.chars().nth(current_char_index + 1).unwrap() == '"' && !is_escaped) {
+            current_char_index += 1;
+            old_is_escaped = is_escaped;
+            is_escaped = content.chars().nth(current_char_index).unwrap() == '\\' && !old_is_escaped;
+            if !is_escaped {
+                word.push(content.chars().nth(current_char_index).unwrap());
+            }
+        }
+
+        current_char_index += 1;
+        long_token = Some(Token::StringLiteral(word));
     }
 
     return (long_token, current_char_index);

@@ -11,5 +11,6 @@ pub enum Token {
     CloseParenthesis,
 
     IntLiteral(i32),
+    StringLiteral(String),
     Exit
 }
