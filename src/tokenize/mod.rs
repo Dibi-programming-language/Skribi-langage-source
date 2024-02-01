@@ -1,5 +1,6 @@
 mod token_types;
 pub use token_types::{ Token };
+use skribi_language_source::{ error };
 
 pub fn tokenize(content: String) -> Vec<Token> {
     let mut tokens: Vec<Token> = Vec::new();
@@ -10,6 +11,8 @@ pub fn tokenize(content: String) -> Vec<Token> {
         match current_char {
             ' ' | '\n' | '\t' => {},
 
+            ';' => tokens.push(Token::SemiColon),
+
             '+' => tokens.push(Token::Plus),
             '-' => tokens.push(Token::Minus),
             '*' => tokens.push(Token::Star),
@@ -17,8 +20,15 @@ pub fn tokenize(content: String) -> Vec<Token> {
             '%' => tokens.push(Token::Percent),
             '^' => tokens.push(Token::Caret),
 
+            '<' => tokens.push(Token::LowerThan),
+            '>' => tokens.push(Token::GreaterThan),
+
             '(' => tokens.push(Token::OpenParenthesis),
             ')' => tokens.push(Token::CloseParenthesis),
+            '[' => tokens.push(Token::OpenBracket),
+            ']' => tokens.push(Token::CloseBracket),
+            '{' => tokens.push(Token::OpenBrace),
+            '}' => tokens.push(Token::CloseBrace),
 
             _ => {
                 let (long_token, new_current_char_index) = get_long_tokens(content.clone(), current_char_index, current_char);
@@ -26,8 +36,8 @@ pub fn tokenize(content: String) -> Vec<Token> {
 
                 match long_token {
                     Some(token) => tokens.push(token),
-                    None => {},
-                }
+                    None => error("Unknown token")
+                };
             }
         }
         current_char_index += 1;
