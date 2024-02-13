@@ -4,6 +4,9 @@ use std::{
     io::{self, BufRead},
 };
 use std::ops::Add;
+use std::fs;
+use std::fmt::Display;
+use std::io::{ErrorKind, stdin, stdout, Write};
 
 /// This function clear the shell
 pub fn clear() {
@@ -20,10 +23,13 @@ pub fn clear() {
     }
 }
 
+
+/*OLD = pub fn error(message: &str, line: u16) {*/
+
 /// This function print an error message in red and stop the program
-pub fn error(message: &str, line: u16) {
+pub fn error<T: Display>(message: T) {
     //print the error message in red
-    println!("\x1b[31mError: {} in instruction {}\x1b[0m", message, line + 1);
+    println!("\x1b[31mError: {}\x1b[0m", message);
     exit(0);
 }
 
@@ -36,34 +42,23 @@ pub fn error_multiple_lines(message: &str, line_from: u16, line_to: u16) {
 
 /// This function read all the content from a file and return a vector of String, each string being a line of the file
 pub fn read(file_name: &str) -> String {
-    let mut result = String::new();
-    match File::open(file_name) {
-        Ok(file) => {
-            let reader = io::BufReader::new(file);
+    let content_option = fs::read_to_string(file_name);
 
-            // read the file line by line
-            for line in reader.lines() {
-                match line {
-                    Ok(text) => {
-                        result = result.clone().add(&text);
-                        result.push('\n');
-                    }
-                    Err(err) => {
-                        if err.kind() == io::ErrorKind::InvalidData {
-                            error("Cannot read file: Bad encoding", 0);
-                        }
-                        error("Cannot read file: Unknown error", 0);
-                    }
-                }
-            }
+    match content_option {
+        Ok(file_content) => {
+            file_content
         }
         Err(err) => {
-            if err.kind() == io::ErrorKind::NotFound {
-                error("Cannot open file: File not found", 0);
-            } else if err.kind() == io::ErrorKind::PermissionDenied {
-                error("Cannot open file: Permission denied", 0);
-            }
-            error("Cannot open file: Unknown error", 0)
+            let error_title = String::from("Cannot read file ") + "\"file_name\": ";
+            let error_message = match err.kind() {
+                ErrorKind::InvalidData => "bad encoding",
+                ErrorKind::TimedOut => "the file took too long to answer",
+                ErrorKind::PermissionDenied => "permission denied",
+                ErrorKind::NotFound => "file not found",
+                _ => "unknown error"
+            };
+            error(error_title + error_message);
+            String::new()
         }
     }
     result
@@ -112,4 +107,16 @@ pub fn capsule_words(line: String, line_number: u16) -> Vec<String> {
         }
     }
     capsule
+}
+
+
+/// This function ask the user for an input and return the user's answer
+pub fn input<T: Display>(message: T) -> String {
+    print!("{}", message);
+    stdout().flush().unwrap();
+
+    let mut user_input = String::new();
+    stdin().read_line(&mut user_input).unwrap();
+
+    user_input
 }
