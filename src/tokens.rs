@@ -21,7 +21,7 @@ pub enum Token {
     KeywordNativeCall,
     Value(ValueToken),
     Identifier(String),
-    TwoDots,
+    TIn,
     Semicolon,
     OpenParenthesis,
     CloseParenthesis,
@@ -33,6 +33,8 @@ pub enum Token {
     OperatorDiv,
     OperatorMod,
     OperatorPow,
+    TPlus,
+    TMinus,
     NewLine,
     Invalid,
 }
@@ -147,7 +149,7 @@ fn base_tokenize(
         State::Base
     } else {
         let token = match c {
-            ':' => Token::TwoDots,
+            ':' => Token::TIn,
             ';' => Token::Semicolon,
             '(' => Token::OpenParenthesis,
             ')' => Token::CloseParenthesis,
