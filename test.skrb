@@ -13,3 +13,4 @@ skr_app println private_constant;
 skr_app 1 private;
 // throw an error
 pu pomme private 3;
+exit(42);
