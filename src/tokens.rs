@@ -14,29 +14,40 @@ pub enum ValueToken {
     Boolean(bool),
 }
 
+pub enum Space {
+    Space,
+    NewLine,
+    Tab
+}
+
 pub enum Token {
+    Bool(bool),
+    Int(u32),
+    Float(f32),
+    String(String),
+    NatCall,
+    Add,
+    Sub,
+    Div,
+    Mult,
+    // TODO : Pow
+    // TODO : and, or, xor, not
+    // TODO : comparison operators
+    Plus,
+    Minus,
+    LeftParenthesis,
+    RightParenthesis,
+    LeftBrace,
+    RightBrace,
+    Inside,
+    Identifier(String),
+    Space(Space),
     KeywordModifier(ModifierKeyword),
     KeywordIf,
     KeywordElse,
-    KeywordNativeCall,
-    Value(ValueToken),
-    Identifier(String),
-    TIn,
-    Semicolon,
-    OpenParenthesis,
-    CloseParenthesis,
-    OpenBrace,
-    CloseBrace,
-    OperatorAdd,
-    OperatorSub,
-    OperatorMul,
-    OperatorDiv,
-    OperatorMod,
-    OperatorPow,
-    TPlus,
-    TMinus,
-    NewLine,
-    Invalid,
+    KeywordClass,
+    KeywordFunction,
+    Invalid(String), // Any character not used by other tokens, only used when parsing bloc title
 }
 
 enum State {

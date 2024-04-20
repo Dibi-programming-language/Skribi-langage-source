@@ -1,5 +1,6 @@
 mod parse_variables;
 mod parse_values;
+mod nodes;
 
 use std::collections::LinkedList;
 use crate::tokens::{ModifierKeyword, Token, ValueToken};
@@ -309,10 +310,6 @@ pub struct FctDec {
     identifier: String,
     tuple: Tuple,
     scope: Scope,
-}
-
-pub struct Fichier {
-    exp: Vec<Exp>,
 }
 
 fn parse_tuple(tokens: &mut Vec<Token>) -> Option<Tuple> {
