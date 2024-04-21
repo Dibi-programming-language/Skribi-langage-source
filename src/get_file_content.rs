@@ -1,22 +1,23 @@
-use skribi_language_source::{error, read, input};
-use std::io;
+use std::io::ErrorKind;
+
 use crate::FLAG_CHAR;
+use crate::utils::{input, read};
 
 /// This function is used to get the path of the file to run
 ///
-/// The path can either be passed as an argument or entered in the terminal
-pub fn get_content(args: Vec<String>, extensions: Vec<String>) -> String {
+/// The path can either be passed as an argument or entered the terminal
+pub fn get_content(args: Vec<String>, extensions: Vec<String>) -> Result<String, ErrorKind> {
     if args.len() > 1 && !args[1].starts_with(FLAG_CHAR) {
         let path = args[1].clone();
 
         // Check if the file has the right extension
         let extension = String::from(path.split('.').last().unwrap());
         if !extensions.contains(&extension) {
-            error("The extension \"".to_string() + &*extension + "\" is not a valid file extension");
+            return Err(ErrorKind::InvalidInput);
         }
 
         // Read the file
-        return read(&path);
+        return Ok(read(&path));
     }
 
     let mut content = String::new();
@@ -27,13 +28,13 @@ pub fn get_content(args: Vec<String>, extensions: Vec<String>) -> String {
         content += &*user_input;
     }
 
-    content
+    Ok(content)
 }
 
+/*
 /// This function formats the code to be interpreted
 ///
 /// It typically removes comments and splits the code into instructions while keeping strings intact
-/*
 fn get_instructions(lines: Vec<String>) -> Vec<String> {
     let mut in_string = false;
     let mut in_comment = false;

@@ -2,7 +2,7 @@ mod token_types;
 pub use token_types::{ Token };
 use skribi_language_source::{ error };
 
-pub fn tokenize(content: String) -> Vec<Token> {
+pub fn tokenize2(content: String) -> Vec<Token> {
     let mut tokens: Vec<Token> = Vec::new();
     let mut current_char_index: usize = 0;
 

@@ -1,4 +1,4 @@
-use skribi_language_source::error;
+use crate::skr_errors::CustomError;
 
 pub enum ModifierKeyword {
     Global,
@@ -17,7 +17,7 @@ pub enum ValueToken {
 pub enum Space {
     Space,
     NewLine,
-    Tab
+    Tab,
 }
 
 pub enum Token {
@@ -59,7 +59,7 @@ enum State {
     InComment,
 }
 
-pub(crate) fn tokenize(file: String) -> Vec<Token> {
+pub(crate) fn tokenize(file: String) -> Result<Vec<Token>, CustomError> {
     let mut tokens: Vec<Token> = Vec::new();
     let mut current_token = String::new();
     let mut state = State::Base;
@@ -85,7 +85,7 @@ pub(crate) fn tokenize(file: String) -> Vec<Token> {
                 } else if c == '\\' {
                     string_escape = true;
                 } else if c == '"' {
-                    tokens.push(Token::Value(ValueToken::String(current_token.clone())));
+                    tokens.push(Token::String(current_token.clone()));
                     current_token.clear();
                     state = State::Base;
                 } else {
@@ -102,9 +102,9 @@ pub(crate) fn tokenize(file: String) -> Vec<Token> {
                         "pu" => Token::KeywordModifier(ModifierKeyword::Private),
                         "ij" => Token::KeywordIf,
                         "sula" => Token::KeywordElse,
-                        "skr_app" => Token::KeywordNativeCall,
-                        "ioial" => Token::Value(ValueToken::Boolean(true)),
-                        "noial" => Token::Value(ValueToken::Boolean(false)),
+                        "skr_app" => Token::NatCall,
+                        "io" => Token::Bool(true),
+                        "no" => Token::Bool(false),
                         _ => Token::Identifier(current_token.clone()),
                     });
                     current_token.clear();
@@ -116,16 +116,16 @@ pub(crate) fn tokenize(file: String) -> Vec<Token> {
                     current_token.push(c);
                 } else if c == '.' {
                     if number_is_float {
-                        error("Invalid number", line);
+                        return Err(CustomError::InvalidFloat("A float can have only one . !".to_string(), line));
                     } else {
                         number_is_float = true;
                         current_token.push(c);
                     }
                 } else {
                     tokens.push(if number_is_float {
-                        Token::Value(ValueToken::Float(current_token.parse().unwrap()))
+                        Token::Float(current_token.parse().unwrap())
                     } else {
-                        Token::Value(ValueToken::Integer(current_token.parse().unwrap()))
+                        Token::Int(current_token.parse().unwrap())
                     });
                     current_token.clear();
                     state = base_tokenize(&mut tokens, &mut current_token, &mut line, c);
@@ -139,7 +139,7 @@ pub(crate) fn tokenize(file: String) -> Vec<Token> {
             }
         }
     }
-    tokens
+    Ok(tokens)
 }
 
 fn base_tokenize(
@@ -160,30 +160,24 @@ fn base_tokenize(
         State::Base
     } else {
         let token = match c {
-            ':' => Token::TIn,
-            ';' => Token::Semicolon,
-            '(' => Token::OpenParenthesis,
-            ')' => Token::CloseParenthesis,
-            '{' => Token::OpenBrace,
-            '}' => Token::CloseBrace,
-            '+' => Token::OperatorAdd,
-            '-' => Token::OperatorSub,
-            '*' => Token::OperatorMul,
-            '/' => Token::OperatorDiv,
-            '%' => Token::OperatorMod,
-            '^' => Token::OperatorPow,
+            ':' => Token::Inside,
+            '(' => Token::LeftParenthesis,
+            ')' => Token::RightParenthesis,
+            '{' => Token::LeftBrace,
+            '}' => Token::RightBrace,
+            '+' => Token::Add,
+            '-' => Token::Sub,
+            '*' => Token::Mult,
+            '/' => Token::Div,
             '\n' => {
                 *line += 1;
-                Token::NewLine
+                Token::Space(Space::NewLine)
             }
-            _ => Token::Invalid,
+            _ => Token::Invalid(c.to_string()),
         };
-        if let Token::Invalid = token {
-            error(&format!("Invalid character {}", c), *line);
-            State::Base
-        } else if let Token::OperatorDiv = token {
+        if let Token::Div = token {
             if let Some(var) = tokens.last() {
-                if let Token::OperatorDiv = var {
+                if let Token::Div = var {
                     tokens.remove(tokens.len() - 1);
                     State::InComment
                 } else {

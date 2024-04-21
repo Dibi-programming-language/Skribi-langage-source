@@ -1,12 +1,7 @@
-use std::process::{exit, Command};
-use std::{
-    fs::File,
-    io::{self, BufRead},
-};
-use std::ops::Add;
-use std::fs;
 use std::fmt::Display;
+use std::fs;
 use std::io::{ErrorKind, stdin, stdout, Write};
+use std::process::{Command, exit};
 
 /// This function clear the shell
 pub fn clear() {

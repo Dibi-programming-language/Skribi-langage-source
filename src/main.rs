@@ -4,21 +4,21 @@
 // Skribi's shell //
 ////////////////////
 
-mod interpret;
-mod parse;
-mod pre_run;
-mod tokens;
-mod get_file_content;
-mod tokenize;
+use std::env;
+
+use get_file_content::get_content;
 
 // Import
 use crate::tokens::tokenize;
-use interpret::main as interpret;
-use pre_run::{get_instructions, get_path};
-use skribi_language_source::{clear, read};
-use get_file_content::{get_content};
-use std::env;
-use tokenize::{ tokenize, Token };
+use crate::utils::clear;
+
+mod get_file_content;
+mod interpret;
+mod parse;
+mod skr_errors;
+mod tokenize;
+mod tokens;
+mod utils;
 
 const FLAG_CHAR: &str = "--";
 
@@ -35,31 +35,29 @@ fn main() {
         clear();
     }
 
-    let content = get_content(args.clone(), extension);
+    if let Ok(content) = get_content(args, extension) {
+        // Read the file
+        let lines = content;
 
-    // Check if the file has the right extension
-    if !extension.contains(&String::from(path.split('.').last().unwrap())) {
-        println!("Not a valid file extension");
-        println!("Valid file extensions:");
-        for ext in extension {
-            println!("\t{}", ext);
+        // Remove the comments and split the code into instructions
+        match tokenize(lines) {
+            Ok(tokens) => {
+                let nodes = parse::main(tokens);
+                // TODO
+            }
+            Err(err) => {
+                println!("{:?}", err);
+            }
         }
-        return;
+    } else {
+        panic!("Error while getting the content of the file. Check the file extension and the file path. Valid file extensions : {:?}", extension);
     }
-
-    // Read the file
-    let lines = read(&path);
-
-    // Remove the comments and split the code into instructions
-    let code = tokenize(lines);
-    let nodes = parse::main(code);
 
     // Parse the code
 
     // interpret the code
     // interpret(code, args);
     /*let tokens = tokenize(content);*/
-
 
     // test
     /*for token in tokens {
