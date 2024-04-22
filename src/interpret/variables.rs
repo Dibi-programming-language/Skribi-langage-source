@@ -1,4 +1,4 @@
-use skribi_language_source::error;
+use crate::utils::error;
 
 /// This is the variable type (rust) used to store the value of a variable (skribi)
 #[derive(Debug, Clone)]
@@ -44,7 +44,7 @@ impl Variable {
     pub fn set_value(&mut self, value: VariableType, line: u16) {
         // check if the variable is constant
         if self.is_constant {
-            error("Cannot redefine value of constant", line);
+            error("Cannot redefine value of constant");
         }
         if !self.is_set {
             self.is_set = true
@@ -56,7 +56,6 @@ impl Variable {
                 if &self.type_name != STRING_NAME {
                     error(
                         &format!("Cannot set {} ({}) to {}", self.name, self.type_name, STRING_NAME),
-                        line,
                     );
                 }
             }
@@ -64,7 +63,6 @@ impl Variable {
                 if &self.type_name != INTEGER_NAME {
                     error(
                         &format!("Cannot set {} ({}) to {}", self.name, self.type_name, INTEGER_NAME),
-                        line,
                     );
                 }
             }
@@ -72,7 +70,6 @@ impl Variable {
                 if &self.type_name != FLOAT_NAME {
                     error(
                         &format!("Cannot set {} ({}) to {}", self.name, self.type_name, FLOAT_NAME),
-                        line,
                     );
                 }
             }
@@ -80,12 +77,11 @@ impl Variable {
                 if &self.type_name != BOOLEAN_NAME {
                     error(
                         &format!("Cannot set {} ({}) to {}", self.name, self.type_name, BOOLEAN_NAME),
-                        line,
                     );
                 }
             }
             VariableType::Unset => {
-                error(&format!("Cannot set a variable to {}", UNSET_NAME), line);
+                error(&format!("Cannot set a variable to {}", UNSET_NAME));
             }
         }
 
@@ -95,7 +91,7 @@ impl Variable {
     /// Return the value of the variable
     pub fn get_value(&mut self, line: u16) -> &VariableType {
         if !self.is_set {
-            error("Variable was never initialized", line)
+            error("Variable was never initialized")
         }
         &self.value
     }
@@ -149,7 +145,7 @@ impl Variable {
             modifiers_number += 1;
         }
         if is_global && is_private {
-            error("Variable cannot be both global and private", line_number);
+            error("Variable cannot be both global and private");
         }
 
         // line[0] is : base keyword or type. line[1] is : base keyword, type or name. We can't use the keyword twice, and
@@ -160,7 +156,6 @@ impl Variable {
                     "Syntax error: to many \"{}\" in variable declaration. The problem is one of the following. You cannot use a keyword like \"pu\", \"ju\" or \"fu\" twice. A keyword cannot be used as a type name. A type cannot be used as a variable name. In any case, your line is not allowed.",
                     line[0]
                 ),
-                line_number,
             );
         }
 
@@ -172,12 +167,10 @@ impl Variable {
         if line_length < 2 {
             error(
                 "Syntax error: variable declaration need at least a type and a name",
-                line_number,
             );
         } else if line_length > 3 {
             error(
                 "Syntax error: variable declaration can only have a type, a name and a value",
-                line_number,
             );
         } else if line_length == 3 {
             // if a value is specified get the type and value of the variable
@@ -195,7 +188,7 @@ impl Variable {
                     var = VariableType::Boolean(line[modifiers_number + 2].parse::<bool>().unwrap());
                 }
                 "ju" | "fu" | "pu" => {
-                    error("Unknown variable type. A modifier is used in the position of the type. Consider switching", line_number);
+                    error("Unknown variable type. A modifier is used in the position of the type. Consider switching");
                 }
                 _ => {
                     // Call the error function with "Unknown variable type [variable type]" as argument
@@ -204,7 +197,6 @@ impl Variable {
                             "Unknown variable type \"{}\"",
                             line[modifiers_number].clone()
                         ),
-                        line_number,
                     );
                 }
             }
@@ -224,10 +216,10 @@ impl Variable {
                     var = VariableType::Boolean(false);
                 }
                 "ju" | "fu" | "pu" => {
-                    error("Unknown variable type. A modifier is used in the position of the type. Consider switching.", line_number);
+                    error("Unknown variable type. A modifier is used in the position of the type. Consider switching.");
                 }
                 _ => {
-                    error("Unknown variable type", line_number);
+                    error("Unknown variable type");
                 }
             }
         }

@@ -19,6 +19,8 @@ mod skr_errors;
 mod tokenize;
 mod tokens;
 mod utils;
+#[cfg(test)]
+mod tests;
 
 const FLAG_CHAR: &str = "--";
 
@@ -35,7 +37,7 @@ fn main() {
         clear();
     }
 
-    if let Ok(content) = get_content(args, extension) {
+    if let Ok(content) = get_content(args, extension.clone()) {
         // Read the file
         let lines = content;
 
@@ -46,11 +48,11 @@ fn main() {
                 // TODO
             }
             Err(err) => {
-                println!("{:?}", err);
+                panic!("{:?}", err);
             }
         }
     } else {
-        panic!("Error while getting the content of the file. Check the file extension and the file path. Valid file extensions : {:?}", extension);
+        panic!("Error while getting the content of the file. Check the file extension and the file path. Valid file extensions : {:?}", extension.clone());
     }
 
     // Parse the code

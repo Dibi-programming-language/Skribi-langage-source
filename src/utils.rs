@@ -56,7 +56,6 @@ pub fn read(file_name: &str) -> String {
             String::new()
         }
     }
-    result
 }
 
 /// This function split a String on every space, except if the space is in a string or in parenthesis
@@ -85,7 +84,7 @@ pub fn capsule_words(line: String, line_number: u16) -> Vec<String> {
                 // test if the string is exiting parenthesis
             } else if c == ')' {
                 if in_par == 0 {
-                    error("Unexpected ')'", line_number);
+                    error("Unexpected ')'");
                 }
                 capsule[capsule_len] += ")";
                 in_par -= 1;

@@ -1,3 +1,4 @@
+use std::str::Chars;
 use crate::skr_errors::CustomError;
 
 pub enum ModifierKeyword {
@@ -57,6 +58,21 @@ enum State {
     InWord,
     InNumber,
     InComment,
+}
+
+fn tokenize_string(mut file: Chars<'_>) -> Result<Token, CustomError> {
+    let mut current_ch = file.next();
+    let mut res = String::new();
+    
+    while let Some(ch) = current_ch {
+        if ch == '"' {
+            return Ok(Token::String(res));
+        }
+        res.push(ch);
+        current_ch = file.next();
+    }
+    
+    Err(CustomError::InvalidString("String not closed".to_string(), 0))
 }
 
 pub(crate) fn tokenize(file: String) -> Result<Vec<Token>, CustomError> {

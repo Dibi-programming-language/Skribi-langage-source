@@ -1,6 +1,6 @@
 mod token_types;
 pub use token_types::{ Token };
-use skribi_language_source::{ error };
+use crate::utils::error;
 
 pub fn tokenize2(content: String) -> Vec<Token> {
     let mut tokens: Vec<Token> = Vec::new();

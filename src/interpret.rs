@@ -2,8 +2,8 @@ mod variables;
 mod native_call;
 
 use crate::interpret::variables::{is_variable_type, Variable};
-use skribi_language_source::{capsule_words, error};
 use std::collections::HashMap;
+use crate::utils::{capsule_words, error};
 
 /// Main loop of the interpreter
 pub fn main(code: Vec<String>, _args: Vec<String>) {
@@ -44,7 +44,6 @@ fn interpret(line: Vec<String>, line_number: u16, variables: &mut HashMap<String
             } else {
                 error(
                     ("Unknown command on line ".to_string() + &line_number.to_string()).as_str(),
-                    line_number,
                 );
             }
         }
@@ -58,7 +57,6 @@ fn create_variable(line: &[String], line_number: u16, variables: &mut HashMap<St
     if variables.contains_key(&name) {
         error(
             &format!("Variable {} already exists", name),
-            line_number,
         );
     }
     (*variables).insert(name, temp);
