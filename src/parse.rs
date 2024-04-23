@@ -1,27 +1,10 @@
 use std::collections::LinkedList;
 
-use crate::tokens::{ModifierKeyword, Space, Token};
+use crate::tokens::{Space, Token};
 
 mod parse_variables;
 mod parse_values;
 mod nodes;
-
-pub enum Operation {
-    Add(Box<Value>, Box<Value>),
-    Sub(Box<Value>, Box<Value>),
-    Mul(Box<Value>, Box<Value>),
-    Div(Box<Value>, Box<Value>),
-    Mod(Box<Value>, Box<Value>),
-    Pow(Box<Value>, Box<Value>),
-}
-
-pub enum Node {
-    Scope(Vec<Node>),
-    NewVariable(Vec<ModifierKeyword>, String, Value),
-    NewValue(String, Value),
-    NativeCall(String, Vec<Value>),
-    Operation(Operation)
-}
 
 pub struct Tuple {
     // TODO: définir les champs du tuple ici
@@ -445,163 +428,11 @@ impl ParseScope {
     }
 }
 
-fn parse_scope(
-    tokens: &Vec<Token>,
-    i: &mut usize,
-    line: &mut u16,
-    variables: &Vec<Vec<String>>,
-) -> Vec<Node> {
-    let mut nodes: Vec<Node> = Vec::new();
-    let mut not_finished = true;
-
-    // Start an iterator with a index
-    while not_finished && *i < tokens.len() {
-        match tokens[*i] {
-            Token::KeywordModifier(_) => {
-                // Start a new variable
-            }
-            Token::NatCall => {
-                // Start a new native call
-            }
-            Token::Identifier(_) => {
-                // Check if the identifier exists in this scope, and his type
-            }
-            Token::LeftBrace => {
-                // Start a new scope
-                *i += 1;
-                let scope_nodes = parse_scope(tokens, i, line, variables);
-                nodes.push(Node::Scope(scope_nodes));
-            }
-            Token::RightBrace => {
-                // Close the current scope
-                not_finished = false;
-            }
-            Token::Space(Space::NewLine) => {
-                *line += 1;
-            }
-            // Ignored tokens
-            _ => {
-                panic!("[PARSE] Invalid token or not implemented yet!");
-            }
-        }
-        *i += 1;
-    }
-
-    nodes
-}
-
-enum TreeElement {
-    Node(Node),
-    Token(Token),
-    Value(Value),
-}
-
-// macro
-
-fn parse_scope2(
-    mut tokens: LinkedList<TreeElement>,
-    i: &mut usize,
-    line: &mut u16,
-    variables: &Vec<Vec<String>>,
-) -> Vec<Node> {
-    let mut not_finished = true;
-    let mut before: LinkedList<TreeElement> = LinkedList::new();
-    // Current node
-    let mut element: TreeElement = match tokens.pop_front() {
-        None => {
-            return Vec::new();
-        }
-        Some(n) => {
-            n
-        }
-    };
-
-    /* Je vais essayer de match ce patterne :
-    = value
-    > = _ value
-    > > = * -> node *
-    > > = / -> node /
-    > > = +
-    > > > != * ou / -> node +
-    > > = -
-    > > > != * ou / -> node -
-    */
-
-    // Start an iterator with a index
-    while not_finished && *i < tokens.len() {
-        match element {
-            TreeElement::Token(Token::Space(Space::NewLine)) => {
-                *line += 1;
-            }
-            TreeElement::Value(ref v0) => {
-                if let Some(token_p1) = tokens.pop_front() {
-                    if let Some(token_p2) = tokens.pop_front() {
-                        if let TreeElement::Value(v1) = token_p2 {
-                            match token_p1 {
-                                TreeElement::Token(Token::Mult) => {
-                                    // create
-                                    // let op = Operation::Mul(Box::new(v0), Box::new(v1));
-                                    // element = TreeElement::Node(Node::Operation(op));
-                                    // décalage vers la gauche de 2 éléments en empilant à chaque fois ...
-                                }
-                                TreeElement::Token(Token::Div) => {
-                                    // create
-                                    // let op = Operation::Div(Box::new(v0), Box::new(v1));
-                                    // element = TreeElement::Node(Node::Operation(op));
-                                    // décalage vers la gauche ...
-                                }
-                                TreeElement::Token(Token::Add) => {
-                                    // ...
-                                }
-                                TreeElement::Token(Token::Sub) => {
-
-                                }
-                                _ => {
-                                    // SKIP
-                                    // before.push_back(element);
-                                    // element = token_p2;
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-            TreeElement::Node(_) => {
-
-            }
-            _ => {
-                // SKIP
-                before.push_back(element);
-                match tokens.pop_front() {
-                    None => {
-                        tokens = before;
-                        before = LinkedList::new();
-                        match tokens.pop_front() {
-                            None => {
-                                element = TreeElement::Token(Token::Space(Space::NewLine));
-                                not_finished = false;
-                            }
-                            Some(e) => {
-                                element = e;
-                            }
-                        }
-                    }
-                    Some(n) => {
-                        element = n;
-                    }
-                }
-            }
-        }
-    }
-
-    Vec::new()
-}
-
-pub fn main(tokens: Vec<Token>) -> Vec<Node> {
+pub fn main(tokens: Vec<Token>) {
     let mut line = 0;
     let mut i = 0;
     let vec: Vec<Vec<String>> = Vec::new();
-    let nodes = parse_scope(&tokens, &mut i, &mut line, &vec);
+    let nodes = ();
     if i != tokens.len() {
         panic!("Scope closed with }} before the end");
     }
