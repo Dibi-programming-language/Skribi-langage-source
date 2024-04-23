@@ -46,7 +46,7 @@ pub enum Token {
     Invalid(String), // Any character not used by other tokens, only used when parsing bloc title
 }
 
-fn tokenize_string(mut file: Chars, line: u16) -> Result<Token, CustomError> {
+fn tokenize_string(file: &mut Chars, line: u16) -> Result<Token, CustomError> {
     let mut current_ch = file.next();
     let mut string_escape = false;
     let mut res = String::new();
@@ -79,7 +79,7 @@ fn tokenize_string(mut file: Chars, line: u16) -> Result<Token, CustomError> {
 }
 
 fn tokenize_number(
-    mut file: Chars,
+    file: &mut Chars,
     line: u16,
     first_char: char,
 ) -> Result<(Token, Option<char>), CustomError> {
@@ -124,7 +124,7 @@ fn tokenize_number(
     ))
 }
 
-fn tokenize_word(mut file: Chars, first_char: char) -> Result<(Token, Option<char>), CustomError> {
+fn tokenize_word(file: &mut Chars, first_char: char) -> Result<(Token, Option<char>), CustomError> {
     let mut current_ch = file.next();
     let mut res = String::new();
     res.push(first_char);
@@ -157,7 +157,7 @@ fn word_to_token(res: String) -> Token {
     }
 }
 
-fn tokenize_comment_classic(mut file: Chars) {
+fn tokenize_comment_classic(file: &mut Chars) {
     let mut current_ch = file.next();
     while let Some(ch) = current_ch {
         if ch == '\n' {
@@ -179,7 +179,7 @@ pub(crate) fn tokenize(file: String) -> Result<Vec<Token>, CustomError> {
         if ch == '/' {
             if let Some(next_ch) = file_ch.next() {
                 if next_ch == '/' {
-                    tokenize_comment_classic(file_ch.clone());
+                    tokenize_comment_classic(&mut file_ch);
                     tokens.push(Token::Space(Space::NewLine));
                     current_ch = file_ch.next();
                 } else {
@@ -190,11 +190,11 @@ pub(crate) fn tokenize(file: String) -> Result<Vec<Token>, CustomError> {
                 tokens.push(Token::Div);
             }
         } else if ch.is_alphabetic() || ch == '_' {
-            let token = tokenize_word(file_ch.clone(), ch)?;
+            let token = tokenize_word(&mut file_ch, ch)?;
             tokens.push(token.0);
             current_ch = token.1;
         } else if ch.is_numeric() {
-            let token = tokenize_number(file_ch.clone(), line, ch)?;
+            let token = tokenize_number(&mut file_ch, line, ch)?;
             tokens.push(token.0);
             current_ch = token.1;
         } else {
@@ -205,7 +205,7 @@ pub(crate) fn tokenize(file: String) -> Result<Vec<Token>, CustomError> {
                     '+' => Token::Add,
                     '-' => Token::Sub,
                     '*' => Token::Mult,
-                    '"' => tokenize_string(file_ch.clone(), line)?,
+                    '"' => tokenize_string(&mut file_ch, line)?,
                     ':' => Token::Inside,
                     '(' => Token::LeftParenthesis,
                     ')' => Token::RightParenthesis,

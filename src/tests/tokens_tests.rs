@@ -21,7 +21,7 @@ fn test_simple() {
 
 #[test]
 fn test_simple_chain() {
-    let content = String::from("1 + 2 + 3 + 4 + 5 * 2 - 15 / 8 //");
+    let content = String::from("1 + 2 + 3 + 4 + 5 * 2 - 15 / 8 + 125 // abcd");
     let tokens_res = tokenize(content);
     
     match tokens_res {
@@ -42,11 +42,49 @@ fn test_simple_chain() {
                 Token::Int(15),
                 Token::Div,
                 Token::Int(8),
+                Token::Add,
+                Token::Int(125),
                 Token::Space(Space::NewLine)
             ], tokens);
         }
         Err(_) => {
             panic!("Error while tokenizing the content");
+        }
+    }
+}
+
+#[test]
+fn test_simple_word() {
+    let content = String::from("hello");
+    let tokens_res = tokenize(content);
+    
+    match tokens_res {
+        Ok(tokens) => {
+            assert_eq!(
+                vec![Token::Identifier(String::from("hello"))],
+                tokens
+            );
+        }
+        Err(_) => {
+            panic!("Error while tokenizing the content");
+        }
+    }
+}
+
+#[test]
+fn test_simple_string() {
+    let content = String::from("\"hello\"");
+    let tokens_res = tokenize(content);
+    
+    match tokens_res {
+        Ok(tokens) => {
+            assert_eq!(
+                vec![Token::String(String::from("hello"))],
+                tokens
+            );
+        }
+        Err(error) => {
+            panic!("Error while tokenizing the content {:?}", error);
         }
     }
 }
