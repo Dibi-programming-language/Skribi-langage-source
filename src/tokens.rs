@@ -1,18 +1,10 @@
-use std::str::Chars;
 use crate::skr_errors::CustomError;
+use std::str::Chars;
 
 pub enum ModifierKeyword {
     Global,
     Constant,
     Private,
-}
-
-pub enum ValueToken {
-    String(String),
-    /// Always positive on tokenization step
-    Integer(isize),
-    Float(f32),
-    Boolean(bool),
 }
 
 pub enum Space {
@@ -51,162 +43,180 @@ pub enum Token {
     Invalid(String), // Any character not used by other tokens, only used when parsing bloc title
 }
 
-enum State {
-    Base,
-    InString,
-    /// Identifier or keyword
-    InWord,
-    InNumber,
-    InComment,
-}
-
-fn tokenize_string(mut file: Chars<'_>) -> Result<Token, CustomError> {
+fn tokenize_string(mut file: Chars, line: u16) -> Result<Token, CustomError> {
     let mut current_ch = file.next();
+    let mut string_escape = false;
     let mut res = String::new();
-    
+
     while let Some(ch) = current_ch {
-        if ch == '"' {
+        if string_escape {
+            res.push(match ch {
+                'n' => '\n',
+                't' => '\t',
+                'r' => '\r',
+                '0' => '\0',
+                _ => ch,
+            });
+            string_escape = false;
+        } else if ch == '\\' {
+            string_escape = true;
+        } else if ch == '"' {
             return Ok(Token::String(res));
+        } else {
+            res.push(ch);
         }
-        res.push(ch);
+
         current_ch = file.next();
     }
-    
-    Err(CustomError::InvalidString("String not closed".to_string(), 0))
+
+    Err(CustomError::InvalidString(
+        "String not closed".to_string(),
+        line,
+    ))
+}
+
+fn tokenize_number(
+    mut file: Chars,
+    line: u16,
+    first_char: char,
+) -> Result<(Token, Option<char>), CustomError> {
+    let mut current_ch = file.next();
+    let mut res = String::new();
+    res.push(first_char);
+    let mut is_float = false;
+
+    while let Some(ch) = current_ch {
+        if ch == '.' {
+            if is_float {
+                return Err(CustomError::InvalidFloat(
+                    "A float can have only one . !".to_string(),
+                    line,
+                ));
+            } else {
+                is_float = true;
+                res.push(ch);
+            }
+        } else if ch.is_numeric() {
+            res.push(ch);
+        } else {
+            return Ok((
+                if is_float {
+                    Token::Float(res.parse().unwrap())
+                } else {
+                    Token::Int(res.parse().unwrap())
+                },
+                Some(ch),
+            ));
+        }
+        current_ch = file.next();
+    }
+
+    Ok((
+        if is_float {
+            Token::Float(res.parse().unwrap())
+        } else {
+            Token::Int(res.parse().unwrap())
+        },
+        None,
+    ))
+}
+
+fn tokenize_word(mut file: Chars, first_char: char) -> Result<(Token, Option<char>), CustomError> {
+    let mut current_ch = file.next();
+    let mut res = String::new();
+    res.push(first_char);
+
+    while let Some(ch) = current_ch {
+        if ch.is_alphanumeric() || ch == '_' {
+            res.push(ch);
+        } else {
+            return Ok((word_to_token(res), Some(ch)));
+        }
+        current_ch = file.next();
+    }
+
+    Ok((word_to_token(res), None))
+}
+
+fn word_to_token(res: String) -> Token {
+    match res.as_str() {
+        "fu" => Token::KeywordModifier(ModifierKeyword::Global),
+        "ju" => Token::KeywordModifier(ModifierKeyword::Constant),
+        "pu" => Token::KeywordModifier(ModifierKeyword::Private),
+        "ij" => Token::KeywordIf,
+        "sula" => Token::KeywordElse,
+        "skr_app" => Token::NatCall,
+        "io" => Token::Bool(true),
+        "no" => Token::Bool(false),
+        "ums" => Token::KeywordFunction,
+        "kat" => Token::KeywordClass,
+        _ => Token::Identifier(res),
+    }
+}
+
+fn tokenize_comment_classic(mut file: Chars) {
+    let mut current_ch = file.next();
+    while let Some(ch) = current_ch {
+        if ch == '\n' {
+            return;
+        }
+        current_ch = file.next();
+    }
 }
 
 pub(crate) fn tokenize(file: String) -> Result<Vec<Token>, CustomError> {
     let mut tokens: Vec<Token> = Vec::new();
-    let mut current_token = String::new();
-    let mut state = State::Base;
-    let mut string_escape = false;
-    let mut number_is_float = false;
     let mut line = 1;
 
-    for c in file.chars() {
-        match state {
-            State::Base => {
-                state = base_tokenize(&mut tokens, &mut current_token, &mut line, c);
-            }
-            State::InString => {
-                if string_escape {
-                    current_token.push(match c {
-                        'n' => '\n',
-                        't' => '\t',
-                        'r' => '\r',
-                        '0' => '\0',
-                        _ => c,
-                    });
-                    string_escape = false;
-                } else if c == '\\' {
-                    string_escape = true;
-                } else if c == '"' {
-                    tokens.push(Token::String(current_token.clone()));
-                    current_token.clear();
-                    state = State::Base;
-                } else {
-                    current_token.push(c);
-                }
-            }
-            State::InWord => {
-                if c.is_alphanumeric() || c == '_' {
-                    current_token.push(c);
-                } else {
-                    tokens.push(match current_token.as_str() {
-                        "fu" => Token::KeywordModifier(ModifierKeyword::Global),
-                        "ju" => Token::KeywordModifier(ModifierKeyword::Constant),
-                        "pu" => Token::KeywordModifier(ModifierKeyword::Private),
-                        "ij" => Token::KeywordIf,
-                        "sula" => Token::KeywordElse,
-                        "skr_app" => Token::NatCall,
-                        "io" => Token::Bool(true),
-                        "no" => Token::Bool(false),
-                        _ => Token::Identifier(current_token.clone()),
-                    });
-                    current_token.clear();
-                    state = base_tokenize(&mut tokens, &mut current_token, &mut line, c);
-                }
-            }
-            State::InNumber => {
-                if c.is_numeric() {
-                    current_token.push(c);
-                } else if c == '.' {
-                    if number_is_float {
-                        return Err(CustomError::InvalidFloat("A float can have only one . !".to_string(), line));
-                    } else {
-                        number_is_float = true;
-                        current_token.push(c);
-                    }
-                } else {
-                    tokens.push(if number_is_float {
-                        Token::Float(current_token.parse().unwrap())
-                    } else {
-                        Token::Int(current_token.parse().unwrap())
-                    });
-                    current_token.clear();
-                    state = base_tokenize(&mut tokens, &mut current_token, &mut line, c);
-                }
-            }
-            State::InComment => {
-                if c == '\n' {
-                    line += 1;
-                    state = State::Base;
-                }
-            }
-        }
-    }
-    Ok(tokens)
-}
+    let mut file_ch = file.chars();
+    let mut current_ch = file_ch.next();
+    // let mut operator2 = false;
 
-fn base_tokenize(
-    tokens: &mut Vec<Token>,
-    current_token: &mut String,
-    line: &mut u16,
-    c: char,
-) -> State {
-    if c == '"' {
-        State::InString
-    } else if c.is_alphabetic() || c == '_' {
-        current_token.push(c);
-        State::InWord
-    } else if c.is_numeric() {
-        current_token.push(c);
-        State::InNumber
-    } else if c == ' ' {
-        State::Base
-    } else {
-        let token = match c {
-            ':' => Token::Inside,
-            '(' => Token::LeftParenthesis,
-            ')' => Token::RightParenthesis,
-            '{' => Token::LeftBrace,
-            '}' => Token::RightBrace,
-            '+' => Token::Add,
-            '-' => Token::Sub,
-            '*' => Token::Mult,
-            '/' => Token::Div,
-            '\n' => {
-                *line += 1;
-                Token::Space(Space::NewLine)
-            }
-            _ => Token::Invalid(c.to_string()),
-        };
-        if let Token::Div = token {
-            if let Some(var) = tokens.last() {
-                if let Token::Div = var {
-                    tokens.remove(tokens.len() - 1);
-                    State::InComment
+    while let Some(ch) = current_ch {
+        if ch == '/' {
+            if let Some(next_ch) = file_ch.next() {
+                if next_ch == '/' {
+                    tokenize_comment_classic(file_ch.clone());
+                    current_ch = file_ch.next();
                 } else {
-                    tokens.push(token);
-                    State::Base
+                    tokens.push(Token::Div);
+                    current_ch = Some(next_ch);
                 }
             } else {
-                tokens.push(token);
-                State::Base
+                tokens.push(Token::Div);
             }
+        } else if ch.is_alphabetic() || ch == '_' {
+            let token = tokenize_word(file_ch.clone(), ch)?;
+            tokens.push(token.0);
+            current_ch = token.1;
+        } else if ch.is_numeric() {
+            let token = tokenize_number(file_ch.clone(), line, ch)?;
+            tokens.push(token.0);
+            current_ch = token.1;
         } else {
-            tokens.push(token);
-            State::Base
+            if ch == ' ' {
+                // unused - tokens.push(Token::Space(Space::Space));
+            } else {
+                tokens.push(match ch {
+                    '+' => Token::Add,
+                    '-' => Token::Sub,
+                    '*' => Token::Mult,
+                    '"' => tokenize_string(file_ch.clone(), line)?,
+                    ':' => Token::Inside,
+                    '(' => Token::LeftParenthesis,
+                    ')' => Token::RightParenthesis,
+                    '{' => Token::LeftBrace,
+                    '}' => Token::RightBrace,
+                    '\n' => {
+                        line += 1;
+                        Token::Space(Space::NewLine)
+                    }
+                    _ => Token::Invalid(ch.to_string()),
+                });
+            }
+            current_ch = file_ch.next();
         }
     }
+
+    Ok(tokens)
 }
