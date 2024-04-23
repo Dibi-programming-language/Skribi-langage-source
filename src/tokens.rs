@@ -1,18 +1,21 @@
 use crate::skr_errors::CustomError;
 use std::str::Chars;
 
+#[derive(Debug, PartialEq)]
 pub enum ModifierKeyword {
     Global,
     Constant,
     Private,
 }
 
+#[derive(Debug, PartialEq)]
 pub enum Space {
     Space,
     NewLine,
     Tab,
 }
 
+#[derive(Debug, PartialEq)]
 pub enum Token {
     Bool(bool),
     Int(u32),
@@ -177,6 +180,7 @@ pub(crate) fn tokenize(file: String) -> Result<Vec<Token>, CustomError> {
             if let Some(next_ch) = file_ch.next() {
                 if next_ch == '/' {
                     tokenize_comment_classic(file_ch.clone());
+                    tokens.push(Token::Space(Space::NewLine));
                     current_ch = file_ch.next();
                 } else {
                     tokens.push(Token::Div);
