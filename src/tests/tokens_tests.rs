@@ -88,3 +88,142 @@ fn test_simple_string() {
         }
     }
 }
+
+#[test]
+fn test_simple_string_with_space() {
+    let content = String::from("\"hello world\"");
+    let tokens_res = tokenize(content);
+    
+    match tokens_res {
+        Ok(tokens) => {
+            assert_eq!(
+                vec![Token::String(String::from("hello world"))],
+                tokens
+            );
+        }
+        Err(error) => {
+            panic!("Error while tokenizing the content {:?}", error);
+        }
+    }
+}
+
+#[test]
+fn test_simple_string_with_space_and_escape() {
+    let content = String::from("\"hello \\\"world\\\"\"");
+    let tokens_res = tokenize(content);
+    
+    match tokens_res {
+        Ok(tokens) => {
+            assert_eq!(
+                vec![Token::String(String::from("hello \"world\""))],
+                tokens
+            );
+        }
+        Err(error) => {
+            panic!("Error while tokenizing the content {:?}", error);
+        }
+    }
+}
+
+#[test]
+fn test_strings() {
+    let content = String::from("\"hello\" \"world\"");
+    let tokens_res = tokenize(content);
+    
+    match tokens_res {
+        Ok(tokens) => {
+            assert_eq!(
+                vec![
+                    Token::String(String::from("hello")),
+                    Token::String(String::from("world"))
+                ],
+                tokens
+            );
+        }
+        Err(error) => {
+            panic!("Error while tokenizing the content {:?}", error);
+        }
+    }
+}
+
+#[test]
+fn test_strings_hard_1() {
+    // escape, special characters, alphanumerics, etc.
+    let content = String::from("\"start with simple\" \"harder 11234 5489 \\\"\" \"escape characters \\n \\t \\r \\0\" \"special ... ^éà@¨ï$\"");
+    let tokens_res = tokenize(content);
+    
+    match tokens_res {
+        Ok(tokens) => {
+            assert_eq!(
+                vec![
+                    Token::String(String::from("start with simple")),
+                    Token::String(String::from("harder 11234 5489 \"")),
+                    Token::String(String::from("escape characters \n \t \r \0")),
+                    Token::String(String::from("special ... ^éà@¨ï$"))
+                ],
+                tokens
+            );
+        }
+        Err(error) => {
+            panic!("Error while tokenizing the content {:?}", error);
+        }
+    }
+}
+
+#[test]
+fn test_code_1() {
+    let content = String::from("ums my_function() {\nei 1 + 2\n}\n\nmy_function()");
+    let tokens_res = tokenize(content);
+    
+    match tokens_res {
+        Ok(tokens) => {
+            assert_eq!(
+                vec![
+                    Token::KeywordFunction,
+                    Token::Identifier(String::from("my_function")),
+                    Token::LeftParenthesis,
+                    Token::RightParenthesis,
+                    Token::LeftBrace,
+                    Token::Space(Space::NewLine),
+                    Token::KeywordReturn,
+                    Token::Int(1),
+                    Token::Add,
+                    Token::Int(2),
+                    Token::Space(Space::NewLine),
+                    Token::RightBrace,
+                    Token::Space(Space::NewLine),
+                    Token::Space(Space::NewLine),
+                    Token::Identifier(String::from("my_function")),
+                    Token::LeftParenthesis,
+                    Token::RightParenthesis,
+                ],
+                tokens
+            );
+        }
+        Err(error) => {
+            panic!("Error while tokenizing the content {:?}", error);
+        }
+    }
+}
+
+#[test]
+fn test_float() {
+    let content = String::from("1.0 + 2.0");
+    let tokens_res = tokenize(content);
+    
+    match tokens_res {
+        Ok(tokens) => {
+            assert_eq!(
+                vec![
+                    Token::Float(1.0),
+                    Token::Add,
+                    Token::Float(2.0),
+                ],
+                tokens
+            );
+        }
+        Err(error) => {
+            panic!("Error while tokenizing the content {:?}", error);
+        }
+    }
+}

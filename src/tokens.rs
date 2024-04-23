@@ -29,8 +29,6 @@ pub enum Token {
     // TODO : Pow
     // TODO : and, or, xor, not
     // TODO : comparison operators
-    Plus,
-    Minus,
     LeftParenthesis,
     RightParenthesis,
     LeftBrace,
@@ -43,6 +41,7 @@ pub enum Token {
     KeywordElse,
     KeywordClass,
     KeywordFunction,
+    KeywordReturn,
     Invalid(String), // Any character not used by other tokens, only used when parsing bloc title
 }
 
@@ -153,6 +152,7 @@ fn word_to_token(res: String) -> Token {
         "no" => Token::Bool(false),
         "ums" => Token::KeywordFunction,
         "kat" => Token::KeywordClass,
+        "ei" => Token::KeywordReturn,
         _ => Token::Identifier(res),
     }
 }
