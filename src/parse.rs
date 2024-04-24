@@ -1,6 +1,5 @@
-use std::collections::LinkedList;
-
-use crate::tokens::{Space, Token};
+use crate::tokens::Token;
+use crate::parse::nodes::expressions::{Exp, ExpBase};
 
 mod parse_variables;
 mod parse_values;
@@ -142,46 +141,6 @@ pub enum NoValue {
     Or(Option<Or>),
 }
 
-pub struct ClassDec {
-    identifier: String,
-    scope: Box<Scope>,
-}
-
-pub struct Type {
-    type_def: String, // TODO: Définir le type de type_def
-}
-
-pub struct Vd {
-    type_: Type,
-    identifier: String,
-    exp: Box<Exp>,
-}
-
-pub struct GlobalVar {
-    vd: Vd,
-}
-
-pub struct PrivateVar {
-    vd: Vd,
-}
-
-pub struct ConstVar {
-    private_var: Option<PrivateVar>,
-    global_var: Option<GlobalVar>,
-    vd: Option<Vd>,
-}
-
-pub enum VarDec {
-    ConstVar(ConstVar),
-    PrivateVar(PrivateVar),
-    GlobalVar(GlobalVar),
-    Vd(Vd),
-}
-
-pub struct VarMod {
-    exp: Exp,
-}
-
 pub struct NatCallIn {
     identifier: String,
     next: Option<Box<NatCallIn>>,
@@ -199,26 +158,6 @@ pub enum IdUse {
 pub struct IdUseV {
     id_use: IdUse,
     no_value: Option<NoValue>,
-}
-
-pub enum ExpBase {
-    IdUse(Box<IdUse>),
-    VarDec(Box<VarDec>),
-    Cond(Box<Cond>), // TODO: Définir la structure ou l'énumération Cond
-    ScopeBase(Box<ScopeBase>), // TODO: Définir la structure ou l'énumération ScopeBase
-    FctDec(Box<FctDec>), // TODO: Définir la structure ou l'énumération FctDec
-    LeftP(Box<Exp>),
-    RightP(Box<Exp>),
-}
-
-pub enum ExpTp {
-    ExpBase(ExpBase),
-    IdUseV(IdUseV),
-}
-
-pub struct Exp {
-    exp_tp: ExpTp,
-    tp_last: TpLast,
 }
 
 pub struct Return {

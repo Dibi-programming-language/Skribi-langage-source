@@ -1,7 +1,6 @@
 use std::fmt::Error;
 
-use crate::parse::Exp;
-use crate::parse::nodes::expressions::parse_exp;
+use crate::parse::nodes::expressions::{Exp, parse_exp};
 use crate::tokens::Token;
 
 pub struct FileNode {
