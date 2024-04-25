@@ -1,36 +1,10 @@
 use crate::tokens::Token;
 use crate::parse::nodes::expressions::{Exp, ExpBase};
+use crate::parse::nodes::id_nodes::{IdGet, TupleNode};
 
 mod parse_variables;
 mod parse_values;
-mod nodes;
-
-pub struct Tuple {
-    // TODO: définir les champs du tuple ici
-}
-
-pub struct CGet {
-    name: String,
-}
-
-pub struct IdGet {
-    identifier: String,
-    tuple: Option<Tuple>,
-    op_in: Box<OpIn>,
-}
-
-pub enum OpIn {
-    In {
-        id_get: Option<IdGet>,
-        cget: Option<CGet>,
-    },
-    Empty,
-}
-
-pub enum BaseNode {
-    CGet(CGet),
-    OpIn(OpIn),
-}
+pub(crate) mod nodes;
 
 pub enum ValueBase {
     Bool(bool),
@@ -225,64 +199,8 @@ pub struct Cond {
 
 pub struct FctDec {
     identifier: String,
-    tuple: Tuple,
+    tuple: TupleNode,
     scope: Scope,
-}
-
-fn parse_tuple(tokens: &mut Vec<Token>) -> Option<Tuple> {
-    // TODO: implémenter cette fonction
-    None
-}
-
-fn is_type_def(identifier: &str) -> bool {
-    // TODO: implémenter cette fonction
-    false
-}
-
-fn parse_cget(tokens: &mut Vec<Token>) -> Option<CGet> {
-    for token in tokens.iter() {
-        if let Token::Identifier(identifier) = token {
-            if is_type_def(identifier) {
-                return Some(CGet { name: identifier.clone() });
-            }
-        }
-    }
-    None
-}
-
-fn parse_op_in(tokens: &mut Vec<Token>) -> Option<OpIn> {
-    for token in tokens.iter() {
-        if let Token::Inside = token {
-            return Some(OpIn::In {
-                id_get: parse_id_get(tokens),
-                cget: parse_cget(tokens),
-            });
-        }
-    }
-    Some(OpIn::Empty)
-}
-
-fn parse_id_get(tokens: &mut Vec<Token>) -> Option<IdGet> {
-    for token in tokens.iter() {
-        if let Token::Identifier(identifier) = token {
-            return Some(IdGet {
-                identifier: identifier.clone(),
-                tuple: parse_tuple(tokens),
-                op_in: Box::new(parse_op_in(tokens)?),
-            });
-        }
-    }
-    None
-}
-
-fn parse_base_node(tokens: &mut Vec<Token>) -> Option<BaseNode> {
-    if let Some(cget) = parse_cget(tokens) {
-        Some(BaseNode::CGet(cget))
-    } else if let Some(op_in) = parse_op_in(tokens) {
-        Some(BaseNode::OpIn(op_in))
-    } else {
-        None
-    }
 }
 
 struct ParseFunction {
