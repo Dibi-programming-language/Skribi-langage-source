@@ -1,5 +1,5 @@
 use std::fmt;
-use std::fmt::{Debug, Formatter};
+use std::fmt::{Formatter};
 
 mod blocs;
 mod main_nodes;
@@ -26,8 +26,14 @@ trait GraphDisplay {
     }
 }
 
-impl Debug for dyn GraphDisplay {
-    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
-        write!(f, "{}", self.graph())
-    }
+// macro to implement the Debug trait for a GraphDisplay
+
+#[macro_export] macro_rules! impl_debug {
+    ($t:ty) => {
+        impl Debug for $t {
+            fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+                write!(f, "{}", self.graph())
+            }
+        }
+    };
 }

@@ -4,6 +4,7 @@ use std::fmt;
 pub enum CustomError {
     InvalidFloat(String, u16),
     InvalidString(String, u16),
+    UnexpectedToken(String),
     // Add other kinds of errors as needed
 }
 
@@ -12,6 +13,7 @@ impl fmt::Display for CustomError {
         match self {
             CustomError::InvalidFloat(message, line) => write!(f, "Invalid float: {} at line {}", message, line),
             CustomError::InvalidString(message, line) => write!(f, "Invalid string: {} at line {}", message, line),
+            CustomError::UnexpectedToken(token) => write!(f, "Unexpected token: {}", token),
             _ => write!(f, "Unknown error"),
             // Handle other kinds of errors as needed
         }
