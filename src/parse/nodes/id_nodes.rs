@@ -79,11 +79,11 @@ fn parse_op_in(tokens: &mut VecDeque<Token>) -> Result<OpIn, CustomError> {
     return if let Some(Token::Inside) = tokens.front() {
         tokens.pop_front();
         if let Some(id_get) = parse_id_get(tokens) {
-            // TODO
+            Ok(OpIn::IdGet(id_get?))
         } else if let Some(c_get) = parse_cget(tokens) {
             Ok(OpIn::CGet(c_get))
         } else {
-            Err(CustomError::UnexpectedToken("Expected id_get or cget".to_string()))
+            Err(CustomError::UnexpectedToken("Expected id_get or cget after \"indide\" token".to_string()))
         }
     } else {
         Ok(OpIn::Empty)
@@ -94,7 +94,41 @@ fn parse_id_get(tokens: &mut VecDeque<Token>) -> Option<Result<IdGet, CustomErro
     // <id_get> ::= T_IDENTIFIER (<tuple> |) <op_in>
     if let Some(Token::Identifier(identifier)) = tokens.front() {
         if let Some(Token::Identifier(identifier)) = tokens.pop_front() {
-            None // TODO
+            let tuple_parsed = parse_tuple(tokens);
+            let tuple = match tuple_parsed {
+                Some(Ok(tuple)) => Some(tuple),
+                Some(Err(err)) => return Some(Err(err)),
+                None => None,
+            };
+            let op_in = parse_op_in(tokens);
+            match op_in {
+                Ok(op_in) => Some(Ok(IdGet {
+                    identifier,
+                    tuple,
+                    op_in: Box::new(op_in),
+                })),
+                Err(err) => Some(Err(err)),
+            }
+        } else {
+            None
+        }
+    } else {
+        None
+    }
+}
+
+fn parse_id_set(tokens: &mut VecDeque<Token>) -> Option<Result<IdSet, CustomError>> {
+    // <id_set> ::= T_IDENTIFIER <op_in>
+    if let Some(Token::Identifier(identifier)) = tokens.front() {
+        if let Some(Token::Identifier(identifier)) = tokens.pop_front() {
+            let op_in = parse_op_in(tokens);
+            match op_in {
+                Ok(op_in) => Some(Ok(IdSet {
+                    identifier,
+                    op_in: Box::new(op_in),
+                })),
+                Err(err) => Some(Err(err)),
+            }
         } else {
             None
         }
