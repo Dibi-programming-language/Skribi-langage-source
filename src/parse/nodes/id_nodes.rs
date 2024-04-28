@@ -7,9 +7,24 @@ use crate::parse::nodes::GraphDisplay;
 use crate::skr_errors::CustomError;
 use crate::tokens::Token;
 
+#[derive(PartialEq)]
 pub struct TupleNode {
     // TODO: définir les champs du tuple ici
 }
+
+fn parse_tuple(tokens: &mut VecDeque<Token>) -> Option<Result<TupleNode, CustomError>> {
+    // TODO: implémenter cette fonction
+    None
+}
+
+impl GraphDisplay for TupleNode {
+    fn graph_display(&self, graph: &mut String, id: &mut usize) {
+        graph.push_str(&format!("\nsubgraph_TupleNode_{}[TupleNode]", id));
+        *id += 1;
+    }
+}
+
+impl_debug!(TupleNode);
 
 // ------------
 // --- CGet ---
@@ -52,47 +67,37 @@ fn parse_cget(tokens: &mut VecDeque<Token>) -> Option<CGet> {
     None
 }
 
+// -------------
+// --- IdGet ---
+// -------------
+
+#[derive(PartialEq)]
 pub struct IdGet {
     identifier: String,
     tuple: Option<TupleNode>,
     op_in: Box<OpIn>,
 }
 
-pub enum OpIn {
-    IdGet(IdGet),
-    CGet(CGet),
-    Empty,
-}
-
-pub struct IdSet {
-    identifier: String,
-    op_in: Box<OpIn>,
-}
-
-fn parse_tuple(tokens: &mut VecDeque<Token>) -> Option<Result<TupleNode, CustomError>> {
-    // TODO: implémenter cette fonction
-    None
-}
-
-fn parse_op_in(tokens: &mut VecDeque<Token>) -> Result<OpIn, CustomError> {
-    // <op_in> ::= (T_IN (<id_get> | <cget>) |)
-    return if let Some(Token::Inside) = tokens.front() {
-        tokens.pop_front();
-        if let Some(id_get) = parse_id_get(tokens) {
-            Ok(OpIn::IdGet(id_get?))
-        } else if let Some(c_get) = parse_cget(tokens) {
-            Ok(OpIn::CGet(c_get))
-        } else {
-            Err(CustomError::UnexpectedToken("Expected id_get or cget after \"indide\" token".to_string()))
+impl GraphDisplay for IdGet {
+    fn graph_display(&self, graph: &mut String, id: &mut usize) {
+        graph.push_str(&format!(
+            "\nsubgraph_IdGet_{}[IdGet {}]",
+            id, self.identifier
+        ));
+        *id += 1;
+        if let Some(tuple) = &self.tuple {
+            tuple.graph_display(graph, id);
         }
-    } else {
-        Ok(OpIn::Empty)
+        self.op_in.graph_display(graph, id);
+        graph.push_str(&"\nend".to_string());
     }
 }
 
+impl_debug!(IdGet);
+
 fn parse_id_get(tokens: &mut VecDeque<Token>) -> Option<Result<IdGet, CustomError>> {
     // <id_get> ::= T_IDENTIFIER (<tuple> |) <op_in>
-    if let Some(Token::Identifier(identifier)) = tokens.front() {
+    if let Some(Token::Identifier(_)) = tokens.front() {
         if let Some(Token::Identifier(identifier)) = tokens.pop_front() {
             let tuple_parsed = parse_tuple(tokens);
             let tuple = match tuple_parsed {
@@ -117,9 +122,77 @@ fn parse_id_get(tokens: &mut VecDeque<Token>) -> Option<Result<IdGet, CustomErro
     }
 }
 
+// ------------
+// --- OpIn ---
+// ------------
+
+#[derive(PartialEq)]
+pub enum OpIn {
+    IdGet(IdGet),
+    CGet(CGet),
+    Empty,
+}
+
+impl GraphDisplay for OpIn {
+    fn graph_display(&self, graph: &mut String, id: &mut usize) {
+        graph.push_str(&format!("\nsubgraph_OpIn_{}[OpIn]", id));
+        *id += 1;
+        match self {
+            OpIn::IdGet(id_get) => id_get.graph_display(graph, id),
+            OpIn::CGet(c_get) => c_get.graph_display(graph, id),
+            OpIn::Empty => {}
+        }
+        graph.push_str(&"\nend".to_string());
+    }
+}
+
+impl_debug!(OpIn);
+
+fn parse_op_in(tokens: &mut VecDeque<Token>) -> Result<OpIn, CustomError> {
+    // <op_in> ::= (T_IN (<id_get> | <cget>) |)
+    return if let Some(Token::Inside) = tokens.front() {
+        tokens.pop_front();
+        if let Some(id_get) = parse_id_get(tokens) {
+            Ok(OpIn::IdGet(id_get?))
+        } else if let Some(c_get) = parse_cget(tokens) {
+            Ok(OpIn::CGet(c_get))
+        } else {
+            Err(CustomError::UnexpectedToken(
+                "Expected id_get or cget after \"indide\" token".to_string(),
+            ))
+        }
+    } else {
+        Ok(OpIn::Empty)
+    };
+}
+
+// -------------
+// --- IdSet ---
+// -------------
+
+#[derive(PartialEq)]
+pub struct IdSet {
+    identifier: String,
+    op_in: Box<OpIn>,
+}
+
+impl GraphDisplay for IdSet {
+    fn graph_display(&self, graph: &mut String, id: &mut usize) {
+        graph.push_str(&format!(
+            "\nsubgraph_IdSet_{}[IdSet {}]",
+            id, self.identifier
+        ));
+        *id += 1;
+        self.op_in.graph_display(graph, id);
+        graph.push_str(&"\nend".to_string());
+    }
+}
+
+impl_debug!(IdSet);
+
 fn parse_id_set(tokens: &mut VecDeque<Token>) -> Option<Result<IdSet, CustomError>> {
     // <id_set> ::= T_IDENTIFIER <op_in>
-    if let Some(Token::Identifier(identifier)) = tokens.front() {
+    if let Some(Token::Identifier(_)) = tokens.front() {
         if let Some(Token::Identifier(identifier)) = tokens.pop_front() {
             let op_in = parse_op_in(tokens);
             match op_in {
