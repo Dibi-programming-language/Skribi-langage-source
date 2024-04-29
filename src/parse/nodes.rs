@@ -9,6 +9,7 @@ mod fct;
 mod vars;
 mod classes;
 pub(crate) mod id_nodes;
+mod operations;
 
 trait GraphDisplay {
     fn graph_display(&self, graph: &mut String, id: &mut usize);
