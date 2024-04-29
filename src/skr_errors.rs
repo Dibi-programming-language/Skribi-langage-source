@@ -1,6 +1,6 @@
 use std::fmt;
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub enum CustomError {
     InvalidFloat(String, u16),
     InvalidString(String, u16),
