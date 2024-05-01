@@ -26,9 +26,6 @@ pub enum Token {
     Sub,
     Div,
     Mult,
-    // TODO : Pow
-    // TODO : and, or, xor, not
-    // TODO : comparison operators
     LeftParenthesis,
     RightParenthesis,
     LeftBrace,
@@ -43,6 +40,13 @@ pub enum Token {
     KeywordFunction,
     KeywordReturn,
     Invalid(String), // Any character not used by other tokens, only used when parsing bloc title
+    // TODO : Pow
+    // TODO : and, or, xor, not
+    // TODO : comparison operators
+    Equal,    // not tokenized for now : missing symbol
+    NotEqual, // not tokenized for now : missing symbol
+    And,      // not tokenized for now : missing symbol
+    Or,       // not tokenized for now : missing symbol
 }
 
 fn tokenize_string(file: &mut Chars, line: u16) -> Result<Token, CustomError> {

@@ -1,6 +1,6 @@
 use crate::impl_debug;
 use crate::parse::nodes::GraphDisplay;
-use crate::skr_errors::CustomError;
+use crate::skr_errors::{CustomError, NotYetImplementedType};
 use crate::tokens::Token;
 use std::collections::VecDeque;
 use std::fmt;
@@ -174,7 +174,9 @@ fn parse_take_prio(tokens: &mut VecDeque<Token>) -> Option<Result<TakePriority, 
     if let Some(Token::LeftParenthesis) = front {
         tokens.pop_front();
         // TODO
-        None
+        Some(Err(CustomError::NotYetImplemented(
+            NotYetImplementedType::InProgress("TakePriority::Exp -> coming soon".to_string()),
+        )))
     } else {
         if let Some(value) = parse_value(tokens) {
             match value {
@@ -235,7 +237,9 @@ fn parse_unary_tp(tokens: &mut VecDeque<Token>) -> Option<Result<UnaryTP, Custom
             match unary_tp {
                 Some(Ok(unary_tp)) => Some(Ok(UnaryTP::Plus(Box::new(unary_tp)))),
                 Some(Err(err)) => Some(Err(err)),
-                None => None,
+                None => Some(Err(CustomError::UnexpectedToken(
+                    "Expected an unary_tp".to_string(),
+                ))),
             }
         }
         Some(Token::Sub) => {
@@ -244,7 +248,9 @@ fn parse_unary_tp(tokens: &mut VecDeque<Token>) -> Option<Result<UnaryTP, Custom
             match unary_tp {
                 Some(Ok(unary_tp)) => Some(Ok(UnaryTP::Minus(Box::new(unary_tp)))),
                 Some(Err(err)) => Some(Err(err)),
-                None => None,
+                None => Some(Err(CustomError::UnexpectedToken(
+                    "Expected an unary_tp".to_string(),
+                ))),
             }
         }
         // TODO not
@@ -354,7 +360,9 @@ fn parse_mult(tokens: &mut VecDeque<Token>) -> Option<Result<Mult, CustomError>>
         match tp1 {
             Some(Ok(tp1)) => Some(Ok(Mult { tp1 })),
             Some(Err(err)) => Some(Err(err)),
-            None => None,
+            None => Some(Err(CustomError::UnexpectedToken(
+                "Expected a tp1".to_string(),
+            ))),
         }
     } else {
         None
@@ -370,7 +378,9 @@ fn parse_div(tokens: &mut VecDeque<Token>) -> Option<Result<Div, CustomError>> {
         match tp1 {
             Some(Ok(tp1)) => Some(Ok(Div { tp1 })),
             Some(Err(err)) => Some(Err(err)),
-            None => None,
+            None => Some(Err(CustomError::UnexpectedToken(
+                "Expected a tp1".to_string(),
+            ))),
         }
     } else {
         None
@@ -514,7 +524,9 @@ impl Add {
             match tp2 {
                 Some(Ok(tp2)) => Some(Ok(Add::new(tp2))),
                 Some(Err(err)) => Some(Err(err)),
-                None => None,
+                None => Some(Err(CustomError::UnexpectedToken(
+                    "Expected a tp2".to_string(),
+                ))),
             }
         } else {
             None
@@ -536,7 +548,9 @@ impl Sub {
             match tp2 {
                 Some(Ok(tp2)) => Some(Ok(Sub::new(tp2))),
                 Some(Err(err)) => Some(Err(err)),
-                None => None,
+                None => Some(Err(CustomError::UnexpectedToken(
+                    "Expected a tp2".to_string(),
+                ))),
             }
         } else {
             None
@@ -588,3 +602,509 @@ impl TP2 {
         }
     }
 }
+
+// ----------------------------------
+// --- Eq, not_eq, eq_not and TP3 ---
+// ----------------------------------
+
+// Enums and structs for Eq, NotEq, EqNot and TP3
+
+#[derive(PartialEq)]
+pub struct Eq {
+    tp3: TP3,
+}
+
+#[derive(PartialEq)]
+pub struct NotEq {
+    tp3: TP3,
+}
+
+#[derive(PartialEq)]
+pub enum EqNot {
+    Eq(Eq),
+    NotEq(NotEq),
+}
+
+#[derive(PartialEq)]
+pub struct TP3 {
+    tp2: TP2,
+    eq_not: Option<Box<EqNot>>,
+}
+
+// Implementations for Eq, NotEq, EqNot and TP3 of GraphDisplay
+
+impl GraphDisplay for Eq {
+    fn graph_display(&self, graph: &mut String, id: &mut usize) {
+        graph.push_str(&format!("\nsubgraph_Eq_{}[Eq]", id));
+        *id += 1;
+        self.tp3.graph_display(graph, id);
+        graph.push_str(&"\nend".to_string());
+    }
+}
+
+impl_debug!(Eq);
+
+impl GraphDisplay for NotEq {
+    fn graph_display(&self, graph: &mut String, id: &mut usize) {
+        graph.push_str(&format!("\nsubgraph_NotEq_{}[NotEq]", id));
+        *id += 1;
+        self.tp3.graph_display(graph, id);
+        graph.push_str(&"\nend".to_string());
+    }
+}
+
+impl_debug!(NotEq);
+
+impl GraphDisplay for EqNot {
+    fn graph_display(&self, graph: &mut String, id: &mut usize) {
+        graph.push_str(&format!("\nsubgraph_EqNot_{}[EqNot]", id));
+        *id += 1;
+        match self {
+            EqNot::Eq(eq) => {
+                eq.graph_display(graph, id);
+            }
+            EqNot::NotEq(not_eq) => {
+                not_eq.graph_display(graph, id);
+            }
+        }
+        graph.push_str(&"\nend".to_string());
+    }
+}
+
+impl_debug!(EqNot);
+
+impl GraphDisplay for TP3 {
+    fn graph_display(&self, graph: &mut String, id: &mut usize) {
+        graph.push_str(&format!("\nsubgraph_TP3_{}[TP3]", id));
+        *id += 1;
+        self.tp2.graph_display(graph, id);
+        if let Some(eq_not) = &self.eq_not {
+            eq_not.graph_display(graph, id);
+        }
+        graph.push_str(&"\nend".to_string());
+    }
+}
+
+impl_debug!(TP3);
+
+// Functions for parsing Eq, NotEq, EqNot and TP3
+
+impl Eq {
+    fn new(tp3: TP3) -> Eq {
+        Eq { tp3 }
+    }
+
+    fn parse(tokens: &mut VecDeque<Token>) -> Option<Result<Eq, CustomError>> {
+        // <eq> ::= T_EQUAL <tp3>
+        let front = tokens.front();
+        if let Some(Token::Equal) = front {
+            tokens.pop_front();
+            let tp3 = TP3::parse(tokens);
+            match tp3 {
+                Some(Ok(tp3)) => Some(Ok(Eq::new(tp3))),
+                Some(Err(err)) => Some(Err(err)),
+                None => Some(Err(CustomError::UnexpectedToken(
+                    "Expected a tp3".to_string(),
+                ))),
+            }
+        } else {
+            None
+        }
+    }
+}
+
+impl NotEq {
+    fn new(tp3: TP3) -> NotEq {
+        NotEq { tp3 }
+    }
+
+    fn parse(tokens: &mut VecDeque<Token>) -> Option<Result<NotEq, CustomError>> {
+        // <not_eq> ::= T_NOT_EQUAL <tp3>
+        let front = tokens.front();
+        if let Some(Token::NotEqual) = front {
+            tokens.pop_front();
+            let tp3 = TP3::parse(tokens);
+            match tp3 {
+                Some(Ok(tp3)) => Some(Ok(NotEq::new(tp3))),
+                Some(Err(err)) => Some(Err(err)),
+                None => Some(Err(CustomError::UnexpectedToken(
+                    "Expected a tp3".to_string(),
+                ))),
+            }
+        } else {
+            None
+        }
+    }
+}
+
+impl EqNot {
+    fn parse(tokens: &mut VecDeque<Token>) -> Option<Result<EqNot, CustomError>> {
+        // <eq_not> ::= <eq> | <not_eq>
+        if let Some(eq) = Eq::parse(tokens) {
+            match eq {
+                Ok(eq) => Some(Ok(EqNot::Eq(eq))),
+                Err(err) => Some(Err(err)),
+            }
+        } else if let Some(not_eq) = NotEq::parse(tokens) {
+            match not_eq {
+                Ok(not_eq) => Some(Ok(EqNot::NotEq(not_eq))),
+                Err(err) => Some(Err(err)),
+            }
+        } else {
+            None
+        }
+    }
+}
+
+impl TP3 {
+    fn new(tp2: TP2, eq_not: Option<EqNot>) -> TP3 {
+        TP3 {
+            tp2,
+            eq_not: eq_not.map(Box::new),
+        }
+    }
+
+    fn parse(tokens: &mut VecDeque<Token>) -> Option<Result<TP3, CustomError>> {
+        // <tp3> ::= <tp2> (<eq_not> |)
+        let tp2 = TP2::parse(tokens);
+        match tp2 {
+            Some(Ok(tp2)) => {
+                let eq_not = EqNot::parse(tokens);
+                match eq_not {
+                    Some(Ok(eq_not)) => Some(Ok(TP3::new(tp2, Some(eq_not)))),
+                    Some(Err(err)) => Some(Err(err)),
+                    None => Some(Ok(TP3::new(tp2, None))),
+                }
+            }
+            Some(Err(err)) => Some(Err(err)),
+            None => None,
+        }
+    }
+}
+
+// -------------------
+// --- And and TP4 ---
+// -------------------
+
+// Enums and structs for And and TP4
+
+#[derive(PartialEq)]
+pub struct And {
+    tp4: TP4,
+}
+
+#[derive(PartialEq)]
+pub struct TP4 {
+    tp3: TP3,
+    and: Option<Box<And>>,
+}
+
+// Implementations for And and TP4 of GraphDisplay
+
+impl GraphDisplay for And {
+    fn graph_display(&self, graph: &mut String, id: &mut usize) {
+        graph.push_str(&format!("\nsubgraph_And_{}[And]", id));
+        *id += 1;
+        self.tp4.graph_display(graph, id);
+        graph.push_str(&"\nend".to_string());
+    }
+}
+
+impl_debug!(And);
+
+impl GraphDisplay for TP4 {
+    fn graph_display(&self, graph: &mut String, id: &mut usize) {
+        graph.push_str(&format!("\nsubgraph_TP4_{}[TP4]", id));
+        *id += 1;
+        self.tp3.graph_display(graph, id);
+        if let Some(and) = &self.and {
+            and.graph_display(graph, id);
+        }
+        graph.push_str(&"\nend".to_string());
+    }
+}
+
+impl_debug!(TP4);
+
+// Functions for parsing And and TP4
+
+impl And {
+    fn new(tp4: TP4) -> And {
+        And { tp4 }
+    }
+
+    fn parse(tokens: &mut VecDeque<Token>) -> Option<Result<And, CustomError>> {
+        // <and> ::= T_AND <tp4>
+        let front = tokens.front();
+        if let Some(Token::And) = front {
+            tokens.pop_front();
+            let tp4 = TP4::parse(tokens);
+            match tp4 {
+                Some(Ok(tp4)) => Some(Ok(And::new(tp4))),
+                Some(Err(err)) => Some(Err(err)),
+                None => Some(Err(CustomError::UnexpectedToken(
+                    "Expected a tp4".to_string(),
+                ))),
+            }
+        } else {
+            None
+        }
+    }
+}
+
+impl TP4 {
+    fn new(tp3: TP3, and: Option<And>) -> TP4 {
+        TP4 {
+            tp3,
+            and: and.map(Box::new),
+        }
+    }
+
+    fn parse(tokens: &mut VecDeque<Token>) -> Option<Result<TP4, CustomError>> {
+        // <tp4> ::= <tp3> (<and> |)
+        let tp3 = TP3::parse(tokens);
+        match tp3 {
+            Some(Ok(tp3)) => {
+                let and = And::parse(tokens);
+                match and {
+                    Some(Ok(and)) => Some(Ok(TP4::new(tp3, Some(and)))),
+                    Some(Err(err)) => Some(Err(err)),
+                    None => Some(Ok(TP4::new(tp3, None))),
+                }
+            }
+            Some(Err(err)) => Some(Err(err)),
+            None => None,
+        }
+    }
+}
+
+// ------------------
+// --- Or and TP5 ---
+// ------------------
+
+// Enums and structs for Or and TP5
+
+#[derive(PartialEq)]
+pub struct Or {
+    tp5: TP5,
+}
+
+#[derive(PartialEq)]
+pub struct TP5 {
+    tp4: TP4,
+    or: Option<Box<Or>>,
+}
+
+// Implementations for Or and TP5 of GraphDisplay
+
+impl GraphDisplay for Or {
+    fn graph_display(&self, graph: &mut String, id: &mut usize) {
+        graph.push_str(&format!("\nsubgraph_Or_{}[Or]", id));
+        *id += 1;
+        self.tp5.graph_display(graph, id);
+        graph.push_str(&"\nend".to_string());
+    }
+}
+
+impl_debug!(Or);
+
+impl GraphDisplay for TP5 {
+    fn graph_display(&self, graph: &mut String, id: &mut usize) {
+        graph.push_str(&format!("\nsubgraph_TP5_{}[TP5]", id));
+        *id += 1;
+        self.tp4.graph_display(graph, id);
+        if let Some(or) = &self.or {
+            or.graph_display(graph, id);
+        }
+        graph.push_str(&"\nend".to_string());
+    }
+}
+
+impl_debug!(TP5);
+
+// Functions for parsing Or and TP5
+
+impl Or {
+    fn new(tp5: TP5) -> Or {
+        Or { tp5 }
+    }
+
+    fn parse(tokens: &mut VecDeque<Token>) -> Option<Result<Or, CustomError>> {
+        // <or> ::= T_OR <tp5>
+        let front = tokens.front();
+        if let Some(Token::Or) = front {
+            tokens.pop_front();
+            let tp5 = TP5::parse(tokens);
+            match tp5 {
+                Some(Ok(tp5)) => Some(Ok(Or::new(tp5))),
+                Some(Err(err)) => Some(Err(err)),
+                None => Some(Err(CustomError::UnexpectedToken(
+                    "Expected a tp5".to_string(),
+                ))),
+            }
+        } else {
+            None
+        }
+    }
+}
+
+impl TP5 {
+    fn new(tp4: TP4, or: Option<Or>) -> TP5 {
+        TP5 {
+            tp4,
+            or: or.map(Box::new),
+        }
+    }
+
+    fn parse(tokens: &mut VecDeque<Token>) -> Option<Result<TP5, CustomError>> {
+        // <tp5> ::= <tp4> (<or> |)
+        let tp4 = TP4::parse(tokens);
+        match tp4 {
+            Some(Ok(tp4)) => {
+                let or = Or::parse(tokens);
+                match or {
+                    Some(Ok(or)) => Some(Ok(TP5::new(tp4, Some(or)))),
+                    Some(Err(err)) => Some(Err(err)),
+                    None => Some(Ok(TP5::new(tp4, None))),
+                }
+            }
+            Some(Err(err)) => Some(Err(err)),
+            None => None,
+        }
+    }
+}
+
+// ----------------------------
+// --- TP Last and No Value ---
+// ----------------------------
+
+// Enums and structs for TP Last and No Value
+
+#[derive(PartialEq)]
+pub struct TPLast {
+    tp5: TP5,
+}
+
+#[derive(PartialEq)]
+pub struct NoValue {
+    md: Option<Box<Md>>,
+    as_: Option<Box<As>>,
+    eq_not: Option<Box<EqNot>>,
+    and: Option<Box<And>>,
+    or: Option<Box<Or>>,
+}
+
+// Implementations for TPLast and NoValue of GraphDisplay
+
+impl GraphDisplay for TPLast {
+    fn graph_display(&self, graph: &mut String, id: &mut usize) {
+        graph.push_str(&format!("\nsubgraph_TPLast_{}[TPLast]", id));
+        *id += 1;
+        self.tp5.graph_display(graph, id);
+        graph.push_str(&"\nend".to_string());
+    }
+}
+
+impl_debug!(TPLast);
+
+impl GraphDisplay for NoValue {
+    fn graph_display(&self, graph: &mut String, id: &mut usize) {
+        graph.push_str(&format!("\nsubgraph_NoValue_{}[NoValue]", id));
+        *id += 1;
+        if let Some(md) = &self.md {
+            md.graph_display(graph, id);
+        }
+        if let Some(as_) = &self.as_ {
+            as_.graph_display(graph, id);
+        }
+        if let Some(eq_not) = &self.eq_not {
+            eq_not.graph_display(graph, id);
+        }
+        if let Some(and) = &self.and {
+            and.graph_display(graph, id);
+        }
+        if let Some(or) = &self.or {
+            or.graph_display(graph, id);
+        }
+        graph.push_str(&"\nend".to_string());
+    }
+}
+
+impl_debug!(NoValue);
+
+// Functions for parsing TPLast and NoValue
+
+impl TPLast {
+    fn new(tp5: TP5) -> TPLast {
+        TPLast { tp5 }
+    }
+
+    fn parse(tokens: &mut VecDeque<Token>) -> Option<Result<TPLast, CustomError>> {
+        // <tp_last> ::= <tp5>
+        let tp5 = TP5::parse(tokens);
+        match tp5 {
+            Some(Ok(tp5)) => Some(Ok(TPLast::new(tp5))),
+            Some(Err(err)) => Some(Err(err)),
+            None => None,
+        }
+    }
+}
+
+impl NoValue {
+    fn new(
+        md: Option<Md>,
+        as_: Option<As>,
+        eq_not: Option<EqNot>,
+        and: Option<And>,
+        or: Option<Or>,
+    ) -> NoValue {
+        NoValue {
+            md: md.map(Box::new),
+            as_: as_.map(Box::new),
+            eq_not: eq_not.map(Box::new),
+            and: and.map(Box::new),
+            or: or.map(Box::new),
+        }
+    }
+
+    fn parse(tokens: &mut VecDeque<Token>) -> Result<NoValue, CustomError> {
+        // <no_value> ::= (<md> |) (<as> |) (<eq_not> |) (<and> |) (<or> |)
+        let md = parse_md(tokens);
+        let as_ = As::parse(tokens);
+        let eq_not = EqNot::parse(tokens);
+        let and = And::parse(tokens);
+        let or = Or::parse(tokens);
+        
+        let md = match md {
+            None => None,
+            Some(Err(a)) => return Err(a),
+            Some(Ok(a)) => Some(a),
+        };
+        let as_ = match as_ {
+            None => None,
+            Some(Err(a)) => return Err(a),
+            Some(Ok(a)) => Some(a),
+        };
+        let eq_not = match eq_not {
+            None => None,
+            Some(Err(a)) => return Err(a),
+            Some(Ok(a)) => Some(a),
+        };
+        let and = match and {
+            None => None,
+            Some(Err(a)) => return Err(a),
+            Some(Ok(a)) => Some(a),
+        };
+        let or = match or {
+            None => None,
+            Some(Err(a)) => return Err(a),
+            Some(Ok(a)) => Some(a),
+        };
+        
+        Ok(NoValue::new(md, as_, eq_not, and, or))
+    }
+}
+
+// -------------------
+// --- END OF FILE ---
+// -------------------
