@@ -55,25 +55,25 @@ impl GraphDisplay for ValueBase {
         match self {
             ValueBase::Bool(value) => {
                 graph.push_str(&format!(
-                    "\nsubgraph_ValueBase_{}[ValueBase Bool {}]\nend",
+                    "\nsubgraph ValueBase_{}[ValueBase Bool {}]\nend",
                     id, value
                 ));
             }
             ValueBase::Int(value) => {
                 graph.push_str(&format!(
-                    "\nsubgraph_ValueBase_{}[ValueBase Int {}]\nend",
+                    "\nsubgraph ValueBase_{}[ValueBase Int {}]\nend",
                     id, value
                 ));
             }
             ValueBase::Float(value) => {
                 graph.push_str(&format!(
-                    "\nsubgraph_ValueBase_{}[ValueBase Float {}]\nend",
+                    "\nsubgraph ValueBase_{}[ValueBase Float {}]\nend",
                     id, value
                 ));
             }
             ValueBase::String(value) => {
                 graph.push_str(&format!(
-                    "\nsubgraph_ValueBase_{}[ValueBase String {}]\nend",
+                    "\nsubgraph ValueBase_{}[ValueBase String {}]\nend",
                     id, value
                 ));
             }
@@ -110,7 +110,7 @@ pub enum ValueNode {
 
 impl GraphDisplay for ValueNode {
     fn graph_display(&self, graph: &mut String, id: &mut usize) {
-        graph.push_str(&format!("\nsubgraph_ValueNode_{}[ValueNode]", id));
+        graph.push_str(&format!("\nsubgraph ValueNode_{}[ValueNode]", id));
         *id += 1;
         match self {
             ValueNode::ValueBase(value) => {
@@ -150,7 +150,7 @@ pub enum TakePriority {
 
 impl GraphDisplay for TakePriority {
     fn graph_display(&self, graph: &mut String, id: &mut usize) {
-        graph.push_str(&format!("\nsubgraph_TakePriority_{}[TakePriority]", id));
+        graph.push_str(&format!("\nsubgraph TakePriority_{}[TakePriority]", id));
         *id += 1;
         match self {
             TakePriority::Exp => {
@@ -203,7 +203,7 @@ pub enum UnaryTP {
 
 impl GraphDisplay for UnaryTP {
     fn graph_display(&self, graph: &mut String, id: &mut usize) {
-        graph.push_str(&format!("\nsubgraph_UnaryTP_{}[unary_tp]", id));
+        graph.push_str(&format!("\nsubgraph UnaryTP_{}[unary_tp]", id));
         *id += 1;
         match self {
             UnaryTP::Plus(unary_tp) => {
@@ -297,7 +297,7 @@ pub struct TP1 {
 
 impl GraphDisplay for Mult {
     fn graph_display(&self, graph: &mut String, id: &mut usize) {
-        graph.push_str(&format!("\nsubgraph_Mult_{}[Mult]", id));
+        graph.push_str(&format!("\nsubgraph Mult_{}[Mult]", id));
         *id += 1;
         self.tp1.graph_display(graph, id);
         graph.push_str(&"\nend".to_string());
@@ -308,7 +308,7 @@ impl_debug!(Mult);
 
 impl GraphDisplay for Div {
     fn graph_display(&self, graph: &mut String, id: &mut usize) {
-        graph.push_str(&format!("\nsubgraph_Div_{}[Div]", id));
+        graph.push_str(&format!("\nsubgraph Div_{}[Div]", id));
         *id += 1;
         self.tp1.graph_display(graph, id);
         graph.push_str(&"\nend".to_string());
@@ -319,7 +319,7 @@ impl_debug!(Div);
 
 impl GraphDisplay for Md {
     fn graph_display(&self, graph: &mut String, id: &mut usize) {
-        graph.push_str(&format!("\nsubgraph_Md_{}[Md]", id));
+        graph.push_str(&format!("\nsubgraph Md_{}[Md]", id));
         *id += 1;
         match self {
             Md::Mult(mult) => {
@@ -337,7 +337,7 @@ impl_debug!(Md);
 
 impl GraphDisplay for TP1 {
     fn graph_display(&self, graph: &mut String, id: &mut usize) {
-        graph.push_str(&format!("\nsubgraph_TP1_{}[TP1]", id));
+        graph.push_str(&format!("\nsubgraph TP1_{}[TP1]", id));
         *id += 1;
         self.unary_tp.graph_display(graph, id);
         if let Some(md) = &self.md {
@@ -456,7 +456,7 @@ pub struct TP2 {
 
 impl GraphDisplay for Add {
     fn graph_display(&self, graph: &mut String, id: &mut usize) {
-        graph.push_str(&format!("\nsubgraph_Add_{}[Add]", id));
+        graph.push_str(&format!("\nsubgraph Add_{}[Add]", id));
         *id += 1;
         self.tp2.graph_display(graph, id);
         graph.push_str(&"\nend".to_string());
@@ -467,7 +467,7 @@ impl_debug!(Add);
 
 impl GraphDisplay for Sub {
     fn graph_display(&self, graph: &mut String, id: &mut usize) {
-        graph.push_str(&format!("\nsubgraph_Sub_{}[Sub]", id));
+        graph.push_str(&format!("\nsubgraph Sub_{}[Sub]", id));
         *id += 1;
         self.tp2.graph_display(graph, id);
         graph.push_str(&"\nend".to_string());
@@ -478,7 +478,7 @@ impl_debug!(Sub);
 
 impl GraphDisplay for As {
     fn graph_display(&self, graph: &mut String, id: &mut usize) {
-        graph.push_str(&format!("\nsubgraph_As_{}[As]", id));
+        graph.push_str(&format!("\nsubgraph As_{}[As]", id));
         *id += 1;
         match self {
             As::Add(add) => {
@@ -496,7 +496,7 @@ impl_debug!(As);
 
 impl GraphDisplay for TP2 {
     fn graph_display(&self, graph: &mut String, id: &mut usize) {
-        graph.push_str(&format!("\nsubgraph_TP2_{}[TP2]", id));
+        graph.push_str(&format!("\nsubgraph TP2_{}[TP2]", id));
         *id += 1;
         self.tp1.graph_display(graph, id);
         if let Some(as_) = &self.as_ {
@@ -635,7 +635,7 @@ pub struct TP3 {
 
 impl GraphDisplay for Eq {
     fn graph_display(&self, graph: &mut String, id: &mut usize) {
-        graph.push_str(&format!("\nsubgraph_Eq_{}[Eq]", id));
+        graph.push_str(&format!("\nsubgraph Eq_{}[Eq]", id));
         *id += 1;
         self.tp3.graph_display(graph, id);
         graph.push_str(&"\nend".to_string());
@@ -646,7 +646,7 @@ impl_debug!(Eq);
 
 impl GraphDisplay for NotEq {
     fn graph_display(&self, graph: &mut String, id: &mut usize) {
-        graph.push_str(&format!("\nsubgraph_NotEq_{}[NotEq]", id));
+        graph.push_str(&format!("\nsubgraph NotEq_{}[NotEq]", id));
         *id += 1;
         self.tp3.graph_display(graph, id);
         graph.push_str(&"\nend".to_string());
@@ -657,7 +657,7 @@ impl_debug!(NotEq);
 
 impl GraphDisplay for EqNot {
     fn graph_display(&self, graph: &mut String, id: &mut usize) {
-        graph.push_str(&format!("\nsubgraph_EqNot_{}[EqNot]", id));
+        graph.push_str(&format!("\nsubgraph EqNot_{}[EqNot]", id));
         *id += 1;
         match self {
             EqNot::Eq(eq) => {
@@ -675,7 +675,7 @@ impl_debug!(EqNot);
 
 impl GraphDisplay for TP3 {
     fn graph_display(&self, graph: &mut String, id: &mut usize) {
-        graph.push_str(&format!("\nsubgraph_TP3_{}[TP3]", id));
+        graph.push_str(&format!("\nsubgraph TP3_{}[TP3]", id));
         *id += 1;
         self.tp2.graph_display(graph, id);
         if let Some(eq_not) = &self.eq_not {
@@ -803,7 +803,7 @@ pub struct TP4 {
 
 impl GraphDisplay for And {
     fn graph_display(&self, graph: &mut String, id: &mut usize) {
-        graph.push_str(&format!("\nsubgraph_And_{}[And]", id));
+        graph.push_str(&format!("\nsubgraph And_{}[And]", id));
         *id += 1;
         self.tp4.graph_display(graph, id);
         graph.push_str(&"\nend".to_string());
@@ -814,7 +814,7 @@ impl_debug!(And);
 
 impl GraphDisplay for TP4 {
     fn graph_display(&self, graph: &mut String, id: &mut usize) {
-        graph.push_str(&format!("\nsubgraph_TP4_{}[TP4]", id));
+        graph.push_str(&format!("\nsubgraph TP4_{}[TP4]", id));
         *id += 1;
         self.tp3.graph_display(graph, id);
         if let Some(and) = &self.and {
@@ -899,7 +899,7 @@ pub struct TP5 {
 
 impl GraphDisplay for Or {
     fn graph_display(&self, graph: &mut String, id: &mut usize) {
-        graph.push_str(&format!("\nsubgraph_Or_{}[Or]", id));
+        graph.push_str(&format!("\nsubgraph Or_{}[Or]", id));
         *id += 1;
         self.tp5.graph_display(graph, id);
         graph.push_str(&"\nend".to_string());
@@ -910,7 +910,7 @@ impl_debug!(Or);
 
 impl GraphDisplay for TP5 {
     fn graph_display(&self, graph: &mut String, id: &mut usize) {
-        graph.push_str(&format!("\nsubgraph_TP5_{}[TP5]", id));
+        graph.push_str(&format!("\nsubgraph TP5_{}[TP5]", id));
         *id += 1;
         self.tp4.graph_display(graph, id);
         if let Some(or) = &self.or {
@@ -998,7 +998,7 @@ pub struct NoValue {
 
 impl GraphDisplay for TPLast {
     fn graph_display(&self, graph: &mut String, id: &mut usize) {
-        graph.push_str(&format!("\nsubgraph_TPLast_{}[TPLast]", id));
+        graph.push_str(&format!("\nsubgraph TPLast_{}[TPLast]", id));
         *id += 1;
         self.tp5.graph_display(graph, id);
         graph.push_str(&"\nend".to_string());
@@ -1009,7 +1009,7 @@ impl_debug!(TPLast);
 
 impl GraphDisplay for NoValue {
     fn graph_display(&self, graph: &mut String, id: &mut usize) {
-        graph.push_str(&format!("\nsubgraph_NoValue_{}[NoValue]", id));
+        graph.push_str(&format!("\nsubgraph NoValue_{}[NoValue]", id));
         *id += 1;
         if let Some(md) = &self.md {
             md.graph_display(graph, id);

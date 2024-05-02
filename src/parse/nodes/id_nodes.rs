@@ -3,6 +3,7 @@ use std::fmt;
 use std::fmt::{Debug, Formatter};
 
 use crate::impl_debug;
+use crate::parse::nodes::classes::is_type_def;
 use crate::parse::nodes::GraphDisplay;
 use crate::skr_errors::CustomError;
 use crate::tokens::Token;
@@ -19,7 +20,7 @@ fn parse_tuple(tokens: &mut VecDeque<Token>) -> Option<Result<TupleNode, CustomE
 
 impl GraphDisplay for TupleNode {
     fn graph_display(&self, graph: &mut String, id: &mut usize) {
-        graph.push_str(&format!("\nsubgraph_TupleNode_{}[TupleNode]", id));
+        graph.push_str(&format!("\nsubgraph TupleNode_{}[TupleNode]", id));
         *id += 1;
     }
 }
@@ -37,23 +38,12 @@ pub struct CGet {
 
 impl GraphDisplay for CGet {
     fn graph_display(&self, graph: &mut String, id: &mut usize) {
-        graph.push_str(&format!("\nsubgraph_CGet_{}[CGet {}]\nend", id, self.name));
+        graph.push_str(&format!("\nsubgraph CGet_{}[CGet {}]\nend", id, self.name));
         *id += 1;
     }
 }
 
 impl_debug!(CGet);
-
-fn is_type_def(identifier: &str) -> bool {
-    // TODO: implémenter cette fonction avec des types complexes
-    match identifier {
-        "int" => true,
-        "dar" => true,
-        "ioi" => true,
-        "skr" => true,
-        _ => false,
-    }
-}
 
 pub(crate) fn parse_cget(tokens: &mut VecDeque<Token>) -> Option<CGet> {
     if let Some(Token::Identifier(identifier)) = tokens.front() {
@@ -81,7 +71,7 @@ pub struct IdGet {
 impl GraphDisplay for IdGet {
     fn graph_display(&self, graph: &mut String, id: &mut usize) {
         graph.push_str(&format!(
-            "\nsubgraph_IdGet_{}[IdGet {}]",
+            "\nsubgraph IdGet_{}[IdGet {}]",
             id, self.identifier
         ));
         *id += 1;
@@ -135,7 +125,7 @@ pub enum OpIn {
 
 impl GraphDisplay for OpIn {
     fn graph_display(&self, graph: &mut String, id: &mut usize) {
-        graph.push_str(&format!("\nsubgraph_OpIn_{}[OpIn]", id));
+        graph.push_str(&format!("\nsubgraph OpIn_{}[OpIn]", id));
         *id += 1;
         match self {
             OpIn::IdGet(id_get) => id_get.graph_display(graph, id),
@@ -179,7 +169,7 @@ pub struct IdSet {
 impl GraphDisplay for IdSet {
     fn graph_display(&self, graph: &mut String, id: &mut usize) {
         graph.push_str(&format!(
-            "\nsubgraph_IdSet_{}[IdSet {}]",
+            "\nsubgraph IdSet_{}[IdSet {}]",
             id, self.identifier
         ));
         *id += 1;
