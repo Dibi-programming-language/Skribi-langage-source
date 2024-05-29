@@ -54,21 +54,4 @@ fn main() {
     } else {
         panic!("Error while getting the content of the file. Check the file extension and the file path. Valid file extensions : {:?}", extension.clone());
     }
-
-    // Parse the code
-
-    // interpret the code
-    // interpret(code, args);
-    /*let tokens = tokenize(content);*/
-
-    // test
-    /*for token in tokens {
-        match token {
-            Token::StringLiteral(string) => println!("StringLiteral: {}", string),
-            Token::IntLiteral(int) => println!("IntLiteral: {}", int),
-            Token::BooleanLiteral(boolean) => println!("BooleanLiteral: {}", boolean),
-            _ => println!("{:?}", token),
-        }
-    }
-    */
 }

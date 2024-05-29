@@ -1,6 +1,6 @@
-use crate::tokens::Token;
 use crate::parse::nodes::expressions::{Exp, ExpBase};
-use crate::parse::nodes::id_nodes::{IdGet, TupleNode};
+use crate::parse::nodes::id_nodes::IdGet;
+use crate::tokens::Token;
 
 mod parse_variables;
 mod parse_values;
@@ -129,166 +129,10 @@ pub enum IdUse {
     IdGet(IdGet),
 }
 
-pub struct IdUseV {
-    id_use: IdUse,
-    no_value: Option<NoValue>,
-}
-
-pub struct Return {
-    exp: Exp,
-}
-
-pub enum Sta {
-    Return(Return),
-    Exp(Exp),
-}
-
-pub struct StaL {
-    sta: Vec<Sta>,
-}
-
-pub struct KName {
-    identifier: Option<String>,
-    left_e: Option<Vec<String>>, // TODO: Définir le type de left_e
-}
-
-pub struct KStart {
-    sta_l: StaL,
-    k_name: Option<KName>,
-}
-
-pub struct Kodi {
-    k_start: KStart,
-}
-
-pub struct Biuli {
-    k_start: KStart,
-}
-
-pub struct Spoki {
-    k_start: KStart,
-}
-
-pub enum ScopeBase {
-    StaL(StaL),
-    Kodi(Kodi),
-    Spoki(Spoki),
-    Biuli(Biuli),
-}
-
-pub enum Scope {
-    ScopeBase(ScopeBase),
-    Sta(Sta),
-}
-
-pub struct Sula {
-    ij: Option<Ij>, // TODO: Définir la structure ou l'énumération Ij
-    sula: Option<Box<Sula>>,
-    scope: Scope,
-}
-
-pub struct Ij {
-    exp: Exp,
-    scope: Scope,
-}
-
-pub struct Cond {
-    ij: Ij,
-    sula: Option<Sula>,
-}
-
-pub struct FctDec {
-    identifier: String,
-    tuple: TupleNode,
-    scope: Scope,
-}
-
-struct ParseFunction {
-    name: String,
-    arguments: Vec<String>,
-    return_type: String,
-}
-
-/// Only used to check if a variable exists in a scope
-struct ParseScope {
-    /// Variables that can be used in this scope
-    variables: Vec<String>,
-    /// Types that can be used in this scope
-    types: Vec<String>,
-    /// Functions that can be used in this scope. UNUSED FOR NOW
-    functions: Vec<ParseFunction>,
-    parent: Option<Box<ParseScope>>,
-}
-
-impl ParseScope {
-    fn new(parent: Option<Box<ParseScope>>) -> Self {
-        ParseScope {
-            variables: Vec::new(),
-            types: Vec::new(),
-            functions: Vec::new(),
-            parent,
-        }
-    }
-
-    fn base() -> Self {
-        ParseScope {
-            variables: Vec::new(),
-            types: vec![
-                "skr".to_string(),
-                "int".to_string(),
-                "dar".to_string(),
-                "ioi".to_string(),
-            ],
-            functions: Vec::new(),
-            parent: None,
-        }
-    }
-
-    /// Check if a name can be used in this scope for a variable
-    fn is_valid_name_for_variable(&self, name: String) -> bool {
-        !(
-            self.variables.contains(&name)
-            || self.types.contains(&name)
-            || self.functions.iter().any(|f| f.name == name)
-            || (
-                if let Some(parent) = &self.parent {
-                    parent.is_valid_name_for_variable(name)
-                } else {
-                    false
-                }
-            )
-        )
-    }
-
-    /// Check if a type exists in this scope
-    fn is_valid_type(&self, name: String) -> bool {
-        self.types.contains(&name)
-        || (
-            if let Some(parent) = &self.parent {
-                parent.is_valid_type(name)
-            } else {
-                false
-            }
-        )
-    }
-
-    /// Check if a variable exists in this scope
-    fn is_valid_variable(&self, name: String) -> bool {
-        self.variables.contains(&name)
-        || (
-            if let Some(parent) = &self.parent {
-                parent.is_valid_variable(name)
-            } else {
-                false
-            }
-        )
-    }
-}
-
 pub fn main(tokens: Vec<Token>) {
-    let mut line = 0;
+    // let mut line = 0;
     let mut i = 0;
-    let vec: Vec<Vec<String>> = Vec::new();
+    // let vec: Vec<Vec<String>> = Vec::new();
     let nodes = ();
     if i != tokens.len() {
         panic!("Scope closed with }} before the end");

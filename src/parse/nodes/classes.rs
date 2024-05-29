@@ -1,8 +1,8 @@
-use crate::parse::nodes::GraphDisplay;
-use crate::parse::Scope;
-use crate::impl_debug;
 use std::fmt;
 use std::fmt::{Debug, Formatter};
+
+use crate::impl_debug;
+use crate::parse::nodes::GraphDisplay;
 
 // Grammar of this file :
 // <class_dec> ::= kat T_IDENTIFIER <scope>
