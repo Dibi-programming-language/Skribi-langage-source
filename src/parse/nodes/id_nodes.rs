@@ -8,6 +8,13 @@ use crate::parse::nodes::GraphDisplay;
 use crate::skr_errors::CustomError;
 use crate::tokens::Token;
 
+/// `TupleNode` represents a tuple in the AST.
+///
+/// The grammar of a tuple is not yet defined, so this class is not implemented yet.
+///
+/// # Use cases
+///
+/// Tuples will be a datatype, and they will mainly be used to store fonction arguments.
 #[derive(PartialEq)]
 pub struct TupleNode {
     // TODO: définir les champs du tuple ici
@@ -31,6 +38,23 @@ impl_debug!(TupleNode);
 // --- CGet ---
 // ------------
 
+/// `CGet` represents the smallest piece of an identifier in the AST. It directly references a type or
+/// a variable that can be used directly in this scope.
+/// 
+/// # Examples
+/// 
+/// ## What is a CGet node?
+/// 
+/// Let us consider the following pseudocode (this is not Skribi code)
+/// 
+/// > `Class of name A with (` <br/>
+/// > `-  field of type int and name B` <br/>
+/// > `-  field of type int and name C` <br/>
+/// > `)`
+/// >
+/// > `Variable of type A and name D`
+/// 
+/// A and D can be accessed with a `CGet` node while B and C can be accessed with an `IdGet` node.
 #[derive(PartialEq)]
 pub struct CGet {
     pub(crate) name: String,
@@ -146,7 +170,7 @@ pub(crate) fn parse_op_in(tokens: &mut VecDeque<Token>) -> Result<OpIn, CustomEr
             Ok(OpIn::CGet(c_get))
         } else if let Some(id_get) = parse_id_get(tokens) {
             Ok(OpIn::IdGet(id_get?))
-        } else  {
+        } else {
             Err(CustomError::UnexpectedToken(
                 "Expected id_get or cget after \"indide\" token".to_string(),
             ))

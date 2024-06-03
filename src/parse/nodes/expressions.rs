@@ -1,11 +1,10 @@
 use std::fmt::Error;
 
-use crate::parse::{IdUse, TpLast};
 use crate::parse::nodes::vars::VarDec;
 use crate::tokens::Token;
 
 pub enum ExpBase {
-    IdUse(Box<IdUse>),
+    // IdUse(Box<IdUse>), // TODO - define id_use
     VarDec(Box<VarDec>),
     // Cond(Box<Cond>), // TODO - define cond
     // ScopeBase(Box<ScopeBase>), // TODO - define scope_base
@@ -21,9 +20,10 @@ pub enum ExpTp {
 
 pub struct Exp {
     exp_tp: ExpTp,
-    tp_last: TpLast,
+    // tp_last: TpLast, // TODO - define tp_last
 }
 
 pub fn parse_exp(tokens: &mut Vec<Token>) -> Option<Result<Exp, Error>> {
+    // TODO
     None
 }
