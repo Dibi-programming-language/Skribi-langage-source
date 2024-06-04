@@ -38,23 +38,26 @@ impl_debug!(TupleNode);
 // --- CGet ---
 // ------------
 
-/// `CGet` represents the smallest piece of an identifier in the AST. It directly references a type or
-/// a variable that can be used directly in this scope.
-/// 
+/// `CGet` represents the smallest piece of an identifier in the AST. It directly references a type
+/// or a variable that can be used directly in this scope.
+///
 /// # Examples
-/// 
+///
 /// ## What is a CGet node?
-/// 
+///
 /// Let us consider the following pseudocode (this is not Skribi code)
-/// 
+///
 /// > `Class of name A with (` <br/>
-/// > `-  field of type int and name B` <br/>
-/// > `-  field of type int and name C` <br/>
+/// > `-  static field of type int and name B` <br/>
+/// > `-  static field of type int and name C` <br/>
+/// > `-  field of type int and name B0` <br/>
 /// > `)`
 /// >
 /// > `Variable of type A and name D`
-/// 
-/// A and D can be accessed with a `CGet` node while B and C can be accessed with an `IdGet` node.
+/// > `Variable of type int and name E`
+///
+/// A, E and D can be accessed with a `CGet` node while B, B0 of D and C cannot. See the `IdGet`
+/// for further information.
 #[derive(PartialEq)]
 pub struct CGet {
     pub(crate) name: String,
@@ -85,6 +88,48 @@ pub(crate) fn parse_cget(tokens: &mut VecDeque<Token>) -> Option<CGet> {
 // --- IdGet ---
 // -------------
 
+/// `IdGet` represents a piece of an identifier in the AST. It is specialized in getting values that
+/// cannot be set. It can be a simple identifier followed by an `OpIn` node or a function call with
+/// arguments using a tuple.
+///
+/// # Use cases
+///
+/// - Anywhere in a chain that get a value
+/// - Anywhere, except at the start in a chain that set a value
+/// - Any function call must be an IdGet node
+/// - Any element of an identifier chain that is not the first one or the last one must be an IdGet
+///
+/// # Examples
+///
+/// ## What is an IdGet node?
+///
+/// Let us consider the following pseudocode (this is not Skribi code)
+///
+/// > `Class of name T with (` <br/>
+/// > `-  static field of type int and name T0` <br/>
+/// > `-  field of type int and name T1` <br/>
+/// > `)`
+/// >
+/// > `Class of name A with (` <br/>
+/// > `-  static field of type int and name B` <br/>
+/// > `-  static field of type int and name C` <br/>
+/// > `-  field of type int and name B0` <br/>
+/// > `-  field of type T and name C0` <br/>
+/// > `-  function of return type T and name F with no arguments` <br/>
+/// > `)`
+/// >
+/// > `Variable of type A and name D`
+/// > `Variable of type int and name E`
+///
+/// In a Skribi code we can do :
+/// - `T0:T` to get the static field T0 of the class T, T0 can be an IdGet node and also T. But in
+/// reality, T will be represented as an IdSet if we can set it, (inside an OpIn node), inside a
+/// CGet node. This will not be detailed in latter examples.
+/// - `B0:D`, get the field B0 of the variable D
+/// - `C0:D`, get the field C0 of the variable D
+/// - `T1:F():D`, get the field T1 of the result of the function F with no arguments. Here, F() must
+/// be an IdGet node, this is the only solution.
+/// - `T1:C0:D`, get the field T1 of the field C0 of the variable D. Here, C0 must also be an IdGet.
 #[derive(PartialEq)]
 pub struct IdGet {
     pub identifier: String,
