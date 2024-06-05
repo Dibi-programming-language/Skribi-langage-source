@@ -1,8 +1,11 @@
+use std::collections::VecDeque;
 use std::fmt::Error;
 
 use crate::parse::nodes::vars::VarDec;
+use crate::skr_errors::CustomError;
 use crate::tokens::Token;
 
+/// Not yet implemented
 pub enum ExpBase {
     // IdUse(Box<IdUse>), // TODO - define id_use
     VarDec(Box<VarDec>),
@@ -13,17 +16,20 @@ pub enum ExpBase {
     RightP(Box<Exp>),
 }
 
+/// Not yet implemented
 pub enum ExpTp {
     ExpBase(ExpBase),
     // IdUseV(IdUseV), // TODO - define id_use_v
 }
 
+/// Not yet implemented, but already used by some nodes that are dependent on it
 pub struct Exp {
     exp_tp: ExpTp,
     // tp_last: TpLast, // TODO - define tp_last
 }
 
-pub fn parse_exp(tokens: &mut Vec<Token>) -> Option<Result<Exp, Error>> {
+/// Not yet implemented, but already used by some nodes that are dependent on it
+pub fn parse_exp(_tokens: &mut VecDeque<Token>) -> Option<Result<Exp, CustomError>> {
     // TODO
     None
 }

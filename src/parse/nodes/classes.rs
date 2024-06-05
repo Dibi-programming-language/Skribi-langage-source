@@ -8,6 +8,9 @@ use crate::parse::nodes::GraphDisplay;
 // <class_dec> ::= kat T_IDENTIFIER <scope>
 
 // TODO - Derive PartialEq and implement Debug for ClassDec
+
+/// `ClassDec` represents a class declaration. It is not yet implemented. Will be implemented in a
+/// future pull request.
 #[derive(PartialEq)]
 pub struct ClassDec {
     identifier: String,
@@ -24,7 +27,7 @@ impl GraphDisplay for ClassDec {
 impl_debug!(ClassDec);
 
 pub fn is_type_def(identifier: &str) -> bool {
-    // TODO: implémenter cette fonction avec des types complexes
+    // TODO: implement this function with complex types
     match identifier {
         "int" => true,
         "dar" => true,

@@ -7,7 +7,7 @@ pub(crate) mod expressions;
 mod fct;
 pub(crate) mod id_nodes;
 mod if_else;
-mod main_nodes;
+pub mod main_nodes;
 mod operations;
 mod vars;
 

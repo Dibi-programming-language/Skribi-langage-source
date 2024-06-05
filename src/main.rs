@@ -44,7 +44,8 @@ fn main() {
         // Remove the comments and split the code into instructions
         match tokenize(lines) {
             Ok(tokens) => {
-                let nodes = parse::main(tokens);
+                let tokens_deque = tokens.into_iter().collect();
+                let _nodes = parse::main(tokens_deque);
                 // TODO
             }
             Err(err) => {

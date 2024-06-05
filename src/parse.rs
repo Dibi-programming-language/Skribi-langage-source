@@ -1,18 +1,14 @@
+use std::collections::VecDeque;
+use crate::parse::nodes::main_nodes::{FileNode, parse_file};
+use crate::skr_errors::CustomError;
 use crate::tokens::Token;
 
 pub(crate) mod nodes;
 mod parse_values;
 mod parse_variables;
 
-pub fn main(tokens: Vec<Token>) {
+pub fn main(mut tokens: VecDeque<Token>) -> Option<Result<FileNode, CustomError>> {
     // TODO - this fonction is dependant of functions that are not yet implemented
-
-    // let mut line = 0;
-    let mut i = 0;
-    // let vec: Vec<Vec<String>> = Vec::new();
-    let nodes = ();
-    if i != tokens.len() {
-        panic!("Scope closed with }} before the end");
-    }
-    nodes
+    // This function will add more code when the other functions are implemented
+    parse_file(&mut tokens)
 }
