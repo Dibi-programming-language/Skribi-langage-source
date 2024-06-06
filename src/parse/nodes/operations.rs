@@ -42,6 +42,9 @@ use std::fmt::{Debug, Formatter};
 // --- ValueBase ---
 // -----------------
 
+/// `ValueBase` represents the base of a value in the AST. This is the smallest unit of a value.
+/// This node is not dependent on any other node. The value can be a boolean, an integer, a float or
+/// a string.
 #[derive(PartialEq)]
 pub enum ValueBase {
     Bool(bool),
@@ -102,6 +105,13 @@ fn parse_value_base(tokens: &mut VecDeque<Token>) -> Option<ValueBase> {
 // --- Value ---
 // -------------
 
+/// `ValueNode` represents any value that has a priority over many nodes. This node cannot be
+/// mistaken with a wrong node because the syntax is clear. This node is either a `ValueBase` or an
+/// `ExpBase`.
+/// 
+/// `ValueNode` and `ExpBase` have in common that all their possibles values start with a token that
+/// can only mean one thing. Example : `T_BOOL` can only be a boolean, `biuli` can only mean that
+/// this is a special scope.
 #[derive(PartialEq)]
 pub enum ValueNode {
     ValueBase(ValueBase),
@@ -142,6 +152,8 @@ fn parse_value(tokens: &mut VecDeque<Token>) -> Option<Result<ValueNode, CustomE
 // --- TakePrio ---
 // ----------------
 
+/// `TakePriority` represents either a `ValueNode` or an `Exp`. This node is used to give a priority
+/// to a value. It can detect `Exp` only between parenthesis : this takes priority over everything.
 #[derive(PartialEq)]
 pub enum TakePriority {
     Exp, // TODO
@@ -193,6 +205,9 @@ fn parse_take_prio(tokens: &mut VecDeque<Token>) -> Option<Result<TakePriority, 
 // --- Unary TP ---
 // ----------------
 
+/// `UnaryTP` represents a chain (0 or more elements) of unary operators before a `TakePriority`.
+/// 
+/// The unary operators are : `+`, `-` and `!`. Example : `+ -+ ![TakePriority]` is an `UnaryTP`.
 #[derive(PartialEq)]
 pub enum UnaryTP {
     Plus(Box<UnaryTP>),
@@ -271,22 +286,37 @@ fn parse_unary_tp(tokens: &mut VecDeque<Token>) -> Option<Result<UnaryTP, Custom
 
 // Enums and structs for Mult, Div, Md and TP1
 
+/// `Mult` represents the right part of a multiplication in the AST. This node is composed of a
+/// `TP1` node that can chain operations of same priority.
 #[derive(PartialEq)]
 pub struct Mult {
     tp1: TP1,
 }
 
+/// `Div` represents the right part of a division in the AST. This node is composed of a `TP1` node
+/// that can chain operations of same priority.
 #[derive(PartialEq)]
 pub struct Div {
     tp1: TP1,
 }
 
+/// `Md` represents either a `Mult` or a `Div` in the AST. This node is only used for grammar
+/// commodity and to simplify the structure of `TP1`.
 #[derive(PartialEq)]
 pub enum Md {
     Mult(Mult),
     Div(Div),
 }
 
+/// `TP1` is used to chain operations of same priority. This node is composed of a `UnaryTP` and an
+/// optional `Md`. The `UnaryTP` is the first operand of the chain and the `Md` is the rest of the
+/// chain.
+/// 
+/// Example : `5 * 5 / 2` is represented by `TP1 {5, Mult {TP1 {5, Div {TP1 {2, Empty}}}}}`. In this
+/// example, details of operand values are not shown.
+/// 
+/// Like all `TP` nodes, the first operand is the operation node with a priority just over this node
+/// type. Here, unary operators have the priority over multiplications and divisions.
 #[derive(PartialEq)]
 pub struct TP1 {
     unary_tp: UnaryTP,
@@ -430,22 +460,37 @@ fn parse_tp1(tokens: &mut VecDeque<Token>) -> Option<Result<TP1, CustomError>> {
 
 // Enums and structs for Add, Sub, As and TP2
 
+/// `Add` represents the right part of an addition in the AST. This node is composed of a `TP2` node
+/// that can chain operations of same priority.
 #[derive(PartialEq)]
 pub struct Add {
     tp2: TP2,
 }
 
+/// `Sub` represents the right part of a subtraction in the AST. This node is composed of a `TP2`
+/// node that can chain operations of same priority.
 #[derive(PartialEq)]
 pub struct Sub {
     tp2: TP2,
 }
 
+/// `As` represents either an `Add` or a `Sub` in the AST. This node is only used for grammar
+/// commodity and to simplify the structure of `TP2`.
 #[derive(PartialEq)]
 pub enum As {
     Add(Add),
     Sub(Sub),
 }
 
+/// `TP2` is used to chain operations of same priority. This node works exactly like `TP1` but with
+/// a lower priority. This node is composed of a `TP1` and an optional `As`. The `TP1` is the first
+/// operand of the chain and the `As` is the rest of the chain.
+///
+/// Example : `5 + 5 - 2` is represented by `TP2 {5, Add {TP2 {5, TP2 {Sub {2, Empty}}}}}`. In this
+/// example, details of operand values are not shown.
+/// 
+/// Like all `TP` nodes, the first operand is the operation node with a priority just over this node
+/// type. Here, multiplications and divisions have the priority over additions and subtractions.
 #[derive(PartialEq)]
 pub struct TP2 {
     tp1: TP1,
@@ -609,22 +654,34 @@ impl TP2 {
 
 // Enums and structs for Eq, NotEq, EqNot and TP3
 
+/// `Eq` represents the right part of an equality in the AST. This node is composed of a `TP3` node
+/// that can chain operations of same priority.
 #[derive(PartialEq)]
 pub struct Eq {
     tp3: TP3,
 }
 
+/// `NotEq` represents the right part of an inequality in the AST. This node is composed of a `TP3`
+/// node that can chain operations of same priority.
 #[derive(PartialEq)]
 pub struct NotEq {
     tp3: TP3,
 }
 
+/// `EqNot` represents either an `Eq` or a `NotEq` in the AST. This node is only used for grammar
+/// commodity and to simplify the structure of `TP3`.
 #[derive(PartialEq)]
 pub enum EqNot {
     Eq(Eq),
     NotEq(NotEq),
 }
 
+/// `TP3` is used to chain operations of same priority. This node works exactly like `TP2` but with
+/// a lower priority. This node is composed of a `TP2` and an optional `EqNot`. The `TP2` is the
+/// first operand of the chain and the `EqNot` is the rest of the chain.
+/// 
+/// Like all `TP` nodes, the first operand is the operation node with a priority just over this node
+/// type. Here, additions and subtractions have the priority over equalities and inequalities.
 #[derive(PartialEq)]
 pub struct TP3 {
     tp2: TP2,
@@ -788,11 +845,19 @@ impl TP3 {
 
 // Enums and structs for And and TP4
 
+/// `And` represents the right part of an AND operation in the AST. This node is composed of a `TP4`
+/// node that can chain operations of same priority.
 #[derive(PartialEq)]
 pub struct And {
     tp4: TP4,
 }
 
+/// `TP4` is used to chain operations of same priority. This node works exactly like `TP3` but with
+/// a lower priority. This node is composed of a `TP3` and an optional `And`. The `TP3` is the first
+/// operand of the chain and the `And` is the rest of the chain.
+/// 
+/// Like all `TP` nodes, the first operand is the operation node with a priority just over this node
+/// type. Here, equalities and inequalities have the priority over AND operations.
 #[derive(PartialEq)]
 pub struct TP4 {
     tp3: TP3,
@@ -884,11 +949,19 @@ impl TP4 {
 
 // Enums and structs for Or and TP5
 
+/// `Or` represents the right part of an OR operation in the AST. This node is composed of a `TP5`
+/// node that can chain operations of same priority.
 #[derive(PartialEq)]
 pub struct Or {
     tp5: TP5,
 }
 
+/// `TP5` is used to chain operations of same priority. This node works exactly like `TP4` but with
+/// a lower priority. This node is composed of a `TP4` and an optional `Or`. The `TP4` is the first
+/// operand of the chain and the `Or` is the rest of the chain.
+/// 
+/// Like all `TP` nodes, the first operand is the operation node with a priority just over this node
+/// type. Here, AND operations have the priority over OR operations.
 #[derive(PartialEq)]
 pub struct TP5 {
     tp4: TP4,
@@ -980,11 +1053,17 @@ impl TP5 {
 
 // Enums and structs for TP Last and No Value
 
+/// `TPLast` is the last `TP` node. It is composed of a `TP5` node. It is only used to avoid
+/// recoding some parts if we want to add more operations in the future.
 #[derive(PartialEq)]
 pub struct TPLast {
     tp5: TP5,
 }
 
+/// `NoValue` is a node used to parse the right part of an operation chain, without any value at the
+/// left. This is used when the left value is already parsed, and we see the operator after. This
+/// node is composed of 5 optional nodes : `Md`, `As`, `EqNot`, `And` and `Or`, in the order of
+/// their priority.
 #[derive(PartialEq)]
 pub struct NoValue {
     md: Option<Box<Md>>,
