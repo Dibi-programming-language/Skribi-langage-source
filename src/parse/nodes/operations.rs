@@ -1062,7 +1062,7 @@ pub struct TPLast {
 
 /// `NoValue` is a node used to parse the right part of an operation chain, without any value at the
 /// left. This is used when the left value is already parsed, and we see the operator after. This
-/// node is composed of 5 optional nodes : `Md`, `As`, `EqNot`, `And` and `Or`, in the order of
+/// node is composed of 5 optional nodes : [Md], [As], [EqNot], [And] and [Or], in the order of
 /// their priority.
 #[derive(PartialEq)]
 pub struct NoValue {
