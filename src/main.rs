@@ -16,7 +16,6 @@ mod get_file_content;
 mod interpret;
 mod parse;
 mod skr_errors;
-mod tokenize;
 mod tokens;
 mod utils;
 #[cfg(test)]
