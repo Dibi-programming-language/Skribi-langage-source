@@ -24,6 +24,8 @@ use std::fmt::{Debug, Formatter};
 // --- Type ---
 // ------------
 
+/// `Type` represents a defined type in the AST. This node detect any identifier and ask the class
+/// manager if this is a type or not.
 #[derive(PartialEq)]
 pub struct Type {
     pub(crate) name: String,
@@ -38,7 +40,7 @@ impl GraphDisplay for Type {
 
 impl_debug!(Type);
 
-pub(crate) fn parse_cget(tokens: &mut VecDeque<Token>) -> Option<Type> {
+pub(crate) fn parse_type(tokens: &mut VecDeque<Token>) -> Option<Type> {
     if let Some(Token::Identifier(identifier)) = tokens.front() {
         if is_type_def(identifier) {
             if let Some(Token::Identifier(identifier)) = tokens.pop_front() {
@@ -54,6 +56,8 @@ pub(crate) fn parse_cget(tokens: &mut VecDeque<Token>) -> Option<Type> {
 // --- Vd ---
 // ----------
 
+/// `Vd` represents a variable declaration in the AST. It contains a type, an identifier and an
+/// expression. The expression is not yet implemented.
 #[derive(PartialEq)]
 pub struct Vd {
     type_: Type,
@@ -79,7 +83,7 @@ impl Vd {
 
     fn parse(tokens: &mut VecDeque<Token>) -> Result<Option<Self>, CustomError> {
         // <vd> ::= <type> T_IDENTIFIER <exp> // TODO - Implement <exp>
-        let type_ = match parse_cget(tokens) {
+        let type_ = match parse_type(tokens) {
             Some(type_) => type_,
             None => return Ok(None),
         };
@@ -98,11 +102,15 @@ impl Vd {
 // --- GlobalVar and PrivateVar ---
 // --------------------------------
 
+/// `GlobalVar` represents a global variable declaration in the AST. It contains a variable
+/// declaration.
 #[derive(PartialEq)]
 pub struct GlobalVar {
     vd: Vd,
 }
 
+/// `PrivateVar` represents a private variable declaration in the AST. It contains a variable
+/// declaration.
 #[derive(PartialEq)]
 pub struct PrivateVar {
     vd: Vd,
@@ -178,12 +186,14 @@ impl PrivateVar {
 
 // TODO
 
+/// NOT IMPLEMENTED YET
 pub struct ConstVar {
     private_var: Option<PrivateVar>,
     global_var: Option<GlobalVar>,
     vd: Option<Vd>,
 }
 
+/// NOT IMPLEMENTED YET
 pub enum VarDec {
     ConstVar(ConstVar),
     PrivateVar(PrivateVar),
@@ -191,6 +201,7 @@ pub enum VarDec {
     Vd(Vd),
 }
 
+/// NOT IMPLEMENTED YET
 pub struct VarMod {
     exp: Exp,
 }
