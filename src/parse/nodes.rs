@@ -11,6 +11,18 @@ pub mod main_nodes;
 mod operations;
 mod vars;
 
+/// Macro to implement the Debug trait for a GraphDisplay
+#[macro_export]
+macro_rules! impl_debug {
+    ($t:ty) => {
+        impl Debug for $t {
+            fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+                write!(f, "{}", self.graph())
+            }
+        }
+    };
+}
+
 /// Trait to display a graph with mermaid syntax. Used to display trees of nodes easily when
 /// debugging the AST.
 ///
@@ -58,16 +70,4 @@ trait GraphDisplay {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         write!(f, "{}", self.graph())
     }
-}
-
-/// Macro to implement the Debug trait for a GraphDisplay
-#[macro_export]
-macro_rules! impl_debug {
-    ($t:ty) => {
-        impl Debug for $t {
-            fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
-                write!(f, "{}", self.graph())
-            }
-        }
-    };
 }

@@ -668,7 +668,7 @@ pub struct NotEq {
     tp3: TP3,
 }
 
-/// `EqNot` represents either an [Eq] or a [NotEq] in the AST. This node is only used for grammar
+/// `EqNot` represents either an [struct@Eq] or a [NotEq] in the AST. This node is only used for grammar
 /// commodity and to simplify the structure of [TP3].
 #[derive(PartialEq)]
 pub enum EqNot {
