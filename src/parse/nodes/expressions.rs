@@ -1,5 +1,4 @@
 use std::collections::VecDeque;
-use std::fmt::Error;
 
 use crate::parse::nodes::vars::VarDec;
 use crate::skr_errors::CustomError;
