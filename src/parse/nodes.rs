@@ -16,7 +16,7 @@ mod vars;
 ///
 /// # Warning
 ///
-/// You must use the macro `impl_debug!` to implement the Debug trait for a struct that implements
+/// You must use the macro [impl_debug] to implement the Debug trait for a struct that implements
 /// `GraphDisplay`. Do not forget to import `std::fmt;` and `std::fmt::Formatter;` in the file where
 /// you use the macro.
 ///

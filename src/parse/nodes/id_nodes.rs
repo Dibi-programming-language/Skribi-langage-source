@@ -56,7 +56,7 @@ impl_debug!(TupleNode);
 /// > `Variable of type A and name D`
 /// > `Variable of type int and name E`
 ///
-/// A, E and D can be accessed with a `CGet` node while B, B0 of D and C cannot. See the `IdGet`
+/// A, E and D can be accessed with a `CGet` node while B, B0 of D and C cannot. See the [IdGet]
 /// for further information.
 #[derive(PartialEq)]
 pub struct CGet {
@@ -89,7 +89,7 @@ pub(crate) fn parse_cget(tokens: &mut VecDeque<Token>) -> Option<CGet> {
 // -------------
 
 /// `IdGet` represents a piece of an identifier in the AST. It is specialized in getting values that
-/// cannot be set. It can be a simple identifier followed by an `OpIn` node or a function call with
+/// cannot be set. It can be a simple identifier followed by an [OpIn] node or a function call with
 /// arguments using a tuple.
 ///
 /// # Use cases
@@ -186,10 +186,10 @@ pub(crate) fn parse_id_get(tokens: &mut VecDeque<Token>) -> Option<Result<IdGet,
 // ------------
 
 /// `OpIn` is used by nodes that represent a part of an identifier. It contains the next part of the
-/// chain of the identifier. It can be an `IdGet` node or a `CGet` node. The `OpIn` can also be
+/// chain of the identifier. It can be an [IdGet] node or a [CGet] node. The `OpIn` can also be
 /// empty if this is the last part of the identifier.
 /// 
-/// It will first try to parse the `CGet` node, if it fails, it will try to parse the `IdGet` node.
+/// It will first try to parse the [CGet] node, if it fails, it will try to parse the [IdGet] node.
 /// If both fail, it will return an empty `OpIn`. Here, "fail" means that there is no parsing error,
 /// but that the token is not the one expected for an identifier.
 #[derive(PartialEq)]
@@ -237,7 +237,7 @@ pub(crate) fn parse_op_in(tokens: &mut VecDeque<Token>) -> Result<OpIn, CustomEr
 // -------------
 
 /// `IdSet` represents a piece of an identifier in the AST. It is specialized in setting and getting
-/// values. It can only be the first part of an identifier chain. It works exactly like an `IdGet`,
+/// values. It can only be the first part of an identifier chain. It works exactly like an [IdGet],
 /// but excludes fonctions calls.
 #[derive(PartialEq)]
 pub struct IdSet {
