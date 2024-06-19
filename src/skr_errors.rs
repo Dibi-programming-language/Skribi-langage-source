@@ -1,48 +1,30 @@
-use std::fmt;
+use thiserror::Error;
 
-#[derive(Debug, PartialEq)]
+#[derive(Error, Debug, PartialEq)]
 pub enum NotYetImplementedType {
+    #[error("Missing symbol, the symbol for this does not exist yet: {0}")]
     MissingSymbol(String),
+    #[error("Missing grammar, the grammar for this does not exist yet: {0}")]
     MissingGrammar(String),
+    #[error("Not yet voted, the vote for this is not done yet: {0}")]
     NotYetVoted(String),
+    #[error("In progress, the implementation for this is in progress: {0}")]
     InProgress(String),
+    #[error("Planed, the implementation for this is planed: {0}")]
     Planed(String),
+    #[error("Other, other reason: {0}")]
     Other(String),
 }
 
-impl fmt::Display for NotYetImplementedType {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        match self {
-            NotYetImplementedType::MissingSymbol(message) => write!(f, "Missing symbol: {}", message),
-            NotYetImplementedType::MissingGrammar(message) => write!(f, "Missing grammar: {}", message),
-            NotYetImplementedType::NotYetVoted(message) => write!(f, "Not yet voted: {}", message),
-            NotYetImplementedType::InProgress(message) => write!(f, "In progress: {}", message),
-            NotYetImplementedType::Planed(message) => write!(f, "Planed: {}", message),
-            NotYetImplementedType::Other(message) => write!(f, "Other: {}", message),
-        }
-    }
-}
-
-#[derive(Debug, PartialEq)]
+#[derive(Error, Debug, PartialEq)]
 pub enum CustomError {
+    #[error("Invalid float: {0} at line {1}")]
     InvalidFloat(String, u16),
+    #[error("Invalid string: {0} at line {1}")]
     InvalidString(String, u16),
+    #[error("Unexpected token: {0}")]
     UnexpectedToken(String),
+    #[error("Not yet implemented: {0}")]
     NotYetImplemented(NotYetImplementedType),
     // Add other kinds of errors as needed
 }
-
-impl fmt::Display for CustomError {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        match self {
-            CustomError::InvalidFloat(message, line) => write!(f, "Invalid float: {} at line {}", message, line),
-            CustomError::InvalidString(message, line) => write!(f, "Invalid string: {} at line {}", message, line),
-            CustomError::UnexpectedToken(token) => write!(f, "Unexpected token: {}", token),
-            CustomError::NotYetImplemented(error) => write!(f, "Not yet implemented: {}", error),
-            _ => write!(f, "Unknown error"),
-            // Handle other kinds of errors as needed
-        }
-    }
-}
-
-impl std::error::Error for CustomError {}
