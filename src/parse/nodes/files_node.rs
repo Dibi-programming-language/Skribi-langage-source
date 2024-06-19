@@ -1,7 +1,7 @@
 use std::collections::VecDeque;
 
 use crate::parse::nodes::expressions::{Exp, parse_exp};
-use crate::skr_errors::CustomError;
+use crate::skr_errors::OptionResult;
 use crate::tokens::Token;
 
 /// Node representing a file. This is the root node of the AST.
@@ -9,7 +9,7 @@ pub struct FileNode {
     exps: Vec<Exp>,
 }
 
-pub fn parse_file(tokens: &mut VecDeque<Token>) -> Option<Result<FileNode, CustomError>> {
+pub fn parse_file(tokens: &mut VecDeque<Token>) -> OptionResult<FileNode> {
     let mut exps = Vec::new();
     loop {
         match parse_exp(tokens) {

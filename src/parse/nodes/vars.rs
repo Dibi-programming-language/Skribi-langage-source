@@ -2,7 +2,7 @@ use crate::impl_debug;
 use crate::parse::nodes::classes::is_type_def;
 use crate::parse::nodes::expressions::Exp;
 use crate::parse::nodes::GraphDisplay;
-use crate::skr_errors::CustomError;
+use crate::skr_errors::{CustomError, ResultOption};
 use crate::tokens::{ModifierKeyword, Token};
 use std::collections::VecDeque;
 use std::fmt;
@@ -80,7 +80,7 @@ impl Vd {
         Vd { type_, identifier }
     }
 
-    fn parse(tokens: &mut VecDeque<Token>) -> Result<Option<Self>, CustomError> {
+    fn parse(tokens: &mut VecDeque<Token>) -> ResultOption<Self> {
         // <vd> ::= <type> T_IDENTIFIER <exp> // TODO - Implement <exp>
         let type_ = match parse_type(tokens) {
             Some(type_) => type_,
@@ -142,7 +142,7 @@ impl GlobalVar {
         GlobalVar { vd }
     }
 
-    fn parse(tokens: &mut VecDeque<Token>) -> Result<Option<Self>, CustomError> {
+    fn parse(tokens: &mut VecDeque<Token>) -> ResultOption<Self> {
         // <global_var> ::= fu <vd>
         if let Some(Token::KeywordModifier(ModifierKeyword::Global)) = tokens.pop_front() {
             match Vd::parse(tokens) {
@@ -163,7 +163,7 @@ impl PrivateVar {
         PrivateVar { vd }
     }
 
-    fn parse(tokens: &mut VecDeque<Token>) -> Result<Option<Self>, CustomError> {
+    fn parse(tokens: &mut VecDeque<Token>) -> ResultOption<Self> {
         // <private_var> ::= pu <vd>
         if let Some(Token::KeywordModifier(ModifierKeyword::Private)) = tokens.pop_front() {
             match Vd::parse(tokens) {

@@ -1,7 +1,7 @@
 use std::collections::VecDeque;
 
 use crate::parse::nodes::vars::VarDec;
-use crate::skr_errors::CustomError;
+use crate::skr_errors::{CustomError, OptionResult};
 use crate::tokens::Token;
 
 /// Not yet implemented
@@ -28,7 +28,7 @@ pub struct Exp {
 }
 
 /// Not yet implemented, but already used by some nodes that are dependent on it
-pub fn parse_exp(_tokens: &mut VecDeque<Token>) -> Option<Result<Exp, CustomError>> {
+pub fn parse_exp(_tokens: &mut VecDeque<Token>) -> OptionResult<Exp> {
     // TODO
     None
 }

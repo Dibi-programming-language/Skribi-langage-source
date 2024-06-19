@@ -28,3 +28,9 @@ pub enum CustomError {
     NotYetImplemented(NotYetImplementedType),
     // Add other kinds of errors as needed
 }
+
+pub type Result<T> = std::result::Result<T, CustomError>;
+
+pub type OptionResult<T> = Option<Result<T>>;
+
+pub type ResultOption<T> = Result<Option<T>>;

@@ -1,10 +1,10 @@
 use std::collections::VecDeque;
 use std::fmt;
 
-use crate::impl_debug;
+use crate::{impl_debug, skr_errors};
 use crate::parse::nodes::classes::is_type_def;
 use crate::parse::nodes::GraphDisplay;
-use crate::skr_errors::CustomError;
+use crate::skr_errors::{CustomError, OptionResult};
 use crate::tokens::Token;
 
 /// `TupleNode` represents a tuple in the AST.
@@ -19,7 +19,7 @@ pub struct TupleNode {
     // TODO: définir les champs du tuple ici
 }
 
-fn parse_tuple(_tokens: &mut VecDeque<Token>) -> Option<Result<TupleNode, CustomError>> {
+fn parse_tuple(_tokens: &mut VecDeque<Token>) -> OptionResult<TupleNode> {
     // TODO: implémenter cette fonction
     None
 }
@@ -153,7 +153,7 @@ impl GraphDisplay for IdGet {
 
 impl_debug!(IdGet);
 
-pub(crate) fn parse_id_get(tokens: &mut VecDeque<Token>) -> Option<Result<IdGet, CustomError>> {
+pub(crate) fn parse_id_get(tokens: &mut VecDeque<Token>) -> OptionResult<IdGet> {
     // <id_get> ::= T_IDENTIFIER (<tuple> |) <op_in>
     if let Some(Token::Identifier(_)) = tokens.front() {
         if let Some(Token::Identifier(identifier)) = tokens.pop_front() {
@@ -213,7 +213,7 @@ impl GraphDisplay for OpIn {
 
 impl_debug!(OpIn);
 
-pub(crate) fn parse_op_in(tokens: &mut VecDeque<Token>) -> Result<OpIn, CustomError> {
+pub(crate) fn parse_op_in(tokens: &mut VecDeque<Token>) -> skr_errors::Result<OpIn> {
     // <op_in> ::= (T_IN (<id_get> | <cget>) |)
     return if let Some(Token::Inside) = tokens.front() {
         tokens.pop_front();
@@ -258,7 +258,7 @@ impl GraphDisplay for IdSet {
 
 impl_debug!(IdSet);
 
-pub(crate) fn parse_id_set(tokens: &mut VecDeque<Token>) -> Option<Result<IdSet, CustomError>> {
+pub(crate) fn parse_id_set(tokens: &mut VecDeque<Token>) -> OptionResult<IdSet> {
     // <id_set> ::= T_IDENTIFIER <op_in>
     if let Some(Token::Identifier(_)) = tokens.front() {
         if let Some(Token::Identifier(identifier)) = tokens.pop_front() {
