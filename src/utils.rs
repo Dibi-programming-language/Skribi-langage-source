@@ -18,7 +18,8 @@ pub fn clear() {
     }
 }
 
-/// This function read all the content from a file and return a vector of String, each string being a line of the file
+/// This fonction will read the file with the given name and return the content of the file. This is
+/// a wrapper around the [fs::read_to_string] function to return the right type.
 pub fn read(file_name: &str) -> Result<String, ErrorKind> {
     let content_option = fs::read_to_string(file_name);
     match content_option {

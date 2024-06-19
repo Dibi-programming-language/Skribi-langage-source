@@ -44,7 +44,7 @@ fn main() {
             match tokenize(lines) {
                 Ok(tokens) => {
                     let tokens_deque = tokens.into_iter().collect();
-                    let _nodes = parse::main(tokens_deque);
+                    let _nodes = parse::parse(tokens_deque);
                     // TODO
                 }
                 Err(err) => {

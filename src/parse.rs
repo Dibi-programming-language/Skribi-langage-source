@@ -5,7 +5,8 @@ use crate::tokens::Token;
 
 pub(crate) mod nodes;
 
-pub fn main(mut tokens: VecDeque<Token>) -> Option<Result<FileNode, CustomError>> {
+/// Parse the tokens into an AST.
+pub fn parse(mut tokens: VecDeque<Token>) -> Option<Result<FileNode, CustomError>> {
     // TODO - this fonction is dependant of functions that are not yet implemented
     // This function will add more code when the other functions are implemented
     parse_file(&mut tokens)
