@@ -13,7 +13,6 @@ use crate::tokens::tokenize;
 use crate::utils::clear;
 
 mod get_file_content;
-mod interpret;
 mod parse;
 mod skr_errors;
 mod tokens;
@@ -36,22 +35,25 @@ fn main() {
         clear();
     }
 
-    if let Ok(content) = get_content(args, extension.clone()) {
-        // Read the file
-        let lines = content;
+    match get_content(args, extension.clone()) {
+        Ok(content) => {
+            // Read the file
+            let lines = content;
 
-        // Remove the comments and split the code into instructions
-        match tokenize(lines) {
-            Ok(tokens) => {
-                let tokens_deque = tokens.into_iter().collect();
-                let _nodes = parse::main(tokens_deque);
-                // TODO
-            }
-            Err(err) => {
-                panic!("{:?}", err);
+            // Remove the comments and split the code into instructions
+            match tokenize(lines) {
+                Ok(tokens) => {
+                    let tokens_deque = tokens.into_iter().collect();
+                    let _nodes = parse::main(tokens_deque);
+                    // TODO
+                }
+                Err(err) => {
+                    panic!("{:?}", err);
+                }
             }
         }
-    } else {
-        panic!("Error while getting the content of the file. Check the file extension and the file path. Valid file extensions : {:?}", extension.clone());
+        Err(err) => {
+            panic!("Error while getting the content of the file. Check the file extension and the file path. Valid file extensions : {:?}. Error message : {:?}", extension.clone(), err);
+        }
     }
 }
