@@ -1,13 +1,10 @@
-use std::fmt;
-use std::fmt::Formatter;
-
 mod blocs;
 mod classes;
 pub(crate) mod expressions;
-mod fct;
+mod functions;
 pub(crate) mod id_nodes;
 mod if_else;
-pub mod main_nodes;
+pub mod files_node;
 mod operations;
 mod vars;
 
@@ -15,8 +12,8 @@ mod vars;
 #[macro_export]
 macro_rules! impl_debug {
     ($t:ty) => {
-        impl Debug for $t {
-            fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        impl std::fmt::Debug for $t {
+            fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> fmt::Result {
                 write!(f, "{}", self.graph())
             }
         }
@@ -65,9 +62,5 @@ trait GraphDisplay {
         let mut id = 0;
         self.graph_display(&mut graph, &mut id);
         graph
-    }
-
-    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
-        write!(f, "{}", self.graph())
     }
 }

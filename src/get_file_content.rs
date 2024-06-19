@@ -1,7 +1,7 @@
 use std::io::ErrorKind;
 
-use crate::FLAG_CHAR;
 use crate::utils::{input, read};
+use crate::FLAG_CHAR;
 
 /// This function is used to get the path of the file to run
 ///
@@ -21,10 +21,12 @@ pub fn get_content(args: Vec<String>, extensions: Vec<String>) -> Result<String,
     }
 
     let mut content = String::new();
-
+    
     loop {
         let user_input = input("");
-        if user_input.trim_end() == "" {break};
+        if user_input.trim_end().is_empty() {
+            break;
+        };
         content += &*user_input;
     }
 

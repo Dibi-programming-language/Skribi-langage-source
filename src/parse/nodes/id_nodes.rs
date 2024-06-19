@@ -1,6 +1,5 @@
 use std::collections::VecDeque;
 use std::fmt;
-use std::fmt::{Debug, Formatter};
 
 use crate::impl_debug;
 use crate::parse::nodes::classes::is_type_def;
