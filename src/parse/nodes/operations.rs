@@ -107,7 +107,7 @@ fn parse_value_base(tokens: &mut VecDeque<Token>) -> Option<ValueBase> {
 /// `ValueNode` represents any value that has a priority over many nodes. This node cannot be
 /// mistaken with a wrong node because the syntax is clear. This node is either a [ValueBase] or an
 /// [ExpBase].
-/// 
+///
 /// [ValueNode] and [ExpBase] have in common that all their possibles values start with a token that
 /// can only mean one thing. Example : `T_BOOL` can only be a boolean, `biuli` can only mean that
 /// this is a special scope.
@@ -129,12 +129,13 @@ impl GraphDisplay for ValueNode {
                 // TODO
             }
         }
-        graph.push_str(&"\nend".to_string());
+        graph.push_str("\nend");
     }
 }
 
 impl_debug!(ValueNode);
 
+#[allow(clippy::manual_map)]
 fn parse_value(tokens: &mut VecDeque<Token>) -> Option<Result<ValueNode, CustomError>> {
     // <value> ::=
     //   | <value_base>
@@ -171,7 +172,7 @@ impl GraphDisplay for TakePriority {
                 value.graph_display(graph, id);
             }
         }
-        graph.push_str(&"\nend".to_string());
+        graph.push_str("\nend");
     }
 }
 
@@ -188,15 +189,13 @@ fn parse_take_prio(tokens: &mut VecDeque<Token>) -> Option<Result<TakePriority, 
         Some(Err(CustomError::NotYetImplemented(
             NotYetImplementedType::InProgress("TakePriority::Exp -> coming soon".to_string()),
         )))
-    } else {
-        if let Some(value) = parse_value(tokens) {
-            match value {
-                Ok(value) => Some(Ok(TakePriority::Value(value))),
-                Err(err) => Some(Err(err)),
-            }
-        } else {
-            None
+    } else if let Some(value) = parse_value(tokens) {
+        match value {
+            Ok(value) => Some(Ok(TakePriority::Value(value))),
+            Err(err) => Some(Err(err)),
         }
+    } else {
+        None
     }
 }
 
@@ -205,7 +204,7 @@ fn parse_take_prio(tokens: &mut VecDeque<Token>) -> Option<Result<TakePriority, 
 // ----------------
 
 /// `UnaryTP` represents a chain (0 or more elements) of unary operators before a [TakePriority].
-/// 
+///
 /// The unary operators are : `+`, `-` and `!`. Example : `+ -+ ![TakePriority]` is an [UnaryTP].
 #[derive(PartialEq)]
 pub enum UnaryTP {
@@ -233,7 +232,7 @@ impl GraphDisplay for UnaryTP {
                 take_priority.graph_display(graph, id);
             }
         }
-        graph.push_str(&"\nend".to_string());
+        graph.push_str("\nend");
     }
 }
 
@@ -310,10 +309,10 @@ pub enum Md {
 /// `TP1` is used to chain operations of same priority. This node is composed of a [UnaryTP] and an
 /// optional [Md]. The [UnaryTP] is the first operand of the chain and the [Md] is the rest of the
 /// chain.
-/// 
+///
 /// Example : `5 * 5 / 2` is represented by `TP1 {5, Mult {TP1 {5, Div {TP1 {2, Empty}}}}}`. In this
 /// example, details of operand values are not shown.
-/// 
+///
 /// Like all `TP` nodes, the first operand is the operation node with a priority just over this node
 /// type. Here, unary operators have the priority over multiplications and divisions.
 #[derive(PartialEq)]
@@ -329,7 +328,7 @@ impl GraphDisplay for Mult {
         graph.push_str(&format!("\nsubgraph Mult_{}[Mult]", id));
         *id += 1;
         self.tp1.graph_display(graph, id);
-        graph.push_str(&"\nend".to_string());
+        graph.push_str("\nend");
     }
 }
 
@@ -340,7 +339,7 @@ impl GraphDisplay for Div {
         graph.push_str(&format!("\nsubgraph Div_{}[Div]", id));
         *id += 1;
         self.tp1.graph_display(graph, id);
-        graph.push_str(&"\nend".to_string());
+        graph.push_str("\nend");
     }
 }
 
@@ -358,7 +357,7 @@ impl GraphDisplay for Md {
                 div.graph_display(graph, id);
             }
         }
-        graph.push_str(&"\nend".to_string());
+        graph.push_str("\nend");
     }
 }
 
@@ -372,7 +371,7 @@ impl GraphDisplay for TP1 {
         if let Some(md) = &self.md {
             md.graph_display(graph, id);
         }
-        graph.push_str(&"\nend".to_string());
+        graph.push_str("\nend");
     }
 }
 
@@ -487,7 +486,7 @@ pub enum As {
 ///
 /// Example : `5 + 5 - 2` is represented by `TP2 {5, Add {TP2 {5, TP2 {Sub {2, Empty}}}}}`. In this
 /// example, details of operand values are not shown.
-/// 
+///
 /// Like all `TP` nodes, the first operand is the operation node with a priority just over this node
 /// type. Here, multiplications and divisions have the priority over additions and subtractions.
 #[derive(PartialEq)]
@@ -503,7 +502,7 @@ impl GraphDisplay for Add {
         graph.push_str(&format!("\nsubgraph Add_{}[Add]", id));
         *id += 1;
         self.tp2.graph_display(graph, id);
-        graph.push_str(&"\nend".to_string());
+        graph.push_str("\nend");
     }
 }
 
@@ -514,7 +513,7 @@ impl GraphDisplay for Sub {
         graph.push_str(&format!("\nsubgraph Sub_{}[Sub]", id));
         *id += 1;
         self.tp2.graph_display(graph, id);
-        graph.push_str(&"\nend".to_string());
+        graph.push_str("\nend");
     }
 }
 
@@ -532,7 +531,7 @@ impl GraphDisplay for As {
                 sub.graph_display(graph, id);
             }
         }
-        graph.push_str(&"\nend".to_string());
+        graph.push_str("\nend");
     }
 }
 
@@ -546,7 +545,7 @@ impl GraphDisplay for TP2 {
         if let Some(as_) = &self.as_ {
             as_.graph_display(graph, id);
         }
-        graph.push_str(&"\nend".to_string());
+        graph.push_str("\nend");
     }
 }
 
@@ -678,7 +677,7 @@ pub enum EqNot {
 /// `TP3` is used to chain operations of same priority. This node works exactly like [TP2] but with
 /// a lower priority. This node is composed of a [TP2] and an optional [EqNot]. The [TP2] is the
 /// first operand of the chain and the [EqNot] is the rest of the chain.
-/// 
+///
 /// Like all `TP` nodes, the first operand is the operation node with a priority just over this node
 /// type. Here, additions and subtractions have the priority over equalities and inequalities.
 #[derive(PartialEq)]
@@ -694,7 +693,7 @@ impl GraphDisplay for Eq {
         graph.push_str(&format!("\nsubgraph Eq_{}[Eq]", id));
         *id += 1;
         self.tp3.graph_display(graph, id);
-        graph.push_str(&"\nend".to_string());
+        graph.push_str("\nend");
     }
 }
 
@@ -705,7 +704,7 @@ impl GraphDisplay for NotEq {
         graph.push_str(&format!("\nsubgraph NotEq_{}[NotEq]", id));
         *id += 1;
         self.tp3.graph_display(graph, id);
-        graph.push_str(&"\nend".to_string());
+        graph.push_str("\nend");
     }
 }
 
@@ -723,7 +722,7 @@ impl GraphDisplay for EqNot {
                 not_eq.graph_display(graph, id);
             }
         }
-        graph.push_str(&"\nend".to_string());
+        graph.push_str("\nend");
     }
 }
 
@@ -737,7 +736,7 @@ impl GraphDisplay for TP3 {
         if let Some(eq_not) = &self.eq_not {
             eq_not.graph_display(graph, id);
         }
-        graph.push_str(&"\nend".to_string());
+        graph.push_str("\nend");
     }
 }
 
@@ -854,7 +853,7 @@ pub struct And {
 /// [TP4] is used to chain operations of same priority. This node works exactly like [TP3] but with
 /// a lower priority. This node is composed of a [TP3] and an optional [And]. The [TP3] is the first
 /// operand of the chain and the [And] is the rest of the chain.
-/// 
+///
 /// Like all `TP` nodes, the first operand is the operation node with a priority just over this node
 /// type. Here, equalities and inequalities have the priority over AND operations.
 #[derive(PartialEq)]
@@ -870,7 +869,7 @@ impl GraphDisplay for And {
         graph.push_str(&format!("\nsubgraph And_{}[And]", id));
         *id += 1;
         self.tp4.graph_display(graph, id);
-        graph.push_str(&"\nend".to_string());
+        graph.push_str("\nend");
     }
 }
 
@@ -884,7 +883,7 @@ impl GraphDisplay for TP4 {
         if let Some(and) = &self.and {
             and.graph_display(graph, id);
         }
-        graph.push_str(&"\nend".to_string());
+        graph.push_str("\nend");
     }
 }
 
@@ -958,7 +957,7 @@ pub struct Or {
 /// `TP5` is used to chain operations of same priority. This node works exactly like [TP4] but with
 /// a lower priority. This node is composed of a [TP4] and an optional [Or]. The [TP4] is the first
 /// operand of the chain and the [Or] is the rest of the chain.
-/// 
+///
 /// Like all `TP` nodes, the first operand is the operation node with a priority just over this node
 /// type. Here, AND operations have the priority over OR operations.
 #[derive(PartialEq)]
@@ -974,7 +973,7 @@ impl GraphDisplay for Or {
         graph.push_str(&format!("\nsubgraph Or_{}[Or]", id));
         *id += 1;
         self.tp5.graph_display(graph, id);
-        graph.push_str(&"\nend".to_string());
+        graph.push_str("\nend");
     }
 }
 
@@ -988,7 +987,7 @@ impl GraphDisplay for TP5 {
         if let Some(or) = &self.or {
             or.graph_display(graph, id);
         }
-        graph.push_str(&"\nend".to_string());
+        graph.push_str("\nend");
     }
 }
 
@@ -1079,7 +1078,7 @@ impl GraphDisplay for TPLast {
         graph.push_str(&format!("\nsubgraph TPLast_{}[TPLast]", id));
         *id += 1;
         self.tp5.graph_display(graph, id);
-        graph.push_str(&"\nend".to_string());
+        graph.push_str("\nend");
     }
 }
 
@@ -1104,7 +1103,7 @@ impl GraphDisplay for NoValue {
         if let Some(or) = &self.or {
             or.graph_display(graph, id);
         }
-        graph.push_str(&"\nend".to_string());
+        graph.push_str("\nend");
     }
 }
 
@@ -1152,7 +1151,7 @@ impl NoValue {
         let eq_not = EqNot::parse(tokens);
         let and = And::parse(tokens);
         let or = Or::parse(tokens);
-        
+
         let md = match md {
             None => None,
             Some(Err(a)) => return Err(a),
@@ -1178,7 +1177,7 @@ impl NoValue {
             Some(Err(a)) => return Err(a),
             Some(Ok(a)) => Some(a),
         };
-        
+
         Ok(NoValue::new(md, as_, eq_not, and, or))
     }
 }

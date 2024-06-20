@@ -1,7 +1,7 @@
 use std::collections::VecDeque;
 
 use crate::parse::nodes::vars::VarDec;
-use crate::skr_errors::{CustomError, OptionResult};
+use crate::skr_errors::OptionResult;
 use crate::tokens::Token;
 
 /// Not yet implemented

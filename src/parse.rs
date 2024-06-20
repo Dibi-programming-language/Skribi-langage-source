@@ -1,6 +1,6 @@
 use std::collections::VecDeque;
 
-use crate::parse::nodes::files_node::{FileNode, parse_file};
+use crate::parse::nodes::files_node::{parse_file, FileNode};
 use crate::skr_errors::OptionResult;
 use crate::tokens::Token;
 

@@ -1,10 +1,12 @@
+#![allow(dead_code)]
+
 mod blocs;
 mod classes;
 pub(crate) mod expressions;
+pub mod files_node;
 mod functions;
 pub(crate) mod id_nodes;
 mod if_else;
-pub mod files_node;
 mod operations;
 mod vars;
 

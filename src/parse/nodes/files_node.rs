@@ -1,6 +1,6 @@
 use std::collections::VecDeque;
 
-use crate::parse::nodes::expressions::{Exp, parse_exp};
+use crate::parse::nodes::expressions::{parse_exp, Exp};
 use crate::skr_errors::OptionResult;
 use crate::tokens::Token;
 

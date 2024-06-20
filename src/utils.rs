@@ -1,6 +1,6 @@
 use std::fmt::Display;
 use std::fs;
-use std::io::{ErrorKind, stdin, stdout, Write};
+use std::io::{stdin, stdout, ErrorKind, Write};
 use std::process::Command;
 
 /// This function clear the shell
@@ -23,8 +23,8 @@ pub fn clear() {
 pub fn read(file_name: &str) -> Result<String, ErrorKind> {
     let content_option = fs::read_to_string(file_name);
     match content_option {
-        Ok(content) => {Ok(content)}
-        Err(err) => {Err(err.kind())}
+        Ok(content) => Ok(content),
+        Err(err) => Err(err.kind()),
     }
 }
 

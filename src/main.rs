@@ -15,10 +15,10 @@ use crate::utils::clear;
 mod get_file_content;
 mod parse;
 mod skr_errors;
-mod tokens;
-mod utils;
 #[cfg(test)]
 mod tests;
+mod tokens;
+mod utils;
 
 const FLAG_CHAR: &str = "--";
 

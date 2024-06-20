@@ -1,5 +1,6 @@
 use thiserror::Error;
 
+#[allow(dead_code)]
 #[derive(Error, Debug, PartialEq)]
 pub enum NotYetImplementedType {
     #[error("Missing symbol, the symbol for this does not exist yet: {0}")]

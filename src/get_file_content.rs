@@ -21,7 +21,7 @@ pub fn get_content(args: Vec<String>, extensions: Vec<String>) -> Result<String,
     }
 
     let mut content = String::new();
-    
+
     loop {
         let user_input = input("");
         if user_input.trim_end().is_empty() {

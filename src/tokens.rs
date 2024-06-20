@@ -8,13 +8,15 @@ pub enum ModifierKeyword {
     Private,
 }
 
+#[allow(dead_code)]
 #[derive(Debug, PartialEq)]
-pub enum Space {
+pub enum SpaceTypes {
     Space,
     NewLine,
     Tab,
 }
 
+#[allow(dead_code)]
 #[derive(Debug, PartialEq)]
 pub enum Token {
     Bool(bool),
@@ -32,7 +34,7 @@ pub enum Token {
     RightBrace,
     Inside,
     Identifier(String),
-    Space(Space),
+    Space(SpaceTypes),
     KeywordModifier(ModifierKeyword),
     KeywordIf,
     KeywordElse,
@@ -184,7 +186,7 @@ pub(crate) fn tokenize(file: String) -> Result<Vec<Token>, CustomError> {
             if let Some(next_ch) = file_ch.next() {
                 if next_ch == '/' {
                     tokenize_comment_classic(&mut file_ch);
-                    tokens.push(Token::Space(Space::NewLine));
+                    tokens.push(Token::Space(SpaceTypes::NewLine));
                     current_ch = file_ch.next();
                 } else {
                     tokens.push(Token::Div);
@@ -217,7 +219,7 @@ pub(crate) fn tokenize(file: String) -> Result<Vec<Token>, CustomError> {
                     '}' => Token::RightBrace,
                     '\n' => {
                         line += 1;
-                        Token::Space(Space::NewLine)
+                        Token::Space(SpaceTypes::NewLine)
                     }
                     _ => Token::Invalid(ch.to_string()),
                 });

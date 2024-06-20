@@ -1,11 +1,11 @@
 use std::collections::VecDeque;
 use std::fmt;
 
-use crate::{impl_debug, skr_errors};
 use crate::parse::nodes::classes::is_type_def;
 use crate::parse::nodes::GraphDisplay;
 use crate::skr_errors::{CustomError, OptionResult};
 use crate::tokens::Token;
+use crate::{impl_debug, skr_errors};
 
 /// `TupleNode` represents a tuple in the AST.
 ///
@@ -147,7 +147,7 @@ impl GraphDisplay for IdGet {
             tuple.graph_display(graph, id);
         }
         self.op_in.graph_display(graph, id);
-        graph.push_str(&"\nend".to_string());
+        graph.push_str("\nend");
     }
 }
 
@@ -187,7 +187,7 @@ pub(crate) fn parse_id_get(tokens: &mut VecDeque<Token>) -> OptionResult<IdGet> 
 /// `OpIn` is used by nodes that represent a part of an identifier. It contains the next part of the
 /// chain of the identifier. It can be an [IdGet] node or a [CGet] node. The `OpIn` can also be
 /// empty if this is the last part of the identifier.
-/// 
+///
 /// It will first try to parse the [CGet] node, if it fails, it will try to parse the [IdGet] node.
 /// If both fail, it will return an empty `OpIn`. Here, "fail" means that there is no parsing error,
 /// but that the token is not the one expected for an identifier.
@@ -207,7 +207,7 @@ impl GraphDisplay for OpIn {
             OpIn::CGet(c_get) => c_get.graph_display(graph, id),
             OpIn::Empty => {}
         }
-        graph.push_str(&"\nend".to_string());
+        graph.push_str("\nend");
     }
 }
 
@@ -252,7 +252,7 @@ impl GraphDisplay for IdSet {
         ));
         *id += 1;
         self.op_in.graph_display(graph, id);
-        graph.push_str(&"\nend".to_string());
+        graph.push_str("\nend");
     }
 }
 
