@@ -61,7 +61,7 @@ pub(crate) fn parse_type(tokens: &mut VecDeque<Token>) -> Option<Type> {
 pub struct Vd {
     type_: Type,
     identifier: String,
-    // exp: Box<Exp>, // TODO - Implement Exp
+    exp: Box<Exp>,
 }
 
 impl GraphDisplay for Vd {
@@ -76,19 +76,29 @@ impl GraphDisplay for Vd {
 impl_debug!(Vd);
 
 impl Vd {
-    fn new(type_: Type, identifier: String) -> Self {
-        Vd { type_, identifier }
+    fn new(type_: Type, identifier: String, exp: Exp) -> Self {
+        Self {
+            type_,
+            identifier,
+            exp: Box::new(exp),
+        }
     }
 
     fn parse(tokens: &mut VecDeque<Token>) -> ResultOption<Self> {
-        // <vd> ::= <type> T_IDENTIFIER <exp> // TODO - Implement <exp>
+        // <vd> ::= <type> T_IDENTIFIER <exp>
         let type_ = match parse_type(tokens) {
             Some(type_) => type_,
             None => return Ok(None),
         };
 
         if let Some(Token::Identifier(identifier)) = tokens.pop_front() {
-            Ok(Some(Vd::new(type_, identifier)))
+            if let Some(exp0) = Exp::parse(tokens) {
+                Ok(Some(Vd::new(type_, identifier, exp0?)))
+            } else {
+                Err(CustomError::UnexpectedToken(
+                    "Expected an expression".to_string(),
+                ))
+            }
         } else {
             Err(CustomError::UnexpectedToken(
                 "Expected an identifier".to_string(),
@@ -139,18 +149,18 @@ impl_debug!(PrivateVar);
 
 impl GlobalVar {
     fn new(vd: Vd) -> Self {
-        GlobalVar { vd }
+        Self { vd }
     }
 
     fn parse(tokens: &mut VecDeque<Token>) -> ResultOption<Self> {
         // <global_var> ::= fu <vd>
-        if let Some(Token::KeywordModifier(ModifierKeyword::Global)) = tokens.pop_front() {
-            match Vd::parse(tokens) {
-                Ok(Some(vd)) => Ok(Some(GlobalVar::new(vd))),
-                Ok(None) => Err(CustomError::UnexpectedToken(
+        if let Some(Token::KeywordModifier(ModifierKeyword::Global)) = tokens.front() {
+            tokens.pop_front();
+            match Vd::parse(tokens)? {
+                Some(vd) => Ok(Some(GlobalVar::new(vd))),
+                None => Err(CustomError::UnexpectedToken(
                     "Expected a variable declaration".to_string(),
                 )),
-                Err(err) => Err(err),
             }
         } else {
             Ok(None)
@@ -160,7 +170,7 @@ impl GlobalVar {
 
 impl PrivateVar {
     fn new(vd: Vd) -> Self {
-        PrivateVar { vd }
+        Self { vd }
     }
 
     fn parse(tokens: &mut VecDeque<Token>) -> ResultOption<Self> {
@@ -183,16 +193,55 @@ impl PrivateVar {
 // --- ConstVar ---
 // ----------------
 
-// TODO
-
-/// NOT IMPLEMENTED YET
-pub struct ConstVar {
-    private_var: Option<PrivateVar>,
-    global_var: Option<GlobalVar>,
-    vd: Option<Vd>,
+/// `ConstVar` represents a constant variable declaration in the AST. It adds the property of being
+/// constant to a variable declaration that can already be a global variable, a private variable or
+/// a simple variable declaration. This is a kind of wrapper around a variable declaration.
+///
+/// # Grammar
+///
+/// `<const_var> ::= ju (<private_var> | <global_var> | <vd>)`
+///
+/// See [PrivateVar], [GlobalVar], [Vd]
+#[derive(PartialEq)]
+pub enum ConstVar {
+    PrivateVar(PrivateVar),
+    GlobalVar(GlobalVar),
+    Vd(Vd),
 }
 
-/// NOT IMPLEMENTED YET
+impl GraphDisplay for ConstVar {
+    fn graph_display(&self, graph: &mut String, id: &mut usize) {
+        match self {
+            ConstVar::PrivateVar(private_var) => private_var.graph_display(graph, id),
+            ConstVar::GlobalVar(global_var) => global_var.graph_display(graph, id),
+            ConstVar::Vd(vd) => vd.graph_display(graph, id),
+        }
+    }
+}
+
+impl_debug!(ConstVar);
+
+impl ConstVar {
+    fn new(vd: Vd) -> Self {
+        ConstVar::Vd(vd)
+    }
+
+    fn parse(tokens: &mut VecDeque<Token>) -> ResultOption<Self> {
+        // <const_var> ::= ju (<private_var> | <global_var> | <vd>)
+        if let Some(Token::KeywordModifier(ModifierKeyword::Constant)) = tokens.front() {}
+    }
+}
+
+/// `VarDec` represents any kind of variable declaration in the AST. It can be a constant variable,
+/// a private variable, a global variable or a simple variable declaration. This is the root node of
+/// a variable declaration.
+///
+/// # Grammar
+///
+/// `<var_dec> ::= <const_var> | <private_var> | <global_var> | <vd>`
+///
+/// See [ConstVar], [PrivateVar], [GlobalVar], [Vd]
+#[derive(PartialEq)]
 pub enum VarDec {
     ConstVar(ConstVar),
     PrivateVar(PrivateVar),
@@ -200,7 +249,19 @@ pub enum VarDec {
     Vd(Vd),
 }
 
-/// NOT IMPLEMENTED YET
+/// `VarMod` represents the left part of a variable modification in the AST. It only contains an
+/// expression, so this is a simple node.
+///
+/// Keep in mind that a variable modification follows the syntax `<name> <exp>`. The `<name>` part
+/// is not represented in this node : the LL1 grammar will take care of it -> the `<name>` part is
+/// and identifier and is already detected by the parser when the modification is read.
+///
+/// # Grammar
+///
+/// `<var_mod> ::= <exp>`
+///
+/// See [Exp]
+#[derive(PartialEq)]
 pub struct VarMod {
     exp: Exp,
 }

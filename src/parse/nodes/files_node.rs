@@ -12,7 +12,7 @@ pub struct FileNode {
 pub fn parse_file(tokens: &mut VecDeque<Token>) -> OptionResult<FileNode> {
     let mut exps = Vec::new();
     loop {
-        match parse_exp(tokens) {
+        match Exp::parse(tokens) {
             Some(Ok(exp)) => {
                 exps.push(exp);
             }
