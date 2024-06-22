@@ -1,3 +1,5 @@
+use crate::impl_debug;
+use crate::parse::nodes::GraphDisplay;
 use std::collections::VecDeque;
 
 use crate::parse::nodes::vars::VarDec;
@@ -30,6 +32,14 @@ pub struct Exp {
     // tp_last: TpLast, // TODO - define tp_last
 }
 
+impl GraphDisplay for Exp {
+    fn graph_display(&self, _graph: &mut String, _id: &mut usize) {
+        // TODO
+    }
+}
+
+impl_debug!(Exp);
+
 impl Exp {
     /// Not yet implemented
     fn new(exp_tp: ExpTp) -> Self {
@@ -40,10 +50,4 @@ impl Exp {
         // TODO
         None
     }
-}
-
-/// Not yet implemented, but already used by some nodes that are dependent on it
-pub fn parse_exp(_tokens: &mut VecDeque<Token>) -> OptionResult<Exp> {
-    // TODO
-    None
 }

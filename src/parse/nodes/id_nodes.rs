@@ -1,5 +1,4 @@
 use std::collections::VecDeque;
-use std::fmt;
 
 use crate::parse::nodes::classes::is_type_def;
 use crate::parse::nodes::GraphDisplay;

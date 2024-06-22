@@ -1,5 +1,3 @@
-use std::fmt;
-
 use crate::impl_debug;
 use crate::parse::nodes::GraphDisplay;
 

@@ -1,11 +1,11 @@
+use std::collections::VecDeque;
+
 use crate::impl_debug;
 use crate::parse::nodes::classes::is_type_def;
 use crate::parse::nodes::expressions::Exp;
 use crate::parse::nodes::GraphDisplay;
 use crate::skr_errors::{CustomError, ResultOption};
 use crate::tokens::{ModifierKeyword, Token};
-use std::collections::VecDeque;
-use std::fmt;
 
 // Grammar of this file :
 /*
@@ -175,13 +175,13 @@ impl PrivateVar {
 
     fn parse(tokens: &mut VecDeque<Token>) -> ResultOption<Self> {
         // <private_var> ::= pu <vd>
-        if let Some(Token::KeywordModifier(ModifierKeyword::Private)) = tokens.pop_front() {
-            match Vd::parse(tokens) {
-                Ok(Some(vd)) => Ok(Some(PrivateVar::new(vd))),
-                Ok(None) => Err(CustomError::UnexpectedToken(
+        if let Some(Token::KeywordModifier(ModifierKeyword::Private)) = tokens.front() {
+            tokens.pop_front();
+            match Vd::parse(tokens)? {
+                Some(vd) => Ok(Some(PrivateVar::new(vd))),
+                None => Err(CustomError::UnexpectedToken(
                     "Expected a variable declaration".to_string(),
                 )),
-                Err(err) => Err(err),
             }
         } else {
             Ok(None)
@@ -228,9 +228,28 @@ impl ConstVar {
 
     fn parse(tokens: &mut VecDeque<Token>) -> ResultOption<Self> {
         // <const_var> ::= ju (<private_var> | <global_var> | <vd>)
-        if let Some(Token::KeywordModifier(ModifierKeyword::Constant)) = tokens.front() {}
+        if let Some(Token::KeywordModifier(ModifierKeyword::Constant)) = tokens.front() {
+            tokens.pop_front();
+            if let Some(private_var) = PrivateVar::parse(tokens)? {
+                Ok(Some(ConstVar::PrivateVar(private_var)))
+            } else if let Some(global_var) = GlobalVar::parse(tokens)? {
+                Ok(Some(ConstVar::GlobalVar(global_var)))
+            } else if let Some(vd) = Vd::parse(tokens)? {
+                Ok(Some(ConstVar::Vd(vd)))
+            } else {
+                Err(CustomError::UnexpectedToken(
+                    "Expected a variable declaration".to_string(),
+                ))
+            }
+        } else {
+            Ok(None)
+        }
     }
 }
+
+// --------------
+// --- VarDec ---
+// --------------
 
 /// `VarDec` represents any kind of variable declaration in the AST. It can be a constant variable,
 /// a private variable, a global variable or a simple variable declaration. This is the root node of
@@ -249,6 +268,40 @@ pub enum VarDec {
     Vd(Vd),
 }
 
+impl GraphDisplay for VarDec {
+    fn graph_display(&self, graph: &mut String, id: &mut usize) {
+        match self {
+            VarDec::ConstVar(const_var) => const_var.graph_display(graph, id),
+            VarDec::PrivateVar(private_var) => private_var.graph_display(graph, id),
+            VarDec::GlobalVar(global_var) => global_var.graph_display(graph, id),
+            VarDec::Vd(vd) => vd.graph_display(graph, id),
+        }
+    }
+}
+
+impl_debug!(VarDec);
+
+impl VarDec {
+    fn parse(tokens: &mut VecDeque<Token>) -> ResultOption<Self> {
+        // <var_dec> ::= <const_var> | <private_var> | <global_var> | <vd>
+        if let Some(const_var) = ConstVar::parse(tokens)? {
+            Ok(Some(VarDec::ConstVar(const_var)))
+        } else if let Some(private_var) = PrivateVar::parse(tokens)? {
+            Ok(Some(VarDec::PrivateVar(private_var)))
+        } else if let Some(global_var) = GlobalVar::parse(tokens)? {
+            Ok(Some(VarDec::GlobalVar(global_var)))
+        } else if let Some(vd) = Vd::parse(tokens)? {
+            Ok(Some(VarDec::Vd(vd)))
+        } else {
+            Ok(None)
+        }
+    }
+}
+
+// ---------------
+// --- VarMod ----
+// ---------------
+
 /// `VarMod` represents the left part of a variable modification in the AST. It only contains an
 /// expression, so this is a simple node.
 ///
@@ -264,4 +317,27 @@ pub enum VarDec {
 #[derive(PartialEq)]
 pub struct VarMod {
     exp: Exp,
+}
+
+impl GraphDisplay for VarMod {
+    fn graph_display(&self, graph: &mut String, id: &mut usize) {
+        graph.push_str(&format!("\nsubgraph VarMod_{}[VarMod]", id));
+        self.exp.graph_display(graph, id);
+        graph.push_str("\nend")
+    }
+}
+
+impl_debug!(VarMod);
+
+impl VarMod {
+    fn new(exp: Exp) -> Self {
+        Self { exp }
+    }
+
+    fn parse(tokens: &mut VecDeque<Token>) -> ResultOption<Self> {
+        match Exp::parse(tokens) {
+            Some(exp) => Ok(Some(VarMod::new(exp?))),
+            None => Ok(None),
+        }
+    }
 }
