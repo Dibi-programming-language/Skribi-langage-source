@@ -18,7 +18,7 @@ pub struct TupleNode {
     // TODO: définir les champs du tuple ici
 }
 
-fn parse_tuple(_tokens: &mut VecDeque<Token>) -> OptionResult<TupleNode> {
+pub fn parse_tuple(_tokens: &mut VecDeque<Token>) -> OptionResult<TupleNode> {
     // TODO: implémenter cette fonction
     None
 }
