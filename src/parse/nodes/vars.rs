@@ -340,7 +340,7 @@ impl VarMod {
         Self { exp }
     }
 
-    fn parse(tokens: &mut VecDeque<Token>) -> ResultOption<Self> {
+    pub(crate) fn parse(tokens: &mut VecDeque<Token>) -> ResultOption<Self> {
         match Exp::parse(tokens) {
             Some(exp) => Ok(Some(VarMod::new(exp?))),
             None => Ok(None),

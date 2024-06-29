@@ -13,8 +13,16 @@ use std::collections::VecDeque;
 // --- FctDec ---
 // --------------
 
+/// `FctDec` represents a function declaration. It contains the identifier of the function, the
+/// tuple of arguments and the scope of the function.
+/// 
+/// # Grammar
+/// 
+/// `<fct_dec> ::= ums T_IDENTIFIER <tuple> <scope>`
+/// 
+/// See also [TupleNode] and [Scope].
 #[derive(PartialEq)]
-struct FctDec {
+pub struct FctDec {
     identifier: String,
     tuple: TupleNode,
     scope: Scope,

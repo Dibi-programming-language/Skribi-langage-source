@@ -1,3 +1,4 @@
+use std::fmt::{Display, Formatter};
 use crate::skr_errors::CustomError;
 use std::str::Chars;
 
@@ -49,6 +50,12 @@ pub enum Token {
     NotEqual, // not tokenized for now : missing symbol
     And,      // not tokenized for now : missing symbol
     Or,       // not tokenized for now : missing symbol
+}
+
+impl Display for Token {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{:?}", self)
+    }
 }
 
 fn tokenize_string(file: &mut Chars, line: u16) -> Result<Token, CustomError> {

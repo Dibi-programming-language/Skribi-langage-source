@@ -1144,7 +1144,7 @@ impl NoValue {
         }
     }
 
-    fn parse(tokens: &mut VecDeque<Token>) -> Result<NoValue, CustomError> {
+    pub(crate) fn parse(tokens: &mut VecDeque<Token>) -> Result<NoValue, CustomError> {
         // <no_value> ::= (<md> |) (<as> |) (<eq_not> |) (<and> |) (<or> |)
         let md = parse_md(tokens);
         let as_ = As::parse(tokens);
