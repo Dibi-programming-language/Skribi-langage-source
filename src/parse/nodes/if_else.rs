@@ -41,17 +41,17 @@ impl Scope {
 /// `Sula` represents an "else" block in the AST. It can contain an [Ij] if this is an "else if"
 /// block, or a [Scope] if this is an "else" block. It there is an "else if" block, it can contain
 /// another [Sula].
-/// 
+///
 /// The principe is to have a [Cond] node that contains an [Ij] and an optional [Sula]. The [Sula]
 /// chains the "else if" blocks and the "else" block, while [Ij] contains the condition and the
 /// block to execute if the condition is true.
-/// 
+///
 /// The [Sula] node is recursive, as it can contain another [Sula] node.
-/// 
+///
 /// # Grammar
-/// 
+///
 /// `<sula> ::= sula (<ij> (<sula> |) | <scope>)`
-/// 
+///
 /// See also [Ij] and [Scope].
 #[derive(PartialEq)]
 pub enum Sula {
@@ -74,6 +74,7 @@ impl GraphDisplay for Sula {
                 scope.graph_display(graph, id);
             }
         }
+        graph.push_str("\nend");
     }
 }
 
@@ -120,11 +121,11 @@ impl Sula {
 /// `Ij` represents an "if" block in the AST. It contains an [Exp] and a [Scope]. It can be followed
 /// by a [Sula] IN ITS PARENT NODE, to represent an "else if" block or an "else" block. The [Ij]
 /// node itself is not recursive (well ... unless there is another "if" block in the [Scope]).
-/// 
+///
 /// # Grammar
-/// 
+///
 /// `<ij> ::= ij <exp> <scope>`
-/// 
+///
 /// See also [Exp] and [Scope].
 #[derive(PartialEq)]
 pub struct Ij {
@@ -138,6 +139,7 @@ impl GraphDisplay for Ij {
         *id += 1;
         self.exp.graph_display(graph, id);
         self.scope.graph_display(graph, id);
+        graph.push_str("\nend");
     }
 }
 
@@ -175,11 +177,11 @@ impl Ij {
 /// `Cond` is the starting node for an "if" block in the AST. It contains an [Ij] and an optional
 /// [Sula]. The [Sula] is used to chain "else if" blocks and "else" blocks. [Cond] allows to use
 /// any chain of "if", "else if" and "else" blocks in the same way.
-/// 
+///
 /// # Grammar
-/// 
+///
 /// `<cond> ::= <ij> (<sula> |)`
-/// 
+///
 /// See also [Ij] and [Sula].
 #[derive(PartialEq)]
 pub struct Cond {
@@ -195,6 +197,7 @@ impl GraphDisplay for Cond {
         if let Some(sula) = &self.sula {
             sula.graph_display(graph, id);
         }
+        graph.push_str("\nend");
     }
 }
 

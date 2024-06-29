@@ -211,11 +211,14 @@ pub enum ConstVar {
 
 impl GraphDisplay for ConstVar {
     fn graph_display(&self, graph: &mut String, id: &mut usize) {
+        graph.push_str(&format!("\nsubgraph ConstVar_{}[ConstVar]", id));
+        *id += 1;
         match self {
             ConstVar::PrivateVar(private_var) => private_var.graph_display(graph, id),
             ConstVar::GlobalVar(global_var) => global_var.graph_display(graph, id),
             ConstVar::Vd(vd) => vd.graph_display(graph, id),
         }
+        graph.push_str("\nend")
     }
 }
 
@@ -270,12 +273,15 @@ pub enum VarDec {
 
 impl GraphDisplay for VarDec {
     fn graph_display(&self, graph: &mut String, id: &mut usize) {
+        graph.push_str(&format!("\nsubgraph VarDec_{}[VarDec]", id));
+        *id += 1;
         match self {
             VarDec::ConstVar(const_var) => const_var.graph_display(graph, id),
             VarDec::PrivateVar(private_var) => private_var.graph_display(graph, id),
             VarDec::GlobalVar(global_var) => global_var.graph_display(graph, id),
             VarDec::Vd(vd) => vd.graph_display(graph, id),
         }
+        graph.push_str("\nend")
     }
 }
 

@@ -43,7 +43,7 @@ macro_rules! impl_debug {
 /// impl GraphDisplay for MyNode {
 ///    fn graph_display(&self, graph: &mut String, id: &mut usize) {
 ///       graph.push_str(&format!("\nsubgraph MyNode_{}[MyNode {}]\nend", id, self.name));
-///      *id += 1;
+///       *id += 1;
 ///   }
 /// }
 ///

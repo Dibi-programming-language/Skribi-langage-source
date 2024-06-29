@@ -25,7 +25,7 @@ fn parse_tuple(_tokens: &mut VecDeque<Token>) -> OptionResult<TupleNode> {
 
 impl GraphDisplay for TupleNode {
     fn graph_display(&self, graph: &mut String, id: &mut usize) {
-        graph.push_str(&format!("\nsubgraph TupleNode_{}[TupleNode]", id));
+        graph.push_str(&format!("\nsubgraph TupleNode_{}[TupleNode]\nend", id));
         *id += 1;
     }
 }
