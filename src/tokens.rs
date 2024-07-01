@@ -1,5 +1,5 @@
-use std::fmt::{Display, Formatter};
 use crate::skr_errors::CustomError;
+use std::fmt::{Display, Formatter};
 use std::str::Chars;
 
 #[derive(Debug, PartialEq)]
