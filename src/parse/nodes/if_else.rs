@@ -154,12 +154,11 @@ impl Ij {
         // <ij> ::= ij <exp> <scope>
         if let Some(Token::KeywordIf) = tokens.front() {
             tokens.pop_front();
-            match Exp::parse(tokens) {
-                Some(Ok(exp)) => match Scope::parse(tokens)? {
+            match Exp::parse(tokens)? {
+                Some(exp) => match Scope::parse(tokens)? {
                     Some(scope) => Ok(Some(Ij::new(exp, scope))),
                     None => Err(CustomError::UnexpectedToken("Expected a scope".to_string())),
                 },
-                Some(Err(err)) => Err(err),
                 None => Err(CustomError::UnexpectedToken(
                     "Expected an expression".to_string(),
                 )),

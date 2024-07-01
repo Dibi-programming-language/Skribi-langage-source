@@ -13,13 +13,13 @@ pub fn parse_file(tokens: &mut VecDeque<Token>) -> OptionResult<FileNode> {
     let mut exps = Vec::new();
     loop {
         match Exp::parse(tokens) {
-            Some(Ok(exp)) => {
+            Ok(Some(exp)) => {
                 exps.push(exp);
             }
-            Some(Err(e)) => {
+            Err(e) => {
                 return Some(Err(e));
             }
-            None => {
+            Ok(None) => {
                 break;
             }
         }

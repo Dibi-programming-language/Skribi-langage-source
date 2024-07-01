@@ -251,6 +251,69 @@ pub enum ExpBase {
     RightP(Box<Exp>),
 }
 
+impl GraphDisplay for ExpBase {
+    fn graph_display(&self, graph: &mut String, id: &mut usize) {
+        graph.push_str(&format!("\nsubgraph ExpBase_{}[ExpBase]", id));
+        *id += 1;
+        match self {
+            ExpBase::IdUse(id_use) => id_use.graph_display(graph, id),
+            ExpBase::VarDec(var_dec) => var_dec.graph_display(graph, id),
+            ExpBase::Cond(cond) => cond.graph_display(graph, id),
+            ExpBase::ScopeBase(scope_base) => scope_base.graph_display(graph, id),
+            ExpBase::FctDec(fct_dec) => fct_dec.graph_display(graph, id),
+            ExpBase::LeftP(exp) => exp.graph_display(graph, id),
+            ExpBase::RightP(exp) => exp.graph_display(graph, id),
+        }
+        graph.push_str("\nend");
+    }
+}
+
+impl_debug!(ExpBase);
+
+impl ExpBase {
+    fn new(id_use: IdUse) -> Self {
+        Self::IdUse(Box::new(id_use))
+    }
+
+    pub fn parse(tokens: &mut VecDeque<Token>) -> ResultOption<ExpBase> {
+        // <exp_base> ::=
+        //   <id_use>
+        //   | <var_dec>
+        //   | <cond>
+        //   | <scope_base>
+        //   | <fct_dec>
+        //   | T_LEFT_P <exp> T_RIGHT_P
+        if let Some(id_use) = IdUse::parse(tokens)? {
+            Ok(Some(ExpBase::new(id_use)))
+        } else if let Some(var_dec) = VarDec::parse(tokens)? {
+            Ok(Some(ExpBase::VarDec(Box::new(var_dec))))
+        } else if let Some(cond) = Cond::parse(tokens)? {
+            Ok(Some(ExpBase::Cond(Box::new(cond))))
+        } else if let Some(scope_base) = ScopeBase::parse(tokens)? {
+            Ok(Some(ExpBase::ScopeBase(Box::new(scope_base))))
+        } else if let Some(fct_dec) = FctDec::parse(tokens)? {
+            Ok(Some(ExpBase::FctDec(Box::new(fct_dec))))
+        } else if let Some(Token::LeftParenthesis) = tokens.front() {
+            tokens.pop_front();
+            if let Some(exp) = Exp::parse(tokens)? {
+                if let Some(Token::RightParenthesis) = tokens.pop_front() {
+                    Ok(Some(ExpBase::RightP(Box::new(exp))))
+                } else {
+                    Err(CustomError::UnexpectedToken(
+                        "Expected a right parenthesis".to_string(),
+                    ))
+                }
+            } else {
+                Err(CustomError::UnexpectedToken(
+                    "Expected an expression".to_string(),
+                ))
+            }
+        } else {
+            Ok(None)
+        }
+    }
+}
+
 // -------------
 // --- ExpTp ---
 // -------------
@@ -261,6 +324,20 @@ pub enum ExpTp {
     ExpBase(ExpBase),
     IdUseV(IdUseV),
 }
+
+impl GraphDisplay for ExpTp {
+    fn graph_display(&self, graph: &mut String, id: &mut usize) {
+        graph.push_str(&format!("\nsubgraph ExpTp_{}[ExpTp]", id));
+        *id += 1;
+        match self {
+            ExpTp::ExpBase(exp_base) => exp_base.graph_display(graph, id),
+            ExpTp::IdUseV(id_use_v) => id_use_v.graph_display(graph, id),
+        }
+        graph.push_str("\nend");
+    }
+}
+
+impl_debug!(ExpTp);
 
 // -----------
 // --- Exp ---
@@ -274,20 +351,25 @@ pub struct Exp {
 }
 
 impl GraphDisplay for Exp {
-    fn graph_display(&self, _graph: &mut String, _id: &mut usize) {
-        // TODO
+    fn graph_display(&self, graph: &mut String, id: &mut usize) {
+        graph.push_str(&format!("\nsubgraph Exp_{}[Exp]", id));
+        *id += 1;
+        self.exp_tp.graph_display(graph, id);
+        self.tp_last.graph_display(graph, id);
+        graph.push_str("\nend");
     }
 }
 
 impl_debug!(Exp);
 
 impl Exp {
-    /// Not yet implemented
-    // TODO new
+    fn new(exp_tp: ExpTp, tp_last: TPLast) -> Self {
+        Self { exp_tp, tp_last }
+    }
 
-    pub fn parse(_tokens: &mut VecDeque<Token>) -> OptionResult<Exp> {
+    pub fn parse(_tokens: &mut VecDeque<Token>) -> ResultOption<Exp> {
         // TODO
-        None
+        Ok(None)
     }
 }
 
@@ -300,6 +382,17 @@ pub struct Return {
     exp: Exp,
 }
 
+impl GraphDisplay for Return {
+    fn graph_display(&self, graph: &mut String, id: &mut usize) {
+        graph.push_str(&format!("\nsubgraph Return_{}[Return]", id));
+        *id += 1;
+        self.exp.graph_display(graph, id);
+        graph.push_str("\nend");
+    }
+}
+
+impl_debug!(Return);
+
 // -----------
 // --- Sta ---
 // -----------
@@ -310,6 +403,20 @@ pub enum Sta {
     Exp(Exp),
 }
 
+impl GraphDisplay for Sta {
+    fn graph_display(&self, graph: &mut String, id: &mut usize) {
+        graph.push_str(&format!("\nsubgraph Sta_{}[Sta]", id));
+        *id += 1;
+        match self {
+            Sta::Return(return_node) => return_node.graph_display(graph, id),
+            Sta::Exp(exp) => exp.graph_display(graph, id),
+        }
+        graph.push_str("\nend");
+    }
+}
+
+impl_debug!(Sta);
+
 // ------------
 // --- StaL ---
 // ------------
@@ -318,3 +425,19 @@ pub enum Sta {
 pub struct StaL {
     sta_l: Vec<Sta>,
 }
+
+impl GraphDisplay for StaL {
+    fn graph_display(&self, graph: &mut String, id: &mut usize) {
+        graph.push_str(&format!("\nsubgraph StaL_{}[StaL]", id));
+        *id += 1;
+        for sta in &self.sta_l {
+            match sta {
+                Sta::Return(return_node) => return_node.graph_display(graph, id),
+                Sta::Exp(exp) => exp.graph_display(graph, id),
+            }
+        }
+        graph.push_str("\nend");
+    }
+}
+
+impl_debug!(StaL);

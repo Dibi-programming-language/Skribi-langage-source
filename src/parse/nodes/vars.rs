@@ -92,8 +92,8 @@ impl Vd {
         };
 
         if let Some(Token::Identifier(identifier)) = tokens.pop_front() {
-            if let Some(exp0) = Exp::parse(tokens) {
-                Ok(Some(Vd::new(type_, identifier, exp0?)))
+            if let Some(exp0) = Exp::parse(tokens)? {
+                Ok(Some(Vd::new(type_, identifier, exp0)))
             } else {
                 Err(CustomError::UnexpectedToken(
                     "Expected an expression".to_string(),
@@ -288,7 +288,7 @@ impl GraphDisplay for VarDec {
 impl_debug!(VarDec);
 
 impl VarDec {
-    fn parse(tokens: &mut VecDeque<Token>) -> ResultOption<Self> {
+    pub(crate) fn parse(tokens: &mut VecDeque<Token>) -> ResultOption<Self> {
         // <var_dec> ::= <const_var> | <private_var> | <global_var> | <vd>
         if let Some(const_var) = ConstVar::parse(tokens)? {
             Ok(Some(VarDec::ConstVar(const_var)))
@@ -341,8 +341,8 @@ impl VarMod {
     }
 
     pub(crate) fn parse(tokens: &mut VecDeque<Token>) -> ResultOption<Self> {
-        match Exp::parse(tokens) {
-            Some(exp) => Ok(Some(VarMod::new(exp?))),
+        match Exp::parse(tokens)? {
+            Some(exp) => Ok(Some(VarMod::new(exp))),
             None => Ok(None),
         }
     }
