@@ -2,7 +2,7 @@ use std::collections::VecDeque;
 
 use crate::impl_debug;
 use crate::parse::nodes::GraphDisplay;
-use crate::skr_errors::{CustomError, NotYetImplementedType};
+use crate::skr_errors::{CustomError, NotYetImplementedType, OptionResult, ResultOption};
 use crate::tokens::Token;
 
 // Grammar for this file :
@@ -1116,13 +1116,13 @@ impl TPLast {
         TPLast { tp5 }
     }
 
-    fn parse(tokens: &mut VecDeque<Token>) -> Option<Result<TPLast, CustomError>> {
+    pub fn parse(tokens: &mut VecDeque<Token>) -> ResultOption<TPLast> {
         // <tp_last> ::= <tp5>
         let tp5 = TP5::parse(tokens);
         match tp5 {
-            Some(Ok(tp5)) => Some(Ok(TPLast::new(tp5))),
-            Some(Err(err)) => Some(Err(err)),
-            None => None,
+            Some(Ok(tp5)) => Ok(Some(TPLast::new(tp5))),
+            Some(Err(err)) => Err(err),
+            None => Ok(None),
         }
     }
 }

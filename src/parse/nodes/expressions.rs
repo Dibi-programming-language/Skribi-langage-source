@@ -339,23 +339,44 @@ impl GraphDisplay for ExpTp {
 
 impl_debug!(ExpTp);
 
+impl ExpTp {
+    fn new(exp_base: ExpBase) -> Self {
+        Self::ExpBase(exp_base)
+    }
+
+    pub fn parse(tokens: &mut VecDeque<Token>) -> ResultOption<ExpTp> {
+        // <exp_tp> ::=
+        //   <exp_base>
+        //   | <id_use_v>
+        if let Some(exp_base) = ExpBase::parse(tokens)? {
+            Ok(Some(ExpTp::new(exp_base)))
+        } else if let Some(id_use_v) = IdUseV::parse(tokens)? {
+            Ok(Some(ExpTp::IdUseV(id_use_v)))
+        } else {
+            Ok(None)
+        }
+    }
+}
+
 // -----------
 // --- Exp ---
 // -----------
 
 /// Not yet implemented, but already used by some nodes that are dependent on it
 #[derive(PartialEq)]
-pub struct Exp {
-    exp_tp: ExpTp,
-    tp_last: TPLast, // TODO - define tp_last
+pub enum Exp {
+    ExpTp(ExpTp),
+    TPLast(TPLast),
 }
 
 impl GraphDisplay for Exp {
     fn graph_display(&self, graph: &mut String, id: &mut usize) {
         graph.push_str(&format!("\nsubgraph Exp_{}[Exp]", id));
         *id += 1;
-        self.exp_tp.graph_display(graph, id);
-        self.tp_last.graph_display(graph, id);
+        match self {
+            Exp::ExpTp(exp_tp) => exp_tp.graph_display(graph, id),
+            Exp::TPLast(tp_last) => tp_last.graph_display(graph, id),
+        }
         graph.push_str("\nend");
     }
 }
@@ -363,13 +384,17 @@ impl GraphDisplay for Exp {
 impl_debug!(Exp);
 
 impl Exp {
-    fn new(exp_tp: ExpTp, tp_last: TPLast) -> Self {
-        Self { exp_tp, tp_last }
-    }
-
-    pub fn parse(_tokens: &mut VecDeque<Token>) -> ResultOption<Exp> {
-        // TODO
-        Ok(None)
+    pub fn parse(tokens: &mut VecDeque<Token>) -> ResultOption<Exp> {
+        // <exp> ::=
+        //   <exp_tp>
+        //   | <tp_last>
+        if let Some(exp_tp) = ExpTp::parse(tokens)? {
+            Ok(Some(Exp::ExpTp(exp_tp)))
+        } else if let Some(tp_last) = TPLast::parse(tokens)? {
+            Ok(Some(Exp::TPLast(tp_last)))
+        } else {
+            Ok(None)
+        }
     }
 }
 
@@ -392,6 +417,22 @@ impl GraphDisplay for Return {
 }
 
 impl_debug!(Return);
+
+impl Return {
+    pub fn parse(tokens: &mut VecDeque<Token>) -> ResultOption<Return> {
+        // <return> ::= ei <exp>
+        if let Some(Token::KeywordReturn) = tokens.front() {
+            tokens.pop_front();
+            if let Some(exp) = Exp::parse(tokens)? {
+                Ok(Some(Return { exp }))
+            } else {
+                Err(CustomError::UnexpectedToken("Expected an expression".to_string()))
+            }
+        } else {
+            Ok(None)
+        }
+    }
+}
 
 // -----------
 // --- Sta ---
@@ -417,6 +458,19 @@ impl GraphDisplay for Sta {
 
 impl_debug!(Sta);
 
+impl Sta {
+    pub fn parse(tokens: &mut VecDeque<Token>) -> ResultOption<Sta> {
+        // <sta> ::= <return> | <exp>
+        if let Some(return_node) = Return::parse(tokens)? {
+            Ok(Some(Sta::Return(return_node)))
+        } else if let Some(exp) = Exp::parse(tokens)? {
+            Ok(Some(Sta::Exp(exp)))
+        } else {
+            Ok(None)
+        }
+    }
+}
+
 // ------------
 // --- StaL ---
 // ------------
@@ -441,3 +495,36 @@ impl GraphDisplay for StaL {
 }
 
 impl_debug!(StaL);
+
+impl StaL {
+    pub fn new(sta_l: Vec<Sta>) -> Self {
+        Self { sta_l }
+    }
+
+    pub fn parse(tokens: &mut VecDeque<Token>) -> ResultOption<StaL> {
+        // <sta_l> ::= T_LEFT_E {<sta>} T_RIGHT_E
+        if let Some(Token::LeftBrace) = tokens.front() {
+            tokens.pop_front();
+            let mut sta_l = Vec::new();
+            loop {
+                match Sta::parse(tokens)? {
+                    Some(sta) => {
+                        sta_l.push(sta);
+                    }
+                    None => {
+                        break;
+                    }
+                }
+            }
+            if let Some(Token::RightBrace) = tokens.pop_front() {
+                Ok(Some(StaL::new(sta_l)))
+            } else {
+                Err(CustomError::UnexpectedToken(
+                    "Expected a right curly bracket".to_string(),
+                ))
+            }
+        } else {
+            Ok(None)
+        }
+    }
+}

@@ -3,7 +3,7 @@ use std::collections::VecDeque;
 use crate::impl_debug;
 use crate::parse::nodes::expressions::StaL;
 use crate::parse::nodes::GraphDisplay;
-use crate::skr_errors::ResultOption;
+use crate::skr_errors::{CustomError, ResultOption};
 use crate::tokens::Token;
 
 // Grammar of this file :
@@ -72,7 +72,7 @@ impl KName {
 #[derive(PartialEq)]
 pub struct KStart {
     name: Option<KName>,
-    sta_l: Vec<StaL>,
+    sta_l: StaL,
 }
 
 impl GraphDisplay for KStart {
@@ -82,9 +82,7 @@ impl GraphDisplay for KStart {
         if let Some(name) = &self.name {
             name.graph_display(graph, id);
         }
-        for sta_l in &self.sta_l {
-            sta_l.graph_display(graph, id);
-        }
+        self.sta_l.graph_display(graph, id);
         graph.push_str("\nend");
     }
 }
@@ -92,14 +90,23 @@ impl GraphDisplay for KStart {
 impl_debug!(KStart);
 
 impl KStart {
-    pub fn new(name: Option<KName>, sta_l: Vec<StaL>) -> Self {
+    pub fn new(name: Option<KName>, sta_l: StaL) -> Self {
         Self { name, sta_l }
     }
 
     pub fn parse(tokens: &mut VecDeque<Token>) -> ResultOption<Self> {
         // <k_start> ::= <sta_l> | <k_name> <sta_l>
-        // TODO
-        Ok(None)
+        if let Some(sta_l) = StaL::parse(tokens)? {
+            Ok(Some(KStart::new(None, sta_l)))
+        } else if let Some(name) = KName::parse(tokens)? {
+            if let Some(sta_l) = StaL::parse(tokens)? {
+                Ok(Some(KStart::new(Some(name), sta_l)))
+            } else {
+                Err(CustomError::UnexpectedToken("Expected a sta_l".to_string()))
+            }
+        } else {
+            Err(CustomError::UnexpectedToken("Expected a sta_l or a k_name".to_string()))
+        }
     }
 }
 
@@ -122,6 +129,22 @@ impl GraphDisplay for Kodi {
 }
 
 impl_debug!(Kodi);
+
+impl Kodi {
+    pub fn parse(tokens: &mut VecDeque<Token>) -> ResultOption<Self> {
+        // <kodi> ::= kodi <k_start>
+        todo!("add token");
+        if let Some(Token::NatCall) = tokens.pop_front() {
+            if let Some(start) = KStart::parse(tokens)? {
+                Ok(Some(Kodi { start }))
+            } else {
+                Err(CustomError::UnexpectedToken("Expected a k_start".to_string()))
+            }
+        } else {
+            Err(CustomError::UnexpectedToken("Expected keyword 'kodi'".to_string()))
+        }
+    }
+}
 
 // -------------
 // --- Biuli ---
