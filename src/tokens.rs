@@ -17,7 +17,6 @@ pub enum SpaceTypes {
     Tab,
 }
 
-#[allow(dead_code)]
 #[derive(Debug, PartialEq)]
 pub enum Token {
     Bool(bool),
@@ -42,6 +41,12 @@ pub enum Token {
     KeywordClass,
     KeywordFunction,
     KeywordReturn,
+    /// = biuli
+    KeywordBubbleScope,
+    /// = kodi
+    KeywordSimpleScope,
+    /// = spoki
+    KeywordUnusedScope,
     Invalid(String), // Any character not used by other tokens, only used when parsing bloc title
     // TODO : Pow
     // TODO : and, or, xor, not
@@ -166,6 +171,9 @@ fn word_to_token(res: String) -> Token {
         "ums" => Token::KeywordFunction,
         "kat" => Token::KeywordClass,
         "ei" => Token::KeywordReturn,
+        "biuli" => Token::KeywordBubbleScope,
+        "kodi" => Token::KeywordSimpleScope,
+        "spoki" => Token::KeywordUnusedScope,
         _ => Token::Identifier(res),
     }
 }

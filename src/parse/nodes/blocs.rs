@@ -133,15 +133,14 @@ impl_debug!(Kodi);
 impl Kodi {
     pub fn parse(tokens: &mut VecDeque<Token>) -> ResultOption<Self> {
         // <kodi> ::= kodi <k_start>
-        todo!("add token");
-        if let Some(Token::NatCall) = tokens.pop_front() {
+        if let Some(Token::KeywordSimpleScope) = tokens.pop_front() {
             if let Some(start) = KStart::parse(tokens)? {
                 Ok(Some(Kodi { start }))
             } else {
                 Err(CustomError::UnexpectedToken("Expected a k_start".to_string()))
             }
         } else {
-            Err(CustomError::UnexpectedToken("Expected keyword 'kodi'".to_string()))
+            Ok(None)
         }
     }
 }
@@ -166,6 +165,21 @@ impl GraphDisplay for Biuli {
 
 impl_debug!(Biuli);
 
+impl Biuli {
+    pub fn parse(tokens: &mut VecDeque<Token>) -> ResultOption<Self> {
+        // <biuli> ::= biuli <k_start>
+        if let Some(Token::KeywordBubbleScope) = tokens.pop_front() {
+            if let Some(start) = KStart::parse(tokens)? {
+                Ok(Some(Biuli { start }))
+            } else {
+                Err(CustomError::UnexpectedToken("Expected a k_start".to_string()))
+            }
+        } else {
+            Ok(None)
+        }
+    }
+}
+
 // -------------
 // --- Spoki ---
 // -------------
@@ -185,6 +199,21 @@ impl GraphDisplay for Spoki {
 }
 
 impl_debug!(Spoki);
+
+impl Spoki {
+    pub fn parse(tokens: &mut VecDeque<Token>) -> ResultOption<Self> {
+        // <spoki> ::= spoki <k_start>
+        if let Some(Token::KeywordUnusedScope) = tokens.pop_front() {
+            if let Some(start) = KStart::parse(tokens)? {
+                Ok(Some(Spoki { start }))
+            } else {
+                Err(CustomError::UnexpectedToken("Expected a k_start".to_string()))
+            }
+        } else {
+            Ok(None)
+        }
+    }
+}
 
 // -----------------
 // --- ScopeBase ---
@@ -217,8 +246,17 @@ impl_debug!(ScopeBase);
 impl ScopeBase {
     pub fn parse(tokens: &mut VecDeque<Token>) -> ResultOption<Self> {
         // <scope_base> ::= <sta_l> | <kodi> | <spoki> | <biuli>
-        // TODO
-        Ok(None)
+        if let Some(sta_l) = StaL::parse(tokens)? {
+            Ok(Some(ScopeBase::StaL(sta_l)))
+        } else if let Some(kodi) = Kodi::parse(tokens)? {
+            Ok(Some(ScopeBase::Kodi(kodi)))
+        } else if let Some(spoki) = Spoki::parse(tokens)? {
+            Ok(Some(ScopeBase::Spoki(spoki)))
+        } else if let Some(biuli) = Biuli::parse(tokens)? {
+            Ok(Some(ScopeBase::Biuli(biuli)))
+        } else {
+            Ok(None)
+        }
     }
 }
 
