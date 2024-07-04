@@ -4,35 +4,11 @@ use crate::parse::nodes::GraphDisplay;
 use crate::skr_errors::{CustomError, ResultOption};
 use crate::tokens::Token;
 use std::collections::VecDeque;
-
+use crate::parse::nodes::blocs::Scope;
 // Grammar for this file:
 // <sula> ::= sula (<ij> (<sula> |) | <scope>)
 // <ij> ::= ij <exp> <scope>
 // <cond> ::= <ij> (<sula> |)
-
-// TODO : scope
-
-#[derive(PartialEq)]
-pub struct Scope {}
-
-impl GraphDisplay for Scope {
-    fn graph_display(&self, _graph: &mut String, _id: &mut usize) {
-        // TODO
-    }
-}
-
-impl_debug!(Scope);
-
-impl Scope {
-    pub fn new() -> Self {
-        Self {}
-    }
-
-    pub fn parse(_tokens: &mut VecDeque<Token>) -> ResultOption<Self> {
-        // TODO
-        Ok(Some(Scope::new()))
-    }
-}
 
 // ------------
 // --- Sula ---

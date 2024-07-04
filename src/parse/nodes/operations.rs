@@ -1,6 +1,7 @@
 use std::collections::VecDeque;
 
 use crate::impl_debug;
+use crate::parse::nodes::expressions::{Exp, ExpBase};
 use crate::parse::nodes::GraphDisplay;
 use crate::skr_errors::{CustomError, NotYetImplementedType, OptionResult, ResultOption};
 use crate::tokens::Token;
@@ -114,7 +115,7 @@ fn parse_value_base(tokens: &mut VecDeque<Token>) -> Option<ValueBase> {
 #[derive(PartialEq)]
 pub enum ValueNode {
     ValueBase(ValueBase),
-    ExpBase, // TODO
+    ExpBase(ExpBase),
 }
 
 impl GraphDisplay for ValueNode {
@@ -125,8 +126,8 @@ impl GraphDisplay for ValueNode {
             ValueNode::ValueBase(value) => {
                 value.graph_display(graph, id);
             }
-            ValueNode::ExpBase => {
-                // TODO
+            ValueNode::ExpBase(value) => {
+                value.graph_display(graph, id);
             }
         }
         graph.push_str("\nend");
@@ -135,16 +136,18 @@ impl GraphDisplay for ValueNode {
 
 impl_debug!(ValueNode);
 
-#[allow(clippy::manual_map)]
-fn parse_value(tokens: &mut VecDeque<Token>) -> Option<Result<ValueNode, CustomError>> {
+fn parse_value(tokens: &mut VecDeque<Token>) -> OptionResult<ValueNode> {
     // <value> ::=
     //   | <value_base>
     //   | <exp_base>
     if let Some(value_base) = parse_value_base(tokens) {
         Some(Ok(ValueNode::ValueBase(value_base)))
     } else {
-        // TODO
-        None
+        match ExpBase::parse(tokens) {
+            Ok(Some(exp_base)) => Some(Ok(ValueNode::ExpBase(exp_base))),
+            Err(err) => Some(Err(err)),
+            Ok(None) => None,
+        }
     }
 }
 
@@ -156,7 +159,7 @@ fn parse_value(tokens: &mut VecDeque<Token>) -> Option<Result<ValueNode, CustomE
 /// to a value. It can detect [Exp] only between parenthesis : this takes priority over everything.
 #[derive(PartialEq)]
 pub enum TakePriority {
-    Exp, // TODO
+    Exp(Box<Exp>),
     Value(ValueNode),
 }
 
@@ -165,8 +168,8 @@ impl GraphDisplay for TakePriority {
         graph.push_str(&format!("\nsubgraph TakePriority_{}[TakePriority]", id));
         *id += 1;
         match self {
-            TakePriority::Exp => {
-                // TODO
+            TakePriority::Exp(value) => {
+                value.graph_display(graph, id);
             }
             TakePriority::Value(value) => {
                 value.graph_display(graph, id);
@@ -185,10 +188,21 @@ fn parse_take_prio(tokens: &mut VecDeque<Token>) -> Option<Result<TakePriority, 
     let front = tokens.front();
     if let Some(Token::LeftParenthesis) = front {
         tokens.pop_front();
-        // TODO
-        Some(Err(CustomError::NotYetImplemented(
-            NotYetImplementedType::InProgress("TakePriority::Exp -> coming soon".to_string()),
-        )))
+        match Exp::parse(tokens) {
+            Ok(Some(exp)) => {
+                if let Some(Token::RightParenthesis) = tokens.pop_front() {
+                    Some(Ok(TakePriority::Exp(Box::new(exp))))
+                } else {
+                    Some(Err(CustomError::UnexpectedToken(
+                        "Expected a right parenthesis".to_string(),
+                    )))
+                }
+            }
+            Err(err) => Some(Err(err)),
+            Ok(None) => Some(Err(CustomError::UnexpectedToken(
+                "Expected an expression".to_string(),
+            ))),
+        }
     } else if let Some(value) = parse_value(tokens) {
         match value {
             Ok(value) => Some(Ok(TakePriority::Value(value))),

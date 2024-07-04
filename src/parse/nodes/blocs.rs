@@ -287,7 +287,12 @@ impl_debug!(Scope);
 impl Scope {
     pub fn parse(tokens: &mut VecDeque<Token>) -> ResultOption<Self> {
         // <scope> ::= <scope_base> | <sta>
-        // TODO
-        Ok(None)
+        if let Some(scope_base) = ScopeBase::parse(tokens)? {
+            Ok(Some(Scope::ScopeBase(scope_base)))
+        } else if let Some(sta_l) = StaL::parse(tokens)? {
+            Ok(Some(Scope::Sta(sta_l)))
+        } else {
+            Ok(None)
+        }
     }
 }

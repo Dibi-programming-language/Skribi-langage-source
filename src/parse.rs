@@ -8,7 +8,6 @@ pub(crate) mod nodes;
 
 /// Parse the tokens into an AST.
 pub fn parse(mut tokens: VecDeque<Token>) -> OptionResult<FileNode> {
-    // TODO - this fonction is dependant of functions that are not yet implemented
     // This function will add more code when the other functions are implemented
     FileNode::parse(&mut tokens)
 }
