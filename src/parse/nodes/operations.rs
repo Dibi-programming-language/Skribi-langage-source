@@ -3,7 +3,7 @@ use std::collections::VecDeque;
 use crate::impl_debug;
 use crate::parse::nodes::expressions::{Exp, ExpBase};
 use crate::parse::nodes::GraphDisplay;
-use crate::skr_errors::{CustomError, NotYetImplementedType, OptionResult, ResultOption};
+use crate::skr_errors::{CustomError, OptionResult, ResultOption};
 use crate::tokens::Token;
 
 // Grammar for this file :

@@ -1,6 +1,6 @@
 use crate::impl_debug;
+use crate::parse::nodes::blocs::Scope;
 use crate::parse::nodes::id_nodes::{parse_tuple, TupleNode};
-use crate::parse::nodes::if_else::Scope;
 use crate::parse::nodes::GraphDisplay;
 use crate::skr_errors::{CustomError, ResultOption};
 use crate::tokens::Token;

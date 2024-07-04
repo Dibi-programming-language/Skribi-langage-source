@@ -29,7 +29,7 @@ impl FileNode {
     pub fn new(exps: Vec<Exp>) -> Self {
         Self { exps }
     }
-    
+
     pub fn parse(tokens: &mut VecDeque<Token>) -> OptionResult<FileNode> {
         let mut exps = Vec::new();
         loop {

@@ -105,7 +105,9 @@ impl KStart {
                 Err(CustomError::UnexpectedToken("Expected a sta_l".to_string()))
             }
         } else {
-            Err(CustomError::UnexpectedToken("Expected a sta_l or a k_name".to_string()))
+            Err(CustomError::UnexpectedToken(
+                "Expected a sta_l or a k_name".to_string(),
+            ))
         }
     }
 }
@@ -137,7 +139,9 @@ impl Kodi {
             if let Some(start) = KStart::parse(tokens)? {
                 Ok(Some(Kodi { start }))
             } else {
-                Err(CustomError::UnexpectedToken("Expected a k_start".to_string()))
+                Err(CustomError::UnexpectedToken(
+                    "Expected a k_start".to_string(),
+                ))
             }
         } else {
             Ok(None)
@@ -172,7 +176,9 @@ impl Biuli {
             if let Some(start) = KStart::parse(tokens)? {
                 Ok(Some(Biuli { start }))
             } else {
-                Err(CustomError::UnexpectedToken("Expected a k_start".to_string()))
+                Err(CustomError::UnexpectedToken(
+                    "Expected a k_start".to_string(),
+                ))
             }
         } else {
             Ok(None)
@@ -207,7 +213,9 @@ impl Spoki {
             if let Some(start) = KStart::parse(tokens)? {
                 Ok(Some(Spoki { start }))
             } else {
-                Err(CustomError::UnexpectedToken("Expected a k_start".to_string()))
+                Err(CustomError::UnexpectedToken(
+                    "Expected a k_start".to_string(),
+                ))
             }
         } else {
             Ok(None)
@@ -265,7 +273,7 @@ impl ScopeBase {
 // -------------
 
 #[derive(PartialEq)]
-pub enum Scope {
+pub(crate) enum Scope {
     ScopeBase(ScopeBase),
     Sta(StaL),
 }

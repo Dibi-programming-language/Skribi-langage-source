@@ -17,6 +17,7 @@ pub enum SpaceTypes {
     Tab,
 }
 
+#[allow(dead_code)] // TODO : define symbols to remove this
 #[derive(Debug, PartialEq)]
 pub enum Token {
     Bool(bool),

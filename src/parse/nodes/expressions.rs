@@ -1,3 +1,5 @@
+use std::collections::VecDeque;
+
 use crate::impl_debug;
 use crate::parse::nodes::blocs::ScopeBase;
 use crate::parse::nodes::functions::FctDec;
@@ -6,9 +8,8 @@ use crate::parse::nodes::if_else::Cond;
 use crate::parse::nodes::operations::{NoValue, TPLast};
 use crate::parse::nodes::vars::{VarDec, VarMod};
 use crate::parse::nodes::GraphDisplay;
-use crate::skr_errors::{CustomError, OptionResult, ResultOption};
+use crate::skr_errors::{CustomError, ResultOption};
 use crate::tokens::{SpaceTypes, Token};
-use std::collections::VecDeque;
 
 // Grammar of this file :
 // <nat_call_in> ::= T_IDENTIFIER ("\n" | <nat_call_in>)
@@ -426,7 +427,9 @@ impl Return {
             if let Some(exp) = Exp::parse(tokens)? {
                 Ok(Some(Return { exp }))
             } else {
-                Err(CustomError::UnexpectedToken("Expected an expression".to_string()))
+                Err(CustomError::UnexpectedToken(
+                    "Expected an expression".to_string(),
+                ))
             }
         } else {
             Ok(None)
@@ -506,16 +509,11 @@ impl StaL {
         if let Some(Token::LeftBrace) = tokens.front() {
             tokens.pop_front();
             let mut sta_l = Vec::new();
-            loop {
-                match Sta::parse(tokens)? {
-                    Some(sta) => {
-                        sta_l.push(sta);
-                    }
-                    None => {
-                        break;
-                    }
-                }
+
+            while let Some(sta) = Sta::parse(tokens)? {
+                sta_l.push(sta);
             }
+
             if let Some(Token::RightBrace) = tokens.pop_front() {
                 Ok(Some(StaL::new(sta_l)))
             } else {

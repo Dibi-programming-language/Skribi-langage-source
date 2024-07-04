@@ -81,3 +81,32 @@ fn test_parse_set_maxi() {
 
     assert_eq!(expected, res);
 }
+
+#[test]
+fn test_parse_set_mini() {
+    // test with "mini:hello:dar"
+
+    let mut tokens: VecDeque<Token> = vec![
+        Token::Identifier(String::from("mini")),
+        Token::Inside,
+        Token::Identifier(String::from("hello")),
+        Token::Inside,
+        Token::Identifier(String::from("dar")),
+    ]
+    .into_iter()
+    .collect();
+
+    let res = parse_id_set(&mut tokens);
+    let expected: Option<Result<IdSet, CustomError>> = Some(Ok(IdSet {
+        identifier: String::from("mini"),
+        op_in: Box::new(OpIn::IdGet(IdGet {
+            identifier: String::from("hello"),
+            tuple: None,
+            op_in: Box::new(OpIn::CGet(CGet {
+                name: String::from("dar"),
+            })),
+        })),
+    }));
+
+    assert_eq!(expected, res);
+}

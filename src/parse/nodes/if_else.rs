@@ -1,10 +1,10 @@
 use crate::impl_debug;
+use crate::parse::nodes::blocs::Scope;
 use crate::parse::nodes::expressions::Exp;
 use crate::parse::nodes::GraphDisplay;
 use crate::skr_errors::{CustomError, ResultOption};
 use crate::tokens::Token;
 use std::collections::VecDeque;
-use crate::parse::nodes::blocs::Scope;
 // Grammar for this file:
 // <sula> ::= sula (<ij> (<sula> |) | <scope>)
 // <ij> ::= ij <exp> <scope>
