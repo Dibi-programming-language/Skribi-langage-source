@@ -49,8 +49,12 @@ impl KName {
 
     pub fn parse(tokens: &mut VecDeque<Token>) -> ResultOption<KName> {
         // <k_name> ::= T_IDENTIFIER | {(* - T_LEFT_E)}
-        if let Some(Token::Identifier(name)) = tokens.pop_front() {
-            Ok(Some(KName::new(name)))
+        if let Some(Token::Identifier(_)) = tokens.front() {
+            if let Some(Token::Identifier(name)) = tokens.pop_front() {
+                Ok(Some(KName::new(name)))
+            } else {
+                Err(CustomError::UnexpectedToken("Expected an identifier".to_string()))
+            }
         } else {
             // While the token is not a left bracket, we consume it and add it to the name
             let mut name = String::new();
@@ -135,7 +139,8 @@ impl_debug!(Kodi);
 impl Kodi {
     pub fn parse(tokens: &mut VecDeque<Token>) -> ResultOption<Self> {
         // <kodi> ::= kodi <k_start>
-        if let Some(Token::KeywordSimpleScope) = tokens.pop_front() {
+        if let Some(Token::KeywordSimpleScope) = tokens.front() {
+            tokens.pop_front();
             if let Some(start) = KStart::parse(tokens)? {
                 Ok(Some(Kodi { start }))
             } else {
@@ -172,7 +177,8 @@ impl_debug!(Biuli);
 impl Biuli {
     pub fn parse(tokens: &mut VecDeque<Token>) -> ResultOption<Self> {
         // <biuli> ::= biuli <k_start>
-        if let Some(Token::KeywordBubbleScope) = tokens.pop_front() {
+        if let Some(Token::KeywordBubbleScope) = tokens.front() {
+            tokens.pop_front();
             if let Some(start) = KStart::parse(tokens)? {
                 Ok(Some(Biuli { start }))
             } else {
@@ -209,7 +215,8 @@ impl_debug!(Spoki);
 impl Spoki {
     pub fn parse(tokens: &mut VecDeque<Token>) -> ResultOption<Self> {
         // <spoki> ::= spoki <k_start>
-        if let Some(Token::KeywordUnusedScope) = tokens.pop_front() {
+        if let Some(Token::KeywordUnusedScope) = tokens.front() {
+            tokens.pop_front();
             if let Some(start) = KStart::parse(tokens)? {
                 Ok(Some(Spoki { start }))
             } else {
