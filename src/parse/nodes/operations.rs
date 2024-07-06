@@ -3,7 +3,7 @@ use std::collections::VecDeque;
 use crate::impl_debug;
 use crate::parse::nodes::expressions::{Exp, ExpBase};
 use crate::parse::nodes::GraphDisplay;
-use crate::skr_errors::{CustomError, OptionResult, ResultOption};
+use crate::skr_errors::{CustomError, ResultOption, ShortResult};
 use crate::tokens::Token;
 
 // Grammar for this file :
@@ -87,16 +87,39 @@ impl GraphDisplay for ValueBase {
 
 impl_debug!(ValueBase);
 
-fn parse_value_base(tokens: &mut VecDeque<Token>) -> Option<ValueBase> {
-    // <value_base> ::= T_BOOL | T_INT | T_STRING | T_FLOAT
-    match tokens.pop_front() {
-        Some(Token::Bool(value)) => Some(ValueBase::Bool(value)),
-        Some(Token::Int(value)) => Some(ValueBase::Int(value)),
-        Some(Token::String(value)) => Some(ValueBase::String(value)),
-        Some(Token::Float(value)) => Some(ValueBase::Float(value)),
-        va => {
-            tokens.push_front(va.unwrap());
-            None
+impl ValueBase {
+    pub fn parse(tokens: &mut VecDeque<Token>) -> Option<Self> {
+        // <value_base> ::= T_BOOL | T_INT | T_STRING | T_FLOAT
+        match tokens.front() {
+            Some(Token::Bool(_)) => {
+                if let Some(Token::Bool(value)) = tokens.pop_front() {
+                    Some(ValueBase::Bool(value))
+                } else {
+                    None
+                }
+            }
+            Some(Token::Int(_)) => {
+                if let Some(Token::Int(value)) = tokens.pop_front() {
+                    Some(ValueBase::Int(value))
+                } else {
+                    None
+                }
+            }
+            Some(Token::Float(_)) => {
+                if let Some(Token::Float(value)) = tokens.pop_front() {
+                    Some(ValueBase::Float(value))
+                } else {
+                    None
+                }
+            }
+            Some(Token::String(_)) => {
+                if let Some(Token::String(value)) = tokens.pop_front() {
+                    Some(ValueBase::String(value))
+                } else {
+                    None
+                }
+            }
+            _ => None,
         }
     }
 }
@@ -136,17 +159,18 @@ impl GraphDisplay for ValueNode {
 
 impl_debug!(ValueNode);
 
-fn parse_value(tokens: &mut VecDeque<Token>) -> OptionResult<ValueNode> {
-    // <value> ::=
-    //   | <value_base>
-    //   | <exp_base>
-    if let Some(value_base) = parse_value_base(tokens) {
-        Some(Ok(ValueNode::ValueBase(value_base)))
-    } else {
-        match ExpBase::parse(tokens) {
-            Ok(Some(exp_base)) => Some(Ok(ValueNode::ExpBase(exp_base))),
-            Err(err) => Some(Err(err)),
-            Ok(None) => None,
+impl ValueNode {
+    pub fn parse(tokens: &mut VecDeque<Token>) -> ResultOption<Self> {
+        // <value> ::=
+        //   | <value_base>
+        //   | <exp_base>
+        if let Some(value_base) = ValueBase::parse(tokens) {
+            Ok(Some(ValueNode::ValueBase(value_base)))
+        } else {
+            match ExpBase::parse(tokens)? {
+                Some(exp_base) => Ok(Some(ValueNode::ExpBase(exp_base))),
+                None => Ok(None),
+            }
         }
     }
 }
@@ -181,35 +205,33 @@ impl GraphDisplay for TakePriority {
 
 impl_debug!(TakePriority);
 
-fn parse_take_prio(tokens: &mut VecDeque<Token>) -> Option<Result<TakePriority, CustomError>> {
-    // <take_prio> ::=
-    //   T_LEFT_P <exp> T_RIGHT_P
-    //   | <value>
-    let front = tokens.front();
-    if let Some(Token::LeftParenthesis) = front {
-        tokens.pop_front();
-        match Exp::parse(tokens) {
-            Ok(Some(exp)) => {
-                if let Some(Token::RightParenthesis) = tokens.pop_front() {
-                    Some(Ok(TakePriority::Exp(Box::new(exp))))
-                } else {
-                    Some(Err(CustomError::UnexpectedToken(
-                        "Expected a right parenthesis".to_string(),
-                    )))
+impl TakePriority {
+    pub fn parse(tokens: &mut VecDeque<Token>) -> ResultOption<Self> {
+        // <take_prio> ::=
+        //   T_LEFT_P <exp> T_RIGHT_P
+        //   | <value>
+        let front = tokens.front();
+        if let Some(Token::LeftParenthesis) = front {
+            tokens.pop_front();
+            match Exp::parse(tokens)? {
+                Some(exp) => {
+                    if let Some(Token::RightParenthesis) = tokens.pop_front() {
+                        Ok(Some(TakePriority::Exp(Box::new(exp))))
+                    } else {
+                        Err(CustomError::UnexpectedToken(
+                            "Expected a right parenthesis".to_string(),
+                        ))
+                    }
                 }
+                None => Err(CustomError::UnexpectedToken(
+                    "Expected an expression".to_string(),
+                )),
             }
-            Err(err) => Some(Err(err)),
-            Ok(None) => Some(Err(CustomError::UnexpectedToken(
-                "Expected an expression".to_string(),
-            ))),
+        } else if let Some(value) = ValueNode::parse(tokens)? {
+            Ok(Some(TakePriority::Value(value)))
+        } else {
+            Ok(None)
         }
-    } else if let Some(value) = parse_value(tokens) {
-        match value {
-            Ok(value) => Some(Ok(TakePriority::Value(value))),
-            Err(err) => Some(Err(err)),
-        }
-    } else {
-        None
     }
 }
 
@@ -252,41 +274,40 @@ impl GraphDisplay for UnaryTP {
 
 impl_debug!(UnaryTP);
 
-fn parse_unary_tp(tokens: &mut VecDeque<Token>) -> Option<Result<UnaryTP, CustomError>> {
-    // <tp> ::=
-    //   (T_PLUS | T_MINUS | T_NOT) <tp>
-    //   | <take_prio>
-    let front = tokens.front();
-    match front {
-        Some(Token::Add) => {
-            tokens.pop_front();
-            let unary_tp = parse_unary_tp(tokens);
-            match unary_tp {
-                Some(Ok(unary_tp)) => Some(Ok(UnaryTP::Plus(Box::new(unary_tp)))),
-                Some(Err(err)) => Some(Err(err)),
-                None => Some(Err(CustomError::UnexpectedToken(
-                    "Expected an unary_tp".to_string(),
-                ))),
+impl UnaryTP {
+    pub fn parse(tokens: &mut VecDeque<Token>) -> ResultOption<Self> {
+        // <tp> ::=
+        //   (T_PLUS | T_MINUS | T_NOT) <tp>
+        //   | <take_prio>
+        let front = tokens.front();
+        match front {
+            Some(Token::Add) => {
+                tokens.pop_front();
+                let unary_tp = UnaryTP::parse(tokens)?;
+                match unary_tp {
+                    Some(unary_tp) => Ok(Some(UnaryTP::Plus(Box::new(unary_tp)))),
+                    None => Err(CustomError::UnexpectedToken(
+                        "Expected an unary_tp".to_string(),
+                    )),
+                }
             }
-        }
-        Some(Token::Sub) => {
-            tokens.pop_front();
-            let unary_tp = parse_unary_tp(tokens);
-            match unary_tp {
-                Some(Ok(unary_tp)) => Some(Ok(UnaryTP::Minus(Box::new(unary_tp)))),
-                Some(Err(err)) => Some(Err(err)),
-                None => Some(Err(CustomError::UnexpectedToken(
-                    "Expected an unary_tp".to_string(),
-                ))),
+            Some(Token::Sub) => {
+                tokens.pop_front();
+                let unary_tp = UnaryTP::parse(tokens)?;
+                match unary_tp {
+                    Some(unary_tp) => Ok(Some(UnaryTP::Minus(Box::new(unary_tp)))),
+                    None => Err(CustomError::UnexpectedToken(
+                        "Expected an unary_tp".to_string(),
+                    )),
+                }
             }
-        }
-        // TODO not
-        _ => {
-            let take_priority = parse_take_prio(tokens);
-            match take_priority {
-                Some(Ok(take_priority)) => Some(Ok(UnaryTP::TakePriority(take_priority))),
-                Some(Err(err)) => Some(Err(err)),
-                None => None,
+            // TODO not
+            _ => {
+                let take_priority = TakePriority::parse(tokens)?;
+                match take_priority {
+                    Some(take_priority) => Ok(Some(UnaryTP::TakePriority(take_priority))),
+                    None => Ok(None),
+                }
             }
         }
     }
@@ -393,76 +414,70 @@ impl_debug!(TP1);
 
 // Functions for parsing Mult, Div, Md and TP1
 
-fn parse_mult(tokens: &mut VecDeque<Token>) -> Option<Result<Mult, CustomError>> {
-    // <mult> ::= T_MULT <tp1>
-    let front = tokens.front();
-    if let Some(Token::Mult) = front {
-        tokens.pop_front();
-        let tp1 = parse_tp1(tokens);
-        match tp1 {
-            Some(Ok(tp1)) => Some(Ok(Mult { tp1 })),
-            Some(Err(err)) => Some(Err(err)),
-            None => Some(Err(CustomError::UnexpectedToken(
-                "Expected a tp1".to_string(),
-            ))),
-        }
-    } else {
-        None
-    }
-}
-
-fn parse_div(tokens: &mut VecDeque<Token>) -> Option<Result<Div, CustomError>> {
-    // <div> ::= T_DIV <tp1>
-    let front = tokens.front();
-    if let Some(Token::Div) = front {
-        tokens.pop_front();
-        let tp1 = parse_tp1(tokens);
-        match tp1 {
-            Some(Ok(tp1)) => Some(Ok(Div { tp1 })),
-            Some(Err(err)) => Some(Err(err)),
-            None => Some(Err(CustomError::UnexpectedToken(
-                "Expected a tp1".to_string(),
-            ))),
-        }
-    } else {
-        None
-    }
-}
-
-fn parse_md(tokens: &mut VecDeque<Token>) -> Option<Result<Md, CustomError>> {
-    // <md> ::= <mult> | <div>
-    if let Some(mult) = parse_mult(tokens) {
-        match mult {
-            Ok(mult) => Some(Ok(Md::Mult(mult))),
-            Err(err) => Some(Err(err)),
-        }
-    } else if let Some(div) = parse_div(tokens) {
-        match div {
-            Ok(div) => Some(Ok(Md::Div(div))),
-            Err(err) => Some(Err(err)),
-        }
-    } else {
-        None
-    }
-}
-
-fn parse_tp1(tokens: &mut VecDeque<Token>) -> Option<Result<TP1, CustomError>> {
-    // <tp1> ::= <tp> (<md> |)
-    let unary_tp = parse_unary_tp(tokens);
-    match unary_tp {
-        Some(Ok(unary_tp)) => {
-            let md = parse_md(tokens);
-            match md {
-                Some(Ok(md)) => Some(Ok(TP1 {
-                    unary_tp,
-                    md: Some(Box::new(md)),
-                })),
-                Some(Err(err)) => Some(Err(err)),
-                None => Some(Ok(TP1 { unary_tp, md: None })),
+impl Mult {
+    fn parse(tokens: &mut VecDeque<Token>) -> ResultOption<Self> {
+        // <mult> ::= T_MULT <tp1>
+        let front = tokens.front();
+        if let Some(Token::Mult) = front {
+            tokens.pop_front();
+            let tp1 = TP1::parse(tokens)?;
+            match tp1 {
+                Some(tp1) => Ok(Some(Mult { tp1 })),
+                None => Err(CustomError::UnexpectedToken("Expected a tp1".to_string())),
             }
+        } else {
+            Ok(None)
         }
-        Some(Err(err)) => Some(Err(err)),
-        None => None,
+    }
+}
+
+impl Div {
+    fn parse(tokens: &mut VecDeque<Token>) -> ResultOption<Self> {
+        // <div> ::= T_DIV <tp1>
+        let front = tokens.front();
+        if let Some(Token::Div) = front {
+            tokens.pop_front();
+            let tp1 = TP1::parse(tokens)?;
+            match tp1 {
+                Some(tp1) => Ok(Some(Div { tp1 })),
+                None => Err(CustomError::UnexpectedToken("Expected a tp1".to_string())),
+            }
+        } else {
+            Ok(None)
+        }
+    }
+}
+
+impl Md {
+    fn parse(tokens: &mut VecDeque<Token>) -> ResultOption<Self> {
+        // <md> ::= <mult> | <div>
+        if let Some(mult) = Mult::parse(tokens)? {
+            Ok(Some(Md::Mult(mult)))
+        } else if let Some(div) = Div::parse(tokens)? {
+            Ok(Some(Md::Div(div)))
+        } else {
+            Ok(None)
+        }
+    }
+}
+
+impl TP1 {
+    fn parse(tokens: &mut VecDeque<Token>) -> ResultOption<Self> {
+        // <tp1> ::= <tp> (<md> |)
+        let unary_tp = UnaryTP::parse(tokens)?;
+        match unary_tp {
+            Some(unary_tp) => {
+                let md = Md::parse(tokens)?;
+                match md {
+                    Some(md) => Ok(Some(TP1 {
+                        unary_tp,
+                        md: Some(Box::new(md)),
+                    })),
+                    None => Ok(Some(TP1 { unary_tp, md: None })),
+                }
+            }
+            None => Ok(None),
+        }
     }
 }
 
@@ -572,21 +587,18 @@ impl Add {
         Add { tp2 }
     }
 
-    fn parse(tokens: &mut VecDeque<Token>) -> Option<Result<Add, CustomError>> {
+    fn parse(tokens: &mut VecDeque<Token>) -> ResultOption<Add> {
         // <add> ::= T_ADD <tp2>
         let front = tokens.front();
         if let Some(Token::Add) = front {
             tokens.pop_front();
-            let tp2 = TP2::parse(tokens);
+            let tp2 = TP2::parse(tokens)?;
             match tp2 {
-                Some(Ok(tp2)) => Some(Ok(Add::new(tp2))),
-                Some(Err(err)) => Some(Err(err)),
-                None => Some(Err(CustomError::UnexpectedToken(
-                    "Expected a tp2".to_string(),
-                ))),
+                Some(tp2) => Ok(Some(Add::new(tp2))),
+                None => Err(CustomError::UnexpectedToken("Expected a tp2".to_string())),
             }
         } else {
-            None
+            Ok(None)
         }
     }
 }
@@ -596,40 +608,31 @@ impl Sub {
         Sub { tp2 }
     }
 
-    fn parse(tokens: &mut VecDeque<Token>) -> Option<Result<Sub, CustomError>> {
+    fn parse(tokens: &mut VecDeque<Token>) -> ResultOption<Sub> {
         // <sub> ::= T_SUB <tp2>
         let front = tokens.front();
         if let Some(Token::Sub) = front {
             tokens.pop_front();
-            let tp2 = TP2::parse(tokens);
+            let tp2 = TP2::parse(tokens)?;
             match tp2 {
-                Some(Ok(tp2)) => Some(Ok(Sub::new(tp2))),
-                Some(Err(err)) => Some(Err(err)),
-                None => Some(Err(CustomError::UnexpectedToken(
-                    "Expected a tp2".to_string(),
-                ))),
+                Some(tp2) => Ok(Some(Sub::new(tp2))),
+                None => Err(CustomError::UnexpectedToken("Expected a tp2".to_string())),
             }
         } else {
-            None
+            Ok(None)
         }
     }
 }
 
 impl As {
-    fn parse(tokens: &mut VecDeque<Token>) -> Option<Result<As, CustomError>> {
+    fn parse(tokens: &mut VecDeque<Token>) -> ResultOption<As> {
         // <as> ::= <add> | <sub>
-        if let Some(add) = Add::parse(tokens) {
-            match add {
-                Ok(add) => Some(Ok(As::Add(add))),
-                Err(err) => Some(Err(err)),
-            }
-        } else if let Some(sub) = Sub::parse(tokens) {
-            match sub {
-                Ok(sub) => Some(Ok(As::Sub(sub))),
-                Err(err) => Some(Err(err)),
-            }
+        if let Some(add) = Add::parse(tokens)? {
+            Ok(Some(As::Add(add)))
+        } else if let Some(sub) = Sub::parse(tokens)? {
+            Ok(Some(As::Sub(sub)))
         } else {
-            None
+            Ok(None)
         }
     }
 }
@@ -642,20 +645,15 @@ impl TP2 {
         }
     }
 
-    fn parse(tokens: &mut VecDeque<Token>) -> Option<Result<TP2, CustomError>> {
+    fn parse(tokens: &mut VecDeque<Token>) -> ResultOption<TP2> {
         // <tp2> ::= <tp1> (<as> |)
-        let tp1 = parse_tp1(tokens);
+        let tp1 = TP1::parse(tokens)?;
         match tp1 {
-            Some(Ok(tp1)) => {
-                let as_ = As::parse(tokens);
-                match as_ {
-                    Some(Ok(as_)) => Some(Ok(TP2::new(tp1, Some(as_)))),
-                    Some(Err(err)) => Some(Err(err)),
-                    None => Some(Ok(TP2::new(tp1, None))),
-                }
+            Some(tp1) => {
+                let as_ = As::parse(tokens)?;
+                Ok(Some(TP2::new(tp1, as_)))
             }
-            Some(Err(err)) => Some(Err(err)),
-            None => None,
+            None => Ok(None),
         }
     }
 }
@@ -763,21 +761,18 @@ impl Eq {
         Eq { tp3 }
     }
 
-    fn parse(tokens: &mut VecDeque<Token>) -> Option<Result<Eq, CustomError>> {
+    fn parse(tokens: &mut VecDeque<Token>) -> ResultOption<Eq> {
         // <eq> ::= T_EQUAL <tp3>
         let front = tokens.front();
         if let Some(Token::Equal) = front {
             tokens.pop_front();
-            let tp3 = TP3::parse(tokens);
+            let tp3 = TP3::parse(tokens)?;
             match tp3 {
-                Some(Ok(tp3)) => Some(Ok(Eq::new(tp3))),
-                Some(Err(err)) => Some(Err(err)),
-                None => Some(Err(CustomError::UnexpectedToken(
-                    "Expected a tp3".to_string(),
-                ))),
+                Some(tp3) => Ok(Some(Eq::new(tp3))),
+                None => Err(CustomError::UnexpectedToken("Expected a tp3".to_string())),
             }
         } else {
-            None
+            Ok(None)
         }
     }
 }
@@ -787,40 +782,31 @@ impl NotEq {
         NotEq { tp3 }
     }
 
-    fn parse(tokens: &mut VecDeque<Token>) -> Option<Result<NotEq, CustomError>> {
+    fn parse(tokens: &mut VecDeque<Token>) -> ResultOption<NotEq> {
         // <not_eq> ::= T_NOT_EQUAL <tp3>
         let front = tokens.front();
         if let Some(Token::NotEqual) = front {
             tokens.pop_front();
-            let tp3 = TP3::parse(tokens);
+            let tp3 = TP3::parse(tokens)?;
             match tp3 {
-                Some(Ok(tp3)) => Some(Ok(NotEq::new(tp3))),
-                Some(Err(err)) => Some(Err(err)),
-                None => Some(Err(CustomError::UnexpectedToken(
-                    "Expected a tp3".to_string(),
-                ))),
+                Some(tp3) => Ok(Some(NotEq::new(tp3))),
+                None => Err(CustomError::UnexpectedToken("Expected a tp3".to_string())),
             }
         } else {
-            None
+            Ok(None)
         }
     }
 }
 
 impl EqNot {
-    fn parse(tokens: &mut VecDeque<Token>) -> Option<Result<EqNot, CustomError>> {
+    fn parse(tokens: &mut VecDeque<Token>) -> ResultOption<EqNot> {
         // <eq_not> ::= <eq> | <not_eq>
-        if let Some(eq) = Eq::parse(tokens) {
-            match eq {
-                Ok(eq) => Some(Ok(EqNot::Eq(eq))),
-                Err(err) => Some(Err(err)),
-            }
-        } else if let Some(not_eq) = NotEq::parse(tokens) {
-            match not_eq {
-                Ok(not_eq) => Some(Ok(EqNot::NotEq(not_eq))),
-                Err(err) => Some(Err(err)),
-            }
+        if let Some(eq) = Eq::parse(tokens)? {
+            Ok(Some(EqNot::Eq(eq)))
+        } else if let Some(not_eq) = NotEq::parse(tokens)? {
+            Ok(Some(EqNot::NotEq(not_eq)))
         } else {
-            None
+            Ok(None)
         }
     }
 }
@@ -833,20 +819,18 @@ impl TP3 {
         }
     }
 
-    fn parse(tokens: &mut VecDeque<Token>) -> Option<Result<TP3, CustomError>> {
+    fn parse(tokens: &mut VecDeque<Token>) -> ResultOption<TP3> {
         // <tp3> ::= <tp2> (<eq_not> |)
-        let tp2 = TP2::parse(tokens);
+        let tp2 = TP2::parse(tokens)?;
         match tp2 {
-            Some(Ok(tp2)) => {
-                let eq_not = EqNot::parse(tokens);
+            Some(tp2) => {
+                let eq_not = EqNot::parse(tokens)?;
                 match eq_not {
-                    Some(Ok(eq_not)) => Some(Ok(TP3::new(tp2, Some(eq_not)))),
-                    Some(Err(err)) => Some(Err(err)),
-                    None => Some(Ok(TP3::new(tp2, None))),
+                    Some(eq_not) => Ok(Some(TP3::new(tp2, Some(eq_not)))),
+                    None => Ok(Some(TP3::new(tp2, None))),
                 }
             }
-            Some(Err(err)) => Some(Err(err)),
-            None => None,
+            None => Ok(None),
         }
     }
 }
@@ -910,21 +894,18 @@ impl And {
         And { tp4 }
     }
 
-    fn parse(tokens: &mut VecDeque<Token>) -> Option<Result<And, CustomError>> {
+    fn parse(tokens: &mut VecDeque<Token>) -> ResultOption<And> {
         // <and> ::= T_AND <tp4>
         let front = tokens.front();
         if let Some(Token::And) = front {
             tokens.pop_front();
-            let tp4 = TP4::parse(tokens);
+            let tp4 = TP4::parse(tokens)?;
             match tp4 {
-                Some(Ok(tp4)) => Some(Ok(And::new(tp4))),
-                Some(Err(err)) => Some(Err(err)),
-                None => Some(Err(CustomError::UnexpectedToken(
-                    "Expected a tp4".to_string(),
-                ))),
+                Some(tp4) => Ok(Some(And::new(tp4))),
+                None => Err(CustomError::UnexpectedToken("Expected a tp4".to_string())),
             }
         } else {
-            None
+            Ok(None)
         }
     }
 }
@@ -937,20 +918,15 @@ impl TP4 {
         }
     }
 
-    fn parse(tokens: &mut VecDeque<Token>) -> Option<Result<TP4, CustomError>> {
+    fn parse(tokens: &mut VecDeque<Token>) -> ResultOption<Self> {
         // <tp4> ::= <tp3> (<and> |)
-        let tp3 = TP3::parse(tokens);
+        let tp3 = TP3::parse(tokens)?;
         match tp3 {
-            Some(Ok(tp3)) => {
-                let and = And::parse(tokens);
-                match and {
-                    Some(Ok(and)) => Some(Ok(TP4::new(tp3, Some(and)))),
-                    Some(Err(err)) => Some(Err(err)),
-                    None => Some(Ok(TP4::new(tp3, None))),
-                }
+            Some(tp3) => {
+                let and = And::parse(tokens)?;
+                Ok(Some(TP4::new(tp3, and)))
             }
-            Some(Err(err)) => Some(Err(err)),
-            None => None,
+            None => Ok(None),
         }
     }
 }
@@ -1014,21 +990,18 @@ impl Or {
         Or { tp5 }
     }
 
-    fn parse(tokens: &mut VecDeque<Token>) -> Option<Result<Or, CustomError>> {
+    fn parse(tokens: &mut VecDeque<Token>) -> ResultOption<Or> {
         // <or> ::= T_OR <tp5>
         let front = tokens.front();
         if let Some(Token::Or) = front {
             tokens.pop_front();
-            let tp5 = TP5::parse(tokens);
+            let tp5 = TP5::parse(tokens)?;
             match tp5 {
-                Some(Ok(tp5)) => Some(Ok(Or::new(tp5))),
-                Some(Err(err)) => Some(Err(err)),
-                None => Some(Err(CustomError::UnexpectedToken(
-                    "Expected a tp5".to_string(),
-                ))),
+                Some(tp5) => Ok(Some(Or::new(tp5))),
+                None => Err(CustomError::UnexpectedToken("Expected a tp5".to_string())),
             }
         } else {
-            None
+            Ok(None)
         }
     }
 }
@@ -1041,20 +1014,15 @@ impl TP5 {
         }
     }
 
-    fn parse(tokens: &mut VecDeque<Token>) -> Option<Result<TP5, CustomError>> {
+    fn parse(tokens: &mut VecDeque<Token>) -> ResultOption<Self> {
         // <tp5> ::= <tp4> (<or> |)
-        let tp4 = TP4::parse(tokens);
+        let tp4 = TP4::parse(tokens)?;
         match tp4 {
-            Some(Ok(tp4)) => {
-                let or = Or::parse(tokens);
-                match or {
-                    Some(Ok(or)) => Some(Ok(TP5::new(tp4, Some(or)))),
-                    Some(Err(err)) => Some(Err(err)),
-                    None => Some(Ok(TP5::new(tp4, None))),
-                }
+            Some(tp4) => {
+                let or = Or::parse(tokens)?;
+                Ok(Some(TP5::new(tp4, or)))
             }
-            Some(Err(err)) => Some(Err(err)),
-            None => None,
+            None => Ok(None),
         }
     }
 }
@@ -1126,23 +1094,22 @@ impl_debug!(NoValue);
 // Functions for parsing TPLast and NoValue
 
 impl TPLast {
-    fn new(tp5: TP5) -> TPLast {
+    pub(crate) fn new(tp5: TP5) -> TPLast {
         TPLast { tp5 }
     }
 
     pub fn parse(tokens: &mut VecDeque<Token>) -> ResultOption<TPLast> {
         // <tp_last> ::= <tp5>
-        let tp5 = TP5::parse(tokens);
+        let tp5 = TP5::parse(tokens)?;
         match tp5 {
-            Some(Ok(tp5)) => Ok(Some(TPLast::new(tp5))),
-            Some(Err(err)) => Err(err),
+            Some(tp5) => Ok(Some(TPLast::new(tp5))),
             None => Ok(None),
         }
     }
 }
 
 impl NoValue {
-    fn new(
+    pub(crate) fn new(
         md: Option<Md>,
         as_: Option<As>,
         eq_not: Option<EqNot>,
@@ -1158,39 +1125,13 @@ impl NoValue {
         }
     }
 
-    pub(crate) fn parse(tokens: &mut VecDeque<Token>) -> Result<NoValue, CustomError> {
+    pub(crate) fn parse(tokens: &mut VecDeque<Token>) -> ShortResult<Self> {
         // <no_value> ::= (<md> |) (<as> |) (<eq_not> |) (<and> |) (<or> |)
-        let md = parse_md(tokens);
-        let as_ = As::parse(tokens);
-        let eq_not = EqNot::parse(tokens);
-        let and = And::parse(tokens);
-        let or = Or::parse(tokens);
-
-        let md = match md {
-            None => None,
-            Some(Err(a)) => return Err(a),
-            Some(Ok(a)) => Some(a),
-        };
-        let as_ = match as_ {
-            None => None,
-            Some(Err(a)) => return Err(a),
-            Some(Ok(a)) => Some(a),
-        };
-        let eq_not = match eq_not {
-            None => None,
-            Some(Err(a)) => return Err(a),
-            Some(Ok(a)) => Some(a),
-        };
-        let and = match and {
-            None => None,
-            Some(Err(a)) => return Err(a),
-            Some(Ok(a)) => Some(a),
-        };
-        let or = match or {
-            None => None,
-            Some(Err(a)) => return Err(a),
-            Some(Ok(a)) => Some(a),
-        };
+        let md = Md::parse(tokens)?;
+        let as_ = As::parse(tokens)?;
+        let eq_not = EqNot::parse(tokens)?;
+        let and = And::parse(tokens)?;
+        let or = Or::parse(tokens)?;
 
         Ok(NoValue::new(md, as_, eq_not, and, or))
     }

@@ -7,7 +7,7 @@ pub mod files_node;
 mod functions;
 pub(crate) mod id_nodes;
 mod if_else;
-mod operations;
+pub(crate) mod operations;
 mod vars;
 
 /// Macro to implement the Debug trait for a GraphDisplay

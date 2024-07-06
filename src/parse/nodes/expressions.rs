@@ -3,7 +3,7 @@ use std::collections::VecDeque;
 use crate::impl_debug;
 use crate::parse::nodes::blocs::ScopeBase;
 use crate::parse::nodes::functions::FctDec;
-use crate::parse::nodes::id_nodes::{parse_id_get, parse_id_set, IdGet, IdSet};
+use crate::parse::nodes::id_nodes::{IdGet, IdSet};
 use crate::parse::nodes::if_else::Cond;
 use crate::parse::nodes::operations::{NoValue, TPLast};
 use crate::parse::nodes::vars::{VarDec, VarMod};
@@ -39,6 +39,12 @@ use crate::tokens::{SpaceTypes, Token};
 // --- NatCallIn ---
 // -----------------
 
+/// `NatCallIn` represents an argument of a native call. It contains an identifier and an optional
+/// [NatCallIn] to represent the next argument.
+///
+/// The identifier is the name of the variable that will be passed to the native function. The
+/// [NatCallIn] is the next argument to pass to the native function, this is the tail of the list of
+/// arguments.
 #[derive(PartialEq)]
 struct NatCallIn {
     identifier: String,
@@ -102,6 +108,8 @@ impl NatCallIn {
 // --- NatCall ---
 // ---------------
 
+/// `NatCall` represents a native call. It contains a [NatCallIn] to represent the first argument
+/// and the chain of arguments. The first argument is the name of the native function to call.
 #[derive(PartialEq)]
 struct NatCall {
     nat_call_in: NatCallIn,
@@ -144,23 +152,40 @@ impl NatCall {
 // --- IdUse ---
 // -------------
 
+/// `IdUse` represents two types of expressions that have a link with identifiers. It can be an
+/// [IdSet] followed by an optional [VarMod], or an [IdGet]. This means that it can be a variable
+/// declaration, a variable modification, or a variable access.
+///
+/// # Grammar
+///
+/// `<id_use> ::= <id_set> (<var_mod> |) | <id_get>`
+///
+/// See also [IdSet], [VarMod], and [IdGet].
+///
+/// # TODO
+///
+/// [IdSet] and [IdGet] start with an identifier so this will not work if we want an [IdGet].
 #[derive(PartialEq)]
-pub struct IdUse {
-    id_set: IdSet,
-    var_mod: Option<Box<VarMod>>,
-    id_get: Option<IdGet>,
+pub enum IdUse {
+    IdSet {
+        id_set: IdSet,
+        var_mod: Option<Box<VarMod>>,
+    },
+    IdGet(IdGet),
 }
 
 impl GraphDisplay for IdUse {
     fn graph_display(&self, graph: &mut String, id: &mut usize) {
         graph.push_str(&format!("\nsubgraph IdUse_{}[IdUse]", id));
         *id += 1;
-        self.id_set.graph_display(graph, id);
-        if let Some(var_mod) = &self.var_mod {
-            var_mod.graph_display(graph, id);
-        }
-        if let Some(id_get) = &self.id_get {
-            id_get.graph_display(graph, id);
+        match self {
+            IdUse::IdSet { id_set, var_mod } => {
+                id_set.graph_display(graph, id);
+                if let Some(var_mod) = var_mod {
+                    var_mod.graph_display(graph, id);
+                }
+            }
+            IdUse::IdGet(id_get) => id_get.graph_display(graph, id),
         }
         graph.push_str("\nend");
     }
@@ -169,11 +194,10 @@ impl GraphDisplay for IdUse {
 impl_debug!(IdUse);
 
 impl IdUse {
-    fn new(id_set: IdSet, var_mod: Option<VarMod>, id_get: Option<IdGet>) -> Self {
-        Self {
+    pub(crate) fn new_set(id_set: IdSet, var_mod: Option<VarMod>) -> Self {
+        Self::IdSet {
             id_set,
             var_mod: var_mod.map(Box::new),
-            id_get,
         }
     }
 
@@ -181,18 +205,18 @@ impl IdUse {
         // <id_use> ::=
         //   <id_set> (<var_mod> |)
         //   | <id_get>
-        match parse_id_set(tokens) {
-            Some(Ok(id_set)) => {
-                if let Some(var_mod) = VarMod::parse(tokens)? {
-                    Ok(Some(IdUse::new(id_set, Some(var_mod), None)))
-                } else if let Some(id_get) = parse_id_get(tokens) {
-                    Ok(Some(IdUse::new(id_set, None, Some(id_get?))))
-                } else {
-                    Ok(Some(IdUse::new(id_set, None, None)))
-                }
+        match IdSet::parse(tokens)? {
+            Some(id_set) => {
+                let var_mod = VarMod::parse(tokens)?;
+                Ok(Some(IdUse::IdSet {
+                    id_set,
+                    var_mod: var_mod.map(Box::new),
+                }))
             }
-            Some(Err(err)) => Err(err),
-            None => Ok(None),
+            None => match IdGet::parse(tokens)? {
+                Some(id_get) => Ok(Some(IdUse::IdGet(id_get))),
+                None => Ok(None),
+            },
         }
     }
 }
@@ -201,6 +225,16 @@ impl IdUse {
 // --- IdUseV ---
 // --------------
 
+/// `IdUseV` represents an [IdUse] followed by an optional [NoValue]. This means that it can be an
+/// identifier usage on which we apply operations.
+///
+/// # Example
+///
+/// The expression `a + 1` is an [IdUseV] where `a` is the [IdUse] and `+ 1` is the [NoValue].
+///
+/// See the test `test_simple_exp_id_use_v` in `src/tests/parse_tests/expressions_tests.rs` for an
+/// example of parsing.
+///
 #[derive(PartialEq)]
 pub struct IdUseV {
     id_use: IdUse,
@@ -222,7 +256,7 @@ impl GraphDisplay for IdUseV {
 impl_debug!(IdUseV);
 
 impl IdUseV {
-    fn new(id_use: IdUse, no_value: Option<NoValue>) -> Self {
+    pub(crate) fn new(id_use: IdUse, no_value: Option<NoValue>) -> Self {
         Self { id_use, no_value }
     }
 
@@ -319,7 +353,6 @@ impl ExpBase {
 // --- ExpTp ---
 // -------------
 
-/// Not yet implemented
 #[derive(PartialEq)]
 pub enum ExpTp {
     ExpBase(ExpBase),
@@ -363,7 +396,6 @@ impl ExpTp {
 // --- Exp ---
 // -----------
 
-/// Not yet implemented, but already used by some nodes that are dependent on it
 #[derive(PartialEq)]
 pub enum Exp {
     ExpTp(ExpTp),

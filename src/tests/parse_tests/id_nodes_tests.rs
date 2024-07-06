@@ -1,7 +1,8 @@
-use crate::parse::nodes::id_nodes::{parse_cget, parse_id_set, CGet, IdGet, IdSet, OpIn};
-use crate::skr_errors::CustomError;
-use crate::tokens::Token;
 use std::collections::VecDeque;
+
+use crate::parse::nodes::id_nodes::{parse_cget, CGet, IdGet, IdSet, OpIn};
+use crate::skr_errors::ResultOption;
+use crate::tokens::Token;
 
 #[test]
 fn test_id_simple() {
@@ -63,8 +64,8 @@ fn test_parse_set_maxi() {
     .into_iter()
     .collect();
 
-    let res = parse_id_set(&mut tokens);
-    let expected: Option<Result<IdSet, CustomError>> = Some(Ok(IdSet {
+    let res = IdSet::parse(&mut tokens);
+    let expected: ResultOption<IdSet> = Ok(Some(IdSet {
         identifier: String::from("maxi"),
         op_in: Box::new(OpIn::IdGet(IdGet {
             identifier: String::from("mini"),
@@ -96,8 +97,8 @@ fn test_parse_set_mini() {
     .into_iter()
     .collect();
 
-    let res = parse_id_set(&mut tokens);
-    let expected: Option<Result<IdSet, CustomError>> = Some(Ok(IdSet {
+    let res = IdSet::parse(&mut tokens);
+    let expected: ResultOption<IdSet> = Ok(Some(IdSet {
         identifier: String::from("mini"),
         op_in: Box::new(OpIn::IdGet(IdGet {
             identifier: String::from("hello"),

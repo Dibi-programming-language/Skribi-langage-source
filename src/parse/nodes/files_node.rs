@@ -3,7 +3,7 @@ use std::collections::VecDeque;
 use crate::impl_debug;
 use crate::parse::nodes::expressions::Exp;
 use crate::parse::nodes::GraphDisplay;
-use crate::skr_errors::OptionResult;
+use crate::skr_errors::ResultOption;
 use crate::tokens::Token;
 
 /// Node representing a file. This is the root node of the AST.
@@ -30,22 +30,11 @@ impl FileNode {
         Self { exps }
     }
 
-    pub fn parse(tokens: &mut VecDeque<Token>) -> OptionResult<FileNode> {
+    pub fn parse(tokens: &mut VecDeque<Token>) -> ResultOption<Self> {
         let mut exps = Vec::new();
-        loop {
-            match Exp::parse(tokens) {
-                Ok(Some(exp)) => {
-                    exps.push(exp);
-                }
-                Err(e) => {
-                    return Some(Err(e));
-                }
-                Ok(None) => {
-                    break;
-                }
-            }
+        while let Some(exp) = Exp::parse(tokens)? {
+            exps.push(exp);
         }
-
-        Some(Ok(FileNode { exps }))
+        Ok(Some(FileNode { exps }))
     }
 }

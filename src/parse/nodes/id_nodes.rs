@@ -2,7 +2,7 @@ use std::collections::VecDeque;
 
 use crate::parse::nodes::classes::is_type_def;
 use crate::parse::nodes::GraphDisplay;
-use crate::skr_errors::{CustomError, OptionResult};
+use crate::skr_errors::{CustomError, ResultOption};
 use crate::tokens::Token;
 use crate::{impl_debug, skr_errors};
 
@@ -18,11 +18,6 @@ pub struct TupleNode {
     // TODO: définir les champs du tuple ici
 }
 
-pub fn parse_tuple(_tokens: &mut VecDeque<Token>) -> OptionResult<TupleNode> {
-    // TODO: implémenter cette fonction
-    None
-}
-
 impl GraphDisplay for TupleNode {
     fn graph_display(&self, graph: &mut String, id: &mut usize) {
         graph.push_str(&format!("\nsubgraph TupleNode_{}[TupleNode]\nend", id));
@@ -31,6 +26,17 @@ impl GraphDisplay for TupleNode {
 }
 
 impl_debug!(TupleNode);
+
+impl TupleNode {
+    pub(crate) fn new() -> Self {
+        Self {}
+    }
+
+    pub(crate) fn parse(_tokens: &mut VecDeque<Token>) -> ResultOption<Self> {
+        // TODO: implémenter cette fonction
+        Ok(None)
+    }
+}
 
 // ------------
 // --- CGet ---
@@ -152,30 +158,33 @@ impl GraphDisplay for IdGet {
 
 impl_debug!(IdGet);
 
-pub(crate) fn parse_id_get(tokens: &mut VecDeque<Token>) -> OptionResult<IdGet> {
-    // <id_get> ::= T_IDENTIFIER (<tuple> |) <op_in>
-    if let Some(Token::Identifier(_)) = tokens.front() {
-        if let Some(Token::Identifier(identifier)) = tokens.pop_front() {
-            let tuple_parsed = parse_tuple(tokens);
-            let tuple = match tuple_parsed {
-                Some(Ok(tuple)) => Some(tuple),
-                Some(Err(err)) => return Some(Err(err)),
-                None => None,
-            };
-            let op_in = parse_op_in(tokens);
-            match op_in {
-                Ok(op_in) => Some(Ok(IdGet {
+impl IdGet {
+    pub(crate) fn new(identifier: String, tuple: Option<TupleNode>, op_in: OpIn) -> Self {
+        Self {
+            identifier,
+            tuple,
+            op_in: Box::new(op_in),
+        }
+    }
+
+    pub(crate) fn parse(tokens: &mut VecDeque<Token>) -> ResultOption<Self> {
+        // <id_get> ::= T_IDENTIFIER (<tuple> |) <op_in>
+        if let Some(Token::Identifier(_)) = tokens.front() {
+            if let Some(Token::Identifier(identifier)) = tokens.pop_front() {
+                let tuple_parsed = TupleNode::parse(tokens)?;
+                let tuple = tuple_parsed;
+                let op_in = parse_op_in(tokens)?;
+                Ok(Some(IdGet {
                     identifier,
                     tuple,
                     op_in: Box::new(op_in),
-                })),
-                Err(err) => Some(Err(err)),
+                }))
+            } else {
+                Ok(None)
             }
         } else {
-            None
+            Ok(None)
         }
-    } else {
-        None
     }
 }
 
@@ -212,14 +221,14 @@ impl GraphDisplay for OpIn {
 
 impl_debug!(OpIn);
 
-pub(crate) fn parse_op_in(tokens: &mut VecDeque<Token>) -> skr_errors::Result<OpIn> {
+pub(crate) fn parse_op_in(tokens: &mut VecDeque<Token>) -> skr_errors::ShortResult<OpIn> {
     // <op_in> ::= (T_IN (<id_get> | <cget>) |)
     return if let Some(Token::Inside) = tokens.front() {
         tokens.pop_front();
         if let Some(c_get) = parse_cget(tokens) {
             Ok(OpIn::CGet(c_get))
-        } else if let Some(id_get) = parse_id_get(tokens) {
-            Ok(OpIn::IdGet(id_get?))
+        } else if let Some(id_get) = IdGet::parse(tokens)? {
+            Ok(OpIn::IdGet(id_get))
         } else {
             Err(CustomError::UnexpectedToken(
                 "Expected id_get or cget after \"indide\" token".to_string(),
@@ -257,22 +266,28 @@ impl GraphDisplay for IdSet {
 
 impl_debug!(IdSet);
 
-pub(crate) fn parse_id_set(tokens: &mut VecDeque<Token>) -> OptionResult<IdSet> {
-    // <id_set> ::= T_IDENTIFIER <op_in>
-    if let Some(Token::Identifier(_)) = tokens.front() {
-        if let Some(Token::Identifier(identifier)) = tokens.pop_front() {
-            let op_in = parse_op_in(tokens);
-            match op_in {
-                Ok(op_in) => Some(Ok(IdSet {
+impl IdSet {
+    pub(crate) fn new(identifier: String, op_in: OpIn) -> Self {
+        Self {
+            identifier,
+            op_in: Box::new(op_in),
+        }
+    }
+
+    pub(crate) fn parse(tokens: &mut VecDeque<Token>) -> ResultOption<Self> {
+        // <id_set> ::= T_IDENTIFIER <op_in>
+        if let Some(Token::Identifier(_)) = tokens.front() {
+            if let Some(Token::Identifier(identifier)) = tokens.pop_front() {
+                let op_in = parse_op_in(tokens)?;
+                Ok(Some(IdSet {
                     identifier,
                     op_in: Box::new(op_in),
-                })),
-                Err(err) => Some(Err(err)),
+                }))
+            } else {
+                Ok(None)
             }
         } else {
-            None
+            Ok(None)
         }
-    } else {
-        None
     }
 }

@@ -1,10 +1,11 @@
+use std::collections::VecDeque;
+
 use crate::impl_debug;
 use crate::parse::nodes::blocs::Scope;
-use crate::parse::nodes::id_nodes::{parse_tuple, TupleNode};
+use crate::parse::nodes::id_nodes::TupleNode;
 use crate::parse::nodes::GraphDisplay;
 use crate::skr_errors::{CustomError, ResultOption};
 use crate::tokens::Token;
-use std::collections::VecDeque;
 
 // Grammar of this file :
 // <fct_dec> ::= ums T_IDENTIFIER <tuple> <scope>
@@ -49,8 +50,8 @@ impl FctDec {
         if let Some(Token::KeywordFunction) = tokens.front() {
             tokens.pop_front();
             if let Some(Token::Identifier(identifier)) = tokens.pop_front() {
-                match parse_tuple(tokens) {
-                    Some(Ok(tuple)) => match Scope::parse(tokens)? {
+                match TupleNode::parse(tokens)? {
+                    Some(tuple) => match Scope::parse(tokens)? {
                         Some(scope) => Ok(Some(FctDec {
                             identifier,
                             tuple,
@@ -58,7 +59,6 @@ impl FctDec {
                         })),
                         None => Err(CustomError::UnexpectedToken("Expected a scope".to_string())),
                     },
-                    Some(Err(err)) => Err(err),
                     None => Err(CustomError::UnexpectedToken("Expected a tuple".to_string())),
                 }
             } else {
@@ -67,9 +67,7 @@ impl FctDec {
                 ))
             }
         } else {
-            Err(CustomError::UnexpectedToken(
-                "Expected keyword 'ums'".to_string(),
-            ))
+            Ok(None)
         }
     }
 }
