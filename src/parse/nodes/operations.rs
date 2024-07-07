@@ -162,7 +162,7 @@ impl_debug!(ValueNode);
 impl ValueNode {
     pub fn parse(tokens: &mut VecDeque<Token>) -> ResultOption<Self> {
         // <value> ::=
-        //   | <value_base>
+        //   <value_base>
         //   | <exp_base>
         if let Some(value_base) = ValueBase::parse(tokens) {
             Ok(Some(ValueNode::ValueBase(value_base)))
