@@ -10,7 +10,7 @@ use crate::tokens::Token;
 /*
 <value_base> ::= T_BOOL | T_INT | T_STRING | T_FLOAT
 <value> ::=
-  | <value_base>
+  <value_base>
   | <exp_base>
 <take_prio> ::=
   T_LEFT_P <exp> T_RIGHT_P
@@ -35,7 +35,13 @@ use crate::tokens::Token;
 <or> ::= T_OR <tp5>
 <tp5> ::= <tp4> (<or> |)
 <tp_last> ::= <tp5>
-<no_value> ::= (<md> |) (<as> |) (<eq_not> |) (<and> |) (<or> |)
+
+// TODO
+<nv0> ::= <and> (<or> |) | <or>
+<nv1> ::= <eq_not> (<nv0> |) | <nv0>
+<nv2> ::= <as> (<nv1> |) | <nv1>
+<nv3> ::= <md> (<nv2> |) | <nv2>
+<no_value> ::= <nv3>
  */
 
 // -----------------

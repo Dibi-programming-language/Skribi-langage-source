@@ -6,6 +6,11 @@ use crate::skr_errors::{CustomError, ResultOption};
 use crate::tokens::Token;
 use crate::{impl_debug, skr_errors};
 
+// Grammar of this file :
+// <cget> ::= T_TYPE_DEF
+// <op_in> ::= (T_IN (<cget> | <id_get>) |)
+// <id_get> ::= T_IDENTIFIER (<tuple> |) <op_in>
+
 /// `TupleNode` represents a tuple in the AST.
 ///
 /// The grammar of a tuple is not yet defined, so this class is not implemented yet.
@@ -247,6 +252,7 @@ pub(crate) fn parse_op_in(tokens: &mut VecDeque<Token>) -> skr_errors::ShortResu
 /// values. It can only be the first part of an identifier chain. It works exactly like an [IdGet],
 /// but excludes fonctions calls.
 #[derive(PartialEq)]
+#[deprecated]
 pub struct IdSet {
     pub identifier: String,
     pub op_in: Box<OpIn>,
@@ -267,6 +273,7 @@ impl GraphDisplay for IdSet {
 impl_debug!(IdSet);
 
 impl IdSet {
+    #[deprecated]
     pub(crate) fn new(identifier: String, op_in: OpIn) -> Self {
         Self {
             identifier,
@@ -274,20 +281,8 @@ impl IdSet {
         }
     }
 
+    #[deprecated]
     pub(crate) fn parse(tokens: &mut VecDeque<Token>) -> ResultOption<Self> {
-        // <id_set> ::= T_IDENTIFIER <op_in>
-        if let Some(Token::Identifier(_)) = tokens.front() {
-            if let Some(Token::Identifier(identifier)) = tokens.pop_front() {
-                let op_in = parse_op_in(tokens)?;
-                Ok(Some(IdSet {
-                    identifier,
-                    op_in: Box::new(op_in),
-                }))
-            } else {
-                Ok(None)
-            }
-        } else {
-            Ok(None)
-        }
+        Ok(None)
     }
 }

@@ -14,10 +14,15 @@ use crate::tokens::{SpaceTypes, Token};
 // Grammar of this file :
 // <nat_call_in> ::= T_IDENTIFIER ("\n" | <nat_call_in>)
 // <nat_call> ::= T_NAT_CALL <nat_call_in>
-// <id_use> ::=
-//   <id_set> (<var_mod> |)
-//   | <id_get>
-// <id_use_v> ::= <id_use> (<no_value> |)
+// <id_use> ::= T_IDENTIFIER (
+//     <tuple> <op_in>
+//     | <op_in> <var_mod>
+//     | <op_in>
+//   )
+// <id_use_v> ::= T_IDENTIFIER (
+//     <tuple> <op_in>
+//     | <op_in> (<no_value> | <var_mod> |)
+//   )
 // <exp_base> ::=
 //   <id_use>
 //   | <var_dec>
@@ -234,7 +239,8 @@ impl IdUse {
 ///
 /// See the test `test_simple_exp_id_use_v` in `src/tests/parse_tests/expressions_tests.rs` for an
 /// example of parsing.
-///
+/// 
+/// TODO REWORK
 #[derive(PartialEq)]
 pub struct IdUseV {
     id_use: IdUse,
