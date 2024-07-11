@@ -3,7 +3,7 @@ use std::collections::VecDeque;
 use crate::impl_debug;
 use crate::parse::nodes::blocs::ScopeBase;
 use crate::parse::nodes::functions::FctDec;
-use crate::parse::nodes::id_nodes::{IdGet, IdSet};
+use crate::parse::nodes::id_nodes::{IdGet, IdSet, OpIn, parse_op_in, TupleNode};
 use crate::parse::nodes::if_else::Cond;
 use crate::parse::nodes::operations::{NoValue, TPLast};
 use crate::parse::nodes::vars::{VarDec, VarMod};
@@ -14,12 +14,12 @@ use crate::tokens::{SpaceTypes, Token};
 // Grammar of this file :
 // <nat_call_in> ::= T_IDENTIFIER ("\n" | <nat_call_in>)
 // <nat_call> ::= T_NAT_CALL <nat_call_in>
-// <id_use> ::= T_IDENTIFIER (
+// <id_use> ::= T_IDENTIFIER (  TODO
 //     <tuple> <op_in>
 //     | <op_in> <var_mod>
 //     | <op_in>
 //   )
-// <id_use_v> ::= T_IDENTIFIER (
+// <id_use_v> ::= T_IDENTIFIER ( TODO
 //     <tuple> <op_in>
 //     | <op_in> (<no_value> | <var_mod> |)
 //   )
@@ -157,40 +157,41 @@ impl NatCall {
 // --- IdUse ---
 // -------------
 
-/// `IdUse` represents two types of expressions that have a link with identifiers. It can be an
-/// [IdSet] followed by an optional [VarMod], or an [IdGet]. This means that it can be a variable
-/// declaration, a variable modification, or a variable access.
+/// `InsideIdUse` represents the possible values that can be inside an [IdUse]. It can be a
+/// [TupleNode], a [VarMod], or nothing.
+#[derive(PartialEq)]
+enum InsideIdUse {
+    Tuple(TupleNode),
+    VarMod(VarMod),
+    Empty,
+}
+
+/// `IdUse` represents two types of expressions that have a link with identifiers. It can be a
+/// function call with a [TupleNode], or a variable usage (get / set with [VarMod]).
 ///
 /// # Grammar
 ///
-/// `<id_use> ::= <id_set> (<var_mod> |) | <id_get>`
+/// `<id_use> ::= T_IDENTIFIER (<tuple> <op_in> | <op_in> <var_mod> | <op_in>)`
 ///
-/// See also [IdSet], [VarMod], and [IdGet].
+/// See also [TupleNode], [OpIn] and [VarMod].
 ///
 /// # TODO
-///
-/// [IdSet] and [IdGet] start with an identifier so this will not work if we want an [IdGet].
 #[derive(PartialEq)]
-pub enum IdUse {
-    IdSet {
-        id_set: IdSet,
-        var_mod: Option<Box<VarMod>>,
-    },
-    IdGet(IdGet),
+pub struct IdUse {
+    identifier: String,
+    op_in: OpIn,
+    inside_id_use: Box<InsideIdUse>,
 }
 
 impl GraphDisplay for IdUse {
     fn graph_display(&self, graph: &mut String, id: &mut usize) {
         graph.push_str(&format!("\nsubgraph IdUse_{}[IdUse]", id));
         *id += 1;
-        match self {
-            IdUse::IdSet { id_set, var_mod } => {
-                id_set.graph_display(graph, id);
-                if let Some(var_mod) = var_mod {
-                    var_mod.graph_display(graph, id);
-                }
-            }
-            IdUse::IdGet(id_get) => id_get.graph_display(graph, id),
+        self.op_in.graph_display(graph, id);
+        match &*self.inside_id_use {
+            InsideIdUse::Tuple(tuple) => tuple.graph_display(graph, id),
+            InsideIdUse::VarMod(var_mod) => var_mod.graph_display(graph, id),
+            InsideIdUse::Empty => {}
         }
         graph.push_str("\nend");
     }
@@ -199,30 +200,21 @@ impl GraphDisplay for IdUse {
 impl_debug!(IdUse);
 
 impl IdUse {
-    pub(crate) fn new_set(id_set: IdSet, var_mod: Option<VarMod>) -> Self {
-        Self::IdSet {
-            id_set,
-            var_mod: var_mod.map(Box::new),
+    pub(crate) fn new(identifier: String, op_in: OpIn, inside_id_use: InsideIdUse) -> Self {
+        Self {
+            identifier,
+            op_in,
+            inside_id_use: Box::new(inside_id_use),
         }
     }
 
     pub fn parse(tokens: &mut VecDeque<Token>) -> ResultOption<IdUse> {
-        // <id_use> ::=
-        //   <id_set> (<var_mod> |)
-        //   | <id_get>
-        match IdSet::parse(tokens)? {
-            Some(id_set) => {
-                let var_mod = VarMod::parse(tokens)?;
-                Ok(Some(IdUse::IdSet {
-                    id_set,
-                    var_mod: var_mod.map(Box::new),
-                }))
-            }
-            None => match IdGet::parse(tokens)? {
-                Some(id_get) => Ok(Some(IdUse::IdGet(id_get))),
-                None => Ok(None),
-            },
-        }
+        // <id_use> ::= T_IDENTIFIER (  TODO
+        //     <tuple> <op_in>
+        //     | <op_in> <var_mod>
+        //     | <op_in>
+        //   )
+        todo!("IdUse::parse")
     }
 }
 
