@@ -371,7 +371,8 @@ impl IdUseV {
 // --- ExpBase ---
 // ---------------
 
-/// Not yet implemented
+/// `ExpBase` represents any expression node that has the priority over many grammar rules with high
+/// priority, like operations.
 #[derive(PartialEq)]
 pub enum ExpBase {
     IdUse(Box<IdUse>),
@@ -450,6 +451,8 @@ impl ExpBase {
 // --- ExpTp ---
 // -------------
 
+/// `ExpTp` represents the second level of high priority expressions. This contains [ExpBase] and
+/// [IdUseV]. For now, it is only used to represent the [IdUseV].
 #[derive(PartialEq)]
 pub enum ExpTp {
     ExpBase(ExpBase),
@@ -493,6 +496,9 @@ impl ExpTp {
 // --- Exp ---
 // -----------
 
+/// `Exp` represents any expression with low priority. It might be between parentheses to work. It
+/// contains [ExpTp] or [TPLast]. [TPLast] represents any chain of operations, and [ExpTp] a high
+/// priority expression.
 #[derive(PartialEq)]
 pub enum Exp {
     ExpTp(ExpTp),
@@ -532,6 +538,8 @@ impl Exp {
 // --- Return ---
 // --------------
 
+/// `Return` represents a return statement. It contains an [Exp] that will be returned by the
+/// function.
 #[derive(PartialEq)]
 pub struct Return {
     exp: Exp,
@@ -570,6 +578,7 @@ impl Return {
 // --- Sta ---
 // -----------
 
+/// `Sta` represents a statement. It can be a [Return] or an [Exp].
 #[derive(PartialEq)]
 pub enum Sta {
     Return(Return),
@@ -607,6 +616,8 @@ impl Sta {
 // --- StaL ---
 // ------------
 
+/// `StaL` is the base of a scope. It contains a list of [Sta] that will be executed in
+/// order.
 #[derive(PartialEq)]
 pub struct StaL {
     sta_l: Vec<Sta>,

@@ -3,7 +3,7 @@ use std::collections::VecDeque;
 use crate::impl_debug;
 use crate::parse::nodes::expressions::{Exp, ExpBase};
 use crate::parse::nodes::GraphDisplay;
-use crate::skr_errors::{CustomError, ResultOption, ShortResult};
+use crate::skr_errors::{CustomError, ResultOption};
 use crate::tokens::Token;
 
 // Grammar for this file :
@@ -36,7 +36,6 @@ use crate::tokens::Token;
 <tp5> ::= <tp4> (<or> |)
 <tp_last> ::= <tp5>
 
-// TODO
 <nv0> ::= <and> (<or> |) | <or>
 <nv1> ::= <eq_not> (<nv0> |) | <nv0>
 <nv2> ::= <as> (<nv1> |) | <nv1>
@@ -1033,11 +1032,231 @@ impl TP5 {
     }
 }
 
+// -----------
+// --- nv0 ---
+// -----------
+
+/// `NV0` is a node used to parse the right part of an operation chain, without any value at the
+/// left. The chain inside this node can only contain [And] nodes or [Or] nodes.
+///
+/// # Grammar
+///
+/// `<nv0> ::= <and> (<or> |) | <or>`
+///
+/// See also [And] and [Or].
+#[derive(PartialEq)]
+pub enum NV0 {
+    And { and: And, or: Option<Or> },
+    Or(Or),
+}
+
+impl GraphDisplay for NV0 {
+    fn graph_display(&self, graph: &mut String, id: &mut usize) {
+        graph.push_str(&format!("\nsubgraph NV0_{}[NV0]", id));
+        *id += 1;
+        match self {
+            NV0::And { and, or } => {
+                and.graph_display(graph, id);
+                if let Some(or) = or {
+                    or.graph_display(graph, id);
+                }
+            }
+            NV0::Or(or) => {
+                or.graph_display(graph, id);
+            }
+        }
+        graph.push_str("\nend");
+    }
+}
+
+impl_debug!(NV0);
+
+impl NV0 {
+    pub fn parse(tokens: &mut VecDeque<Token>) -> ResultOption<Self> {
+        // <nv0> ::= <and> (<or> |) | <or>
+        if let Some(and) = And::parse(tokens)? {
+            Ok(Some(NV0::And {
+                and,
+                or: Or::parse(tokens)?,
+            }))
+        } else if let Some(or) = Or::parse(tokens)? {
+            Ok(Some(NV0::Or(or)))
+        } else {
+            Ok(None)
+        }
+    }
+}
+
+// -----------
+// --- NV1 ---
+// -----------
+
+/// `NV1` is a node used to parse the right part of an operation chain, without any value at the
+/// left. The chain inside this node can only contain [EqNot] nodes, [And] nodes or [Or] nodes.
+///
+/// # Grammar
+///
+/// `<nv1> ::= <eq_not> (<nv0> |) | <nv0>`
+///
+/// See also [EqNot], and [NV0].
+#[derive(PartialEq)]
+pub enum NV1 {
+    EqNot { eq_not: EqNot, nv0: Option<NV0> },
+    NV0(NV0),
+}
+
+impl GraphDisplay for NV1 {
+    fn graph_display(&self, graph: &mut String, id: &mut usize) {
+        graph.push_str(&format!("\nsubgraph NV1_{}[NV1]", id));
+        *id += 1;
+        match self {
+            NV1::EqNot { eq_not, nv0 } => {
+                eq_not.graph_display(graph, id);
+                if let Some(nv0) = nv0 {
+                    nv0.graph_display(graph, id);
+                }
+            }
+            NV1::NV0(nv0) => {
+                nv0.graph_display(graph, id);
+            }
+        }
+        graph.push_str("\nend");
+    }
+}
+
+impl_debug!(NV1);
+
+impl NV1 {
+    pub fn parse(tokens: &mut VecDeque<Token>) -> ResultOption<Self> {
+        // <nv1> ::= <eq_not> (<nv0> |) | <nv0>
+        if let Some(eq_not) = EqNot::parse(tokens)? {
+            Ok(Some(NV1::EqNot {
+                eq_not,
+                nv0: NV0::parse(tokens)?,
+            }))
+        } else if let Some(nv0) = NV0::parse(tokens)? {
+            Ok(Some(NV1::NV0(nv0)))
+        } else {
+            Ok(None)
+        }
+    }
+}
+
+// -----------
+// --- NV2 ---
+// -----------
+
+/// `NV2` is a node used to parse the right part of an operation chain, without any value at the
+/// left. The chain inside this node can only contain [TP5] nodes, [EqNot] nodes, [And] nodes or
+/// [Or] nodes.
+/// 
+/// # Grammar
+/// 
+/// `<nv2> ::= <as> (<nv1> |) | <nv1>`
+/// 
+/// See also [As] and [NV1].
+#[derive(PartialEq)]
+pub enum NV2 {
+    As { as_: As, nv1: Option<NV1> },
+    NV1(NV1),
+}
+
+impl GraphDisplay for NV2 {
+    fn graph_display(&self, graph: &mut String, id: &mut usize) {
+        graph.push_str(&format!("\nsubgraph NV2_{}[NV2]", id));
+        *id += 1;
+        match self {
+            NV2::As { as_, nv1 } => {
+                as_.graph_display(graph, id);
+                if let Some(nv1) = nv1 {
+                    nv1.graph_display(graph, id);
+                }
+            }
+            NV2::NV1(nv1) => {
+                nv1.graph_display(graph, id);
+            }
+        }
+        graph.push_str("\nend");
+    }
+}
+
+impl_debug!(NV2);
+
+impl NV2 {
+    pub fn parse(tokens: &mut VecDeque<Token>) -> ResultOption<Self> {
+        // <nv2> ::= <as> (<nv1> |) | <nv1>
+        if let Some(as_) = As::parse(tokens)? {
+            Ok(Some(NV2::As {
+                as_,
+                nv1: NV1::parse(tokens)?,
+            }))
+        } else if let Some(nv1) = NV1::parse(tokens)? {
+            Ok(Some(NV2::NV1(nv1)))
+        } else {
+            Ok(None)
+        }
+    }
+}
+
+// -----------
+// --- NV3 ---
+// -----------
+
+/// `NV3` is a node used to parse the right part of an operation chain, without any value at the
+/// left. The chain inside this node can only contain [TP5] nodes, [EqNot] nodes, [And] nodes, [Or]
+/// nodes or [As] nodes.
+/// 
+/// # Grammar
+/// 
+/// `<nv3> ::= <md> (<nv2> |) | <nv2>`
+/// 
+/// See also [Md] and [NV2].
+#[derive(PartialEq)]
+pub enum NV3 {
+    Md { md: Md, nv2: Option<NV2> },
+    NV2(NV2),
+}
+
+impl GraphDisplay for NV3 {
+    fn graph_display(&self, graph: &mut String, id: &mut usize) {
+        graph.push_str(&format!("\nsubgraph NV3_{}[NV3]", id));
+        *id += 1;
+        match self {
+            NV3::Md { md, nv2 } => {
+                md.graph_display(graph, id);
+                if let Some(nv2) = nv2 {
+                    nv2.graph_display(graph, id);
+                }
+            }
+            NV3::NV2(nv2) => {
+                nv2.graph_display(graph, id);
+            }
+        }
+        graph.push_str("\nend");
+    }
+}
+
+impl_debug!(NV3);
+
+impl NV3 {
+    pub fn parse(tokens: &mut VecDeque<Token>) -> ResultOption<Self> {
+        // <nv3> ::= <md> (<nv2> |) | <nv2>
+        if let Some(md) = Md::parse(tokens)? {
+            Ok(Some(NV3::Md {
+                md,
+                nv2: NV2::parse(tokens)?,
+            }))
+        } else if let Some(nv2) = NV2::parse(tokens)? {
+            Ok(Some(NV3::NV2(nv2)))
+        } else {
+            Ok(None)
+        }
+    }
+}
+
 // ----------------------------
 // --- TP Last and No Value ---
 // ----------------------------
-
-// Enums and structs for TP Last and No Value
 
 /// `TPLast` is the last `TP` node. It is composed of a [TP5] node. It is only used to avoid
 /// recoding some parts if we want to add more operations in the future.
@@ -1047,16 +1266,17 @@ pub struct TPLast {
 }
 
 /// `NoValue` is a node used to parse the right part of an operation chain, without any value at the
-/// left. This is used when the left value is already parsed, and we see the operator after. This
-/// node is composed of 5 optional nodes : [Md], [As], [EqNot], [And] and [Or], in the order of
-/// their priority.
+/// left. This is used when the left value is already parsed, and we see the operator after. At
+/// least one operator is expected in this node.
+/// 
+/// # Grammar
+/// 
+/// `<no_value> ::= <nv3>`
+/// 
+/// See also [NV3].
 #[derive(PartialEq)]
 pub struct NoValue {
-    md: Option<Box<Md>>,
-    as_: Option<Box<As>>,
-    eq_not: Option<Box<EqNot>>,
-    and: Option<Box<And>>,
-    or: Option<Box<Or>>,
+    nv3: NV3
 }
 
 // Implementations for TPLast and NoValue of GraphDisplay
@@ -1076,21 +1296,7 @@ impl GraphDisplay for NoValue {
     fn graph_display(&self, graph: &mut String, id: &mut usize) {
         graph.push_str(&format!("\nsubgraph NoValue_{}[NoValue]", id));
         *id += 1;
-        if let Some(md) = &self.md {
-            md.graph_display(graph, id);
-        }
-        if let Some(as_) = &self.as_ {
-            as_.graph_display(graph, id);
-        }
-        if let Some(eq_not) = &self.eq_not {
-            eq_not.graph_display(graph, id);
-        }
-        if let Some(and) = &self.and {
-            and.graph_display(graph, id);
-        }
-        if let Some(or) = &self.or {
-            or.graph_display(graph, id);
-        }
+        self.nv3.graph_display(graph, id);
         graph.push_str("\nend");
     }
 }
@@ -1115,31 +1321,17 @@ impl TPLast {
 }
 
 impl NoValue {
-    pub(crate) fn new(
-        md: Option<Md>,
-        as_: Option<As>,
-        eq_not: Option<EqNot>,
-        and: Option<And>,
-        or: Option<Or>,
-    ) -> NoValue {
-        NoValue {
-            md: md.map(Box::new),
-            as_: as_.map(Box::new),
-            eq_not: eq_not.map(Box::new),
-            and: and.map(Box::new),
-            or: or.map(Box::new),
-        }
+    pub(crate) fn new(nv3: NV3) -> NoValue {
+        NoValue { nv3 }
     }
 
     pub(crate) fn parse(tokens: &mut VecDeque<Token>) -> ResultOption<Self> {
-        // <no_value> ::= (<md> |) (<as> |) (<eq_not> |) (<and> |) (<or> |)
-        let md = Md::parse(tokens)?;
-        let as_ = As::parse(tokens)?;
-        let eq_not = EqNot::parse(tokens)?;
-        let and = And::parse(tokens)?;
-        let or = Or::parse(tokens)?;
-
-        Ok(Some(NoValue::new(md, as_, eq_not, and, or)))
+        // <no_value> ::= <nv3>
+        let nv3 = NV3::parse(tokens)?;
+        match nv3 {
+            Some(nv3) => Ok(Some(NoValue::new(nv3))),
+            None => Ok(None),
+        }
     }
 }
 
