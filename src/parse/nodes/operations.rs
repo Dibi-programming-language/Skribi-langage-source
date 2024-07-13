@@ -1149,11 +1149,11 @@ impl NV1 {
 /// `NV2` is a node used to parse the right part of an operation chain, without any value at the
 /// left. The chain inside this node can only contain [TP5] nodes, [EqNot] nodes, [And] nodes or
 /// [Or] nodes.
-/// 
+///
 /// # Grammar
-/// 
+///
 /// `<nv2> ::= <as> (<nv1> |) | <nv1>`
-/// 
+///
 /// See also [As] and [NV1].
 #[derive(PartialEq)]
 pub enum NV2 {
@@ -1205,11 +1205,11 @@ impl NV2 {
 /// `NV3` is a node used to parse the right part of an operation chain, without any value at the
 /// left. The chain inside this node can only contain [TP5] nodes, [EqNot] nodes, [And] nodes, [Or]
 /// nodes or [As] nodes.
-/// 
+///
 /// # Grammar
-/// 
+///
 /// `<nv3> ::= <md> (<nv2> |) | <nv2>`
-/// 
+///
 /// See also [Md] and [NV2].
 #[derive(PartialEq)]
 pub enum NV3 {
@@ -1268,15 +1268,15 @@ pub struct TPLast {
 /// `NoValue` is a node used to parse the right part of an operation chain, without any value at the
 /// left. This is used when the left value is already parsed, and we see the operator after. At
 /// least one operator is expected in this node.
-/// 
+///
 /// # Grammar
-/// 
+///
 /// `<no_value> ::= <nv3>`
-/// 
+///
 /// See also [NV3].
 #[derive(PartialEq)]
 pub struct NoValue {
-    nv3: NV3
+    nv3: NV3,
 }
 
 // Implementations for TPLast and NoValue of GraphDisplay

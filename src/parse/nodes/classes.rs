@@ -12,7 +12,7 @@ use crate::parse::nodes::GraphDisplay;
 #[derive(PartialEq)]
 pub struct ClassDec {
     identifier: String,
-    scope: Box<Scope>
+    scope: Box<Scope>,
 }
 
 impl GraphDisplay for ClassDec {

@@ -23,9 +23,7 @@ fn test_simple_exp_id_use_v() {
                 IdUseV::new(
                     String::from("a"),
                     OpIn::Empty,
-                    InsideIdUseV::NoValue(
-                        NoValue::parse(&mut tokens2).unwrap().unwrap()
-                    )
+                    InsideIdUseV::NoValue(NoValue::parse(&mut tokens2).unwrap().unwrap())
                 ),
                 id_use_v
             );

@@ -1,6 +1,6 @@
 use std::collections::VecDeque;
 
-use crate::parse::nodes::id_nodes::{CGet, IdGet, OpIn, parse_cget};
+use crate::parse::nodes::id_nodes::{parse_cget, CGet, IdGet, OpIn};
 use crate::skr_errors::ResultOption;
 use crate::tokens::Token;
 
@@ -97,7 +97,7 @@ fn test_parse_set_mini() {
     ]
     .into_iter()
     .collect();
-    
+
     let res = IdGet::parse(&mut tokens);
     let expected: ResultOption<IdGet> = Ok(Some(IdGet {
         identifier: String::from("mini"),

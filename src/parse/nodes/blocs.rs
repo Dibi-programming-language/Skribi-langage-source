@@ -53,7 +53,9 @@ impl KName {
             if let Some(Token::Identifier(name)) = tokens.pop_front() {
                 Ok(Some(KName::new(name)))
             } else {
-                Err(CustomError::UnexpectedToken("Expected an identifier".to_string()))
+                Err(CustomError::UnexpectedToken(
+                    "Expected an identifier".to_string(),
+                ))
             }
         } else {
             // While the token is not a left bracket, we consume it and add it to the name
