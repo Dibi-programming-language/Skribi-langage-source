@@ -1131,7 +1131,7 @@ impl NoValue {
         }
     }
 
-    pub(crate) fn parse(tokens: &mut VecDeque<Token>) -> ShortResult<Self> {
+    pub(crate) fn parse(tokens: &mut VecDeque<Token>) -> ResultOption<Self> {
         // <no_value> ::= (<md> |) (<as> |) (<eq_not> |) (<and> |) (<or> |)
         let md = Md::parse(tokens)?;
         let as_ = As::parse(tokens)?;
@@ -1139,7 +1139,7 @@ impl NoValue {
         let and = And::parse(tokens)?;
         let or = Or::parse(tokens)?;
 
-        Ok(NoValue::new(md, as_, eq_not, and, or))
+        Ok(Some(NoValue::new(md, as_, eq_not, and, or)))
     }
 }
 

@@ -3,24 +3,24 @@ use std::collections::VecDeque;
 use crate::impl_debug;
 use crate::parse::nodes::blocs::ScopeBase;
 use crate::parse::nodes::functions::FctDec;
-use crate::parse::nodes::id_nodes::{IdGet, IdSet, OpIn, parse_op_in, TupleNode};
+use crate::parse::nodes::GraphDisplay;
+use crate::parse::nodes::id_nodes::{OpIn, parse_op_in, TupleNode};
 use crate::parse::nodes::if_else::Cond;
 use crate::parse::nodes::operations::{NoValue, TPLast};
 use crate::parse::nodes::vars::{VarDec, VarMod};
-use crate::parse::nodes::GraphDisplay;
 use crate::skr_errors::{CustomError, ResultOption};
 use crate::tokens::{SpaceTypes, Token};
 
 // Grammar of this file :
 // <nat_call_in> ::= T_IDENTIFIER ("\n" | <nat_call_in>)
 // <nat_call> ::= T_NAT_CALL <nat_call_in>
-// <id_use> ::= T_IDENTIFIER (  TODO
+// <id_use> ::= T_IDENTIFIER (
 //     <tuple> <op_in>
 //     | <op_in> <var_mod>
 //     | <op_in>
 //   )
-// <id_use_v> ::= T_IDENTIFIER ( TODO
-//     <tuple> <op_in>
+// <id_use_v> ::= T_IDENTIFIER (
+//     <tuple> <op_in> (<no_value> |)
 //     | <op_in> (<no_value> | <var_mod> |)
 //   )
 // <exp_base> ::=
@@ -160,7 +160,7 @@ impl NatCall {
 /// `InsideIdUse` represents the possible values that can be inside an [IdUse]. It can be a
 /// [TupleNode], a [VarMod], or nothing.
 #[derive(PartialEq)]
-enum InsideIdUse {
+pub(crate) enum InsideIdUse {
     Tuple(TupleNode),
     VarMod(VarMod),
     Empty,
@@ -174,8 +174,6 @@ enum InsideIdUse {
 /// `<id_use> ::= T_IDENTIFIER (<tuple> <op_in> | <op_in> <var_mod> | <op_in>)`
 ///
 /// See also [TupleNode], [OpIn] and [VarMod].
-///
-/// # TODO
 #[derive(PartialEq)]
 pub struct IdUse {
     identifier: String,
@@ -185,7 +183,7 @@ pub struct IdUse {
 
 impl GraphDisplay for IdUse {
     fn graph_display(&self, graph: &mut String, id: &mut usize) {
-        graph.push_str(&format!("\nsubgraph IdUse_{}[IdUse]", id));
+        graph.push_str(&format!("\nsubgraph IdUse_{}[IdUse {}]", id, self.identifier));
         *id += 1;
         self.op_in.graph_display(graph, id);
         match &*self.inside_id_use {
@@ -209,12 +207,44 @@ impl IdUse {
     }
 
     pub fn parse(tokens: &mut VecDeque<Token>) -> ResultOption<IdUse> {
-        // <id_use> ::= T_IDENTIFIER (  TODO
+        // <id_use> ::= T_IDENTIFIER (
         //     <tuple> <op_in>
         //     | <op_in> <var_mod>
         //     | <op_in>
         //   )
-        todo!("IdUse::parse")
+        if let Some(Token::Identifier(_)) = tokens.front() {
+            if let Some(Token::Identifier(identifier)) = tokens.pop_front() {
+                if let Some(tuple) = TupleNode::parse(tokens)? {
+                    let op_in = parse_op_in(tokens)?;
+                    Ok(Some(IdUse::new(
+                        identifier,
+                        op_in,
+                        InsideIdUse::Tuple(tuple),
+                    )))
+                } else {
+                    let op_in = parse_op_in(tokens)?;
+                    if let Some(var_mod) = VarMod::parse(tokens)? {
+                        Ok(Some(IdUse::new(
+                            identifier,
+                            op_in,
+                            InsideIdUse::VarMod(var_mod),
+                        )))
+                    } else {
+                        Ok(Some(IdUse::new(
+                            identifier,
+                            op_in,
+                            InsideIdUse::Empty,
+                        )))
+                    }
+                }
+            } else {
+                Err(CustomError::UnexpectedToken(
+                    "Expected an identifier".to_string(),
+                ))
+            }
+        } else { 
+            Ok(None)
+        }
     }
 }
 
@@ -222,30 +252,58 @@ impl IdUse {
 // --- IdUseV ---
 // --------------
 
-/// `IdUseV` represents an [IdUse] followed by an optional [NoValue]. This means that it can be an
-/// identifier usage on which we apply operations.
+/// `InsideIdUseV` represents the possible values that can be inside an [IdUseV]. It can be a
+/// [TupleNode] (with an optional [NoValue]), a [VarMod], a [NoValue], or nothing.
+#[derive(PartialEq)]
+pub(crate) enum InsideIdUseV {
+    Tuple {
+        tuple: TupleNode,
+        no_value: Option<NoValue>
+    },
+    NoValue(NoValue),
+    VarMod(VarMod),
+    Empty,
+}
+
+/// `IdUseV` works like an [IdUse] but can apply operations on the result of a get. This means that
+/// it can be an identifier usage on which we apply operations, or not. We must notice that we
+/// cannot directly apply a [NoValue] to an [IdUse] because [NoValue] has a higher priority than
+/// [VarMod] and cannot be used with it. 
 ///
+/// # Grammar
+/// 
+/// `<id_use_v> ::= T_IDENTIFIER ( <tuple> <op_in> (<no_value> |) | <op_in> (<no_value> | <var_mod> |) )`
+/// 
+/// See also [TupleNode], [OpIn], [NoValue] and [VarMod].
+/// 
 /// # Example
 ///
-/// The expression `a + 1` is an [IdUseV] where `a` is the [IdUse] and `+ 1` is the [NoValue].
+/// The expression `a + 1` is an identifier followed by an empty [OpIn] and the [NoValue] `+ 1`.
 ///
 /// See the test `test_simple_exp_id_use_v` in `src/tests/parse_tests/expressions_tests.rs` for an
 /// example of parsing.
-/// 
-/// TODO REWORK
 #[derive(PartialEq)]
 pub struct IdUseV {
-    id_use: IdUse,
-    no_value: Option<NoValue>,
+    identifier: String,
+    op_in: OpIn,
+    inside_id_use_v: Box<InsideIdUseV>
 }
 
 impl GraphDisplay for IdUseV {
     fn graph_display(&self, graph: &mut String, id: &mut usize) {
-        graph.push_str(&format!("\nsubgraph IdUseV_{}[IdUseV]", id));
+        graph.push_str(&format!("\nsubgraph IdUseV_{}[IdUseV {}]", id, self.identifier));
         *id += 1;
-        self.id_use.graph_display(graph, id);
-        if let Some(no_value) = &self.no_value {
-            no_value.graph_display(graph, id);
+        self.op_in.graph_display(graph, id);
+        match &*self.inside_id_use_v {
+            InsideIdUseV::Tuple { tuple, no_value } => {
+                tuple.graph_display(graph, id);
+                if let Some(no_value) = no_value {
+                    no_value.graph_display(graph, id);
+                }
+            }
+            InsideIdUseV::NoValue(no_value) => no_value.graph_display(graph, id),
+            InsideIdUseV::VarMod(var_mod) => var_mod.graph_display(graph, id),
+            InsideIdUseV::Empty => {}
         }
         graph.push_str("\nend");
     }
@@ -254,14 +312,55 @@ impl GraphDisplay for IdUseV {
 impl_debug!(IdUseV);
 
 impl IdUseV {
-    pub(crate) fn new(id_use: IdUse, no_value: Option<NoValue>) -> Self {
-        Self { id_use, no_value }
+    pub(crate) fn new(identifier: String, op_in: OpIn, inside_id_use_v: InsideIdUseV) -> Self {
+        Self {
+            identifier,
+            op_in,
+            inside_id_use_v: Box::new(inside_id_use_v),
+        }
     }
 
     pub fn parse(tokens: &mut VecDeque<Token>) -> ResultOption<IdUseV> {
-        // <id_use_v> ::= <id_use> (<no_value> |)
-        if let Some(id_use) = IdUse::parse(tokens)? {
-            Ok(Some(IdUseV::new(id_use, Some(NoValue::parse(tokens)?))))
+        // <id_use_v> ::= T_IDENTIFIER (
+        //     <tuple> <op_in> (<no_value> |)
+        //     | <op_in> (<no_value> | <var_mod> |)
+        //   )
+        if let Some(Token::Identifier(_)) = tokens.front() {
+            if let Some(Token::Identifier(identifier)) = tokens.pop_front() {
+                if let Some(tuple) = TupleNode::parse(tokens)? {
+                    let op_in = parse_op_in(tokens)?;
+                    Ok(Some(IdUseV::new(
+                        identifier,
+                        op_in,
+                        InsideIdUseV::Tuple { tuple, no_value: NoValue::parse(tokens)? }
+                    )))
+                } else {
+                    let op_in = parse_op_in(tokens)?;
+                    if let Some(no_value) = NoValue::parse(tokens)? {
+                        Ok(Some(IdUseV::new(
+                            identifier,
+                            op_in,
+                            InsideIdUseV::NoValue(no_value)
+                        )))
+                    } else if let Some(var_mod) = VarMod::parse(tokens)? {
+                        Ok(Some(IdUseV::new(
+                            identifier,
+                            op_in,
+                            InsideIdUseV::VarMod(var_mod)
+                        )))
+                    } else {
+                        Ok(Some(IdUseV::new(
+                            identifier,
+                            op_in,
+                            InsideIdUseV::Empty
+                        )))
+                    }
+                }
+            } else {
+                Err(CustomError::UnexpectedToken(
+                    "Expected an identifier".to_string(),
+                ))
+            }
         } else {
             Ok(None)
         }
