@@ -1,4 +1,5 @@
-use crate::parse::nodes::expressions::{IdUse, IdUseV};
+use crate::parse::nodes::expressions::{IdUseV, InsideIdUseV};
+use crate::parse::nodes::id_nodes::OpIn;
 use crate::parse::nodes::operations::NoValue;
 use crate::tokens::Token;
 
@@ -20,11 +21,11 @@ fn test_simple_exp_id_use_v() {
         Ok(Some(id_use_v)) => {
             assert_eq!(
                 IdUseV::new(
-                    IdUse::new_set(
-                        
-                        None
-                    ),
-                    Some(NoValue::parse(&mut tokens2).unwrap())
+                    String::from("a"),
+                    OpIn::Empty,
+                    InsideIdUseV::NoValue(
+                        NoValue::parse(&mut tokens2).unwrap().unwrap()
+                    )
                 ),
                 id_use_v
             );
