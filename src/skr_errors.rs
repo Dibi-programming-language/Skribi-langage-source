@@ -18,6 +18,7 @@ pub enum NotYetImplementedType {
 }
 
 #[derive(Error, Debug, PartialEq)]
+#[allow(dead_code)]
 pub enum CustomError {
     #[error("Invalid float: {0} at line {1}")]
     InvalidFloat(String, u16),
@@ -30,8 +31,6 @@ pub enum CustomError {
     // Add other kinds of errors as needed
 }
 
-pub type Result<T> = std::result::Result<T, CustomError>;
+pub type ShortResult<T> = Result<T, CustomError>;
 
-pub type OptionResult<T> = Option<Result<T>>;
-
-pub type ResultOption<T> = Result<Option<T>>;
+pub type ResultOption<T> = ShortResult<Option<T>>;

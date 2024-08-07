@@ -7,7 +7,7 @@ pub mod files_node;
 mod functions;
 pub(crate) mod id_nodes;
 mod if_else;
-mod operations;
+pub(crate) mod operations;
 mod vars;
 
 /// Macro to implement the Debug trait for a GraphDisplay
@@ -15,7 +15,7 @@ mod vars;
 macro_rules! impl_debug {
     ($t:ty) => {
         impl std::fmt::Debug for $t {
-            fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> fmt::Result {
+            fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
                 write!(f, "{}", self.graph())
             }
         }
@@ -43,7 +43,7 @@ macro_rules! impl_debug {
 /// impl GraphDisplay for MyNode {
 ///    fn graph_display(&self, graph: &mut String, id: &mut usize) {
 ///       graph.push_str(&format!("\nsubgraph MyNode_{}[MyNode {}]\nend", id, self.name));
-///      *id += 1;
+///       *id += 1;
 ///   }
 /// }
 ///

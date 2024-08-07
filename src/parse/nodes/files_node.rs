@@ -1,29 +1,40 @@
 use std::collections::VecDeque;
 
-use crate::parse::nodes::expressions::{parse_exp, Exp};
-use crate::skr_errors::OptionResult;
+use crate::impl_debug;
+use crate::parse::nodes::expressions::Exp;
+use crate::parse::nodes::GraphDisplay;
+use crate::skr_errors::ResultOption;
 use crate::tokens::Token;
 
 /// Node representing a file. This is the root node of the AST.
+#[derive(PartialEq)]
 pub struct FileNode {
     exps: Vec<Exp>,
 }
 
-pub fn parse_file(tokens: &mut VecDeque<Token>) -> OptionResult<FileNode> {
-    let mut exps = Vec::new();
-    loop {
-        match parse_exp(tokens) {
-            Some(Ok(exp)) => {
-                exps.push(exp);
-            }
-            Some(Err(e)) => {
-                return Some(Err(e));
-            }
-            None => {
-                break;
-            }
+impl GraphDisplay for FileNode {
+    fn graph_display(&self, graph: &mut String, id: &mut usize) {
+        graph.push_str(&format!("\nsubgraph File_{}[File]", id));
+        *id += 1;
+        for exp in &self.exps {
+            exp.graph_display(graph, id);
         }
+        graph.push_str("\nend");
+    }
+}
+
+impl_debug!(FileNode);
+
+impl FileNode {
+    pub fn new(exps: Vec<Exp>) -> Self {
+        Self { exps }
     }
 
-    Some(Ok(FileNode { exps }))
+    pub fn parse(tokens: &mut VecDeque<Token>) -> ResultOption<Self> {
+        let mut exps = Vec::new();
+        while let Some(exp) = Exp::parse(tokens)? {
+            exps.push(exp);
+        }
+        Ok(Some(FileNode { exps }))
+    }
 }

@@ -1,4 +1,5 @@
 use crate::skr_errors::CustomError;
+use std::fmt::{Display, Formatter};
 use std::str::Chars;
 
 #[derive(Debug, PartialEq)]
@@ -16,7 +17,7 @@ pub enum SpaceTypes {
     Tab,
 }
 
-#[allow(dead_code)]
+#[allow(dead_code)] // TODO : define symbols to remove this
 #[derive(Debug, PartialEq)]
 pub enum Token {
     Bool(bool),
@@ -41,6 +42,12 @@ pub enum Token {
     KeywordClass,
     KeywordFunction,
     KeywordReturn,
+    /// = biuli
+    KeywordBubbleScope,
+    /// = kodi
+    KeywordSimpleScope,
+    /// = spoki
+    KeywordUnusedScope,
     Invalid(String), // Any character not used by other tokens, only used when parsing bloc title
     // TODO : Pow
     // TODO : and, or, xor, not
@@ -49,6 +56,12 @@ pub enum Token {
     NotEqual, // not tokenized for now : missing symbol
     And,      // not tokenized for now : missing symbol
     Or,       // not tokenized for now : missing symbol
+}
+
+impl Display for Token {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{:?}", self)
+    }
 }
 
 fn tokenize_string(file: &mut Chars, line: u16) -> Result<Token, CustomError> {
@@ -159,6 +172,9 @@ fn word_to_token(res: String) -> Token {
         "ums" => Token::KeywordFunction,
         "kat" => Token::KeywordClass,
         "ei" => Token::KeywordReturn,
+        "biuli" => Token::KeywordBubbleScope,
+        "kodi" => Token::KeywordSimpleScope,
+        "spoki" => Token::KeywordUnusedScope,
         _ => Token::Identifier(res),
     }
 }

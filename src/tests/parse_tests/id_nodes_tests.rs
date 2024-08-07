@@ -1,7 +1,8 @@
-use crate::parse::nodes::id_nodes::{parse_cget, parse_id_set, CGet, IdGet, IdSet, OpIn};
-use crate::skr_errors::CustomError;
-use crate::tokens::Token;
 use std::collections::VecDeque;
+
+use crate::parse::nodes::id_nodes::{parse_cget, CGet, IdGet, OpIn};
+use crate::skr_errors::ResultOption;
+use crate::tokens::Token;
 
 #[test]
 fn test_id_simple() {
@@ -63,9 +64,10 @@ fn test_parse_set_maxi() {
     .into_iter()
     .collect();
 
-    let res = parse_id_set(&mut tokens);
-    let expected: Option<Result<IdSet, CustomError>> = Some(Ok(IdSet {
+    let res = IdGet::parse(&mut tokens);
+    let expected: ResultOption<IdGet> = Ok(Some(IdGet {
         identifier: String::from("maxi"),
+        tuple: None,
         op_in: Box::new(OpIn::IdGet(IdGet {
             identifier: String::from("mini"),
             tuple: None,
@@ -75,6 +77,36 @@ fn test_parse_set_maxi() {
                 op_in: Box::new(OpIn::CGet(CGet {
                     name: String::from("dar"),
                 })),
+            })),
+        })),
+    }));
+
+    assert_eq!(expected, res);
+}
+
+#[test]
+fn test_parse_set_mini() {
+    // test with "mini:hello:dar"
+
+    let mut tokens: VecDeque<Token> = vec![
+        Token::Identifier(String::from("mini")),
+        Token::Inside,
+        Token::Identifier(String::from("hello")),
+        Token::Inside,
+        Token::Identifier(String::from("dar")),
+    ]
+    .into_iter()
+    .collect();
+
+    let res = IdGet::parse(&mut tokens);
+    let expected: ResultOption<IdGet> = Ok(Some(IdGet {
+        identifier: String::from("mini"),
+        tuple: None,
+        op_in: Box::new(OpIn::IdGet(IdGet {
+            identifier: String::from("hello"),
+            tuple: None,
+            op_in: Box::new(OpIn::CGet(CGet {
+                name: String::from("dar"),
             })),
         })),
     }));
