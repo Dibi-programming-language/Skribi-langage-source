@@ -15,32 +15,25 @@ use crate::tokens::Token;
 <take_prio> ::=
   T_LEFT_P <exp> T_RIGHT_P
   | <value>
-<tp> ::=
+
+<op n> ::= T_OPERATIONS_N <tp n-1>
+With:
+1. * and /
+2. + and -
+3. = and !=
+4. &&
+5. ||
+
+<tp0> ::=
   (T_PLUS | T_MINUS | T_NOT) <tp>
   | <take_prio>
-<mult> ::= T_MULT <tp1>
-<div> ::= T_DIV <tp1>
-<md> ::= <mult> | <div>
-<tp1> ::= <tp> (<md> |)
-<add> ::= T_ADD <tp2>
-<sub> ::= T_SUB <tp2>
-<as> ::= <add> | <sub>
-<tp2> ::= <tp1> (<as> |)
-<eq> ::= T_EQUAL <tp3>
-<not_eq> ::= T_NOT_EQUAL <tp3>
-<eq_not> ::= <eq> | <not_eq>
-<tp3> ::= <tp2> (<eq_not> |)
-<and> ::= T_AND <tp4>
-<tp4> ::= <tp3> (<and> |)
-<or> ::= T_OR <tp5>
-<tp5> ::= <tp4> (<or> |)
-<tp_last> ::= <tp5>
+<tp n> ::= <tp n-1> (<op n> |)
 
-<nv0> ::= <and> (<or> |) | <or>
-<nv1> ::= <eq_not> (<nv0> |) | <nv0>
-<nv2> ::= <as> (<nv1> |) | <nv1>
-<nv3> ::= <md> (<nv2> |) | <nv2>
-<no_value> ::= <nv3>
+<tp_last> ::= <tp max>
+
+<nv0> ::= <op max>
+<nv n> ::= <op max-n> (<nv n-1> |) <nv n-1>
+<no_value> ::= <nv max>
  */
 
 // -----------------
