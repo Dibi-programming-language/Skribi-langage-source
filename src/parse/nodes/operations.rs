@@ -215,70 +215,6 @@ impl TakePriority {
     }
 }
 
-/*
-<op n> ::= T_OPERATIONS_N <tp n-1>
-With:
-1. * and /
-2. + and -
-3. = and !=
-4. &&
-5. ||
-
-<tp0> ::=
-  (T_PLUS | T_MINUS | T_NOT) <tp>
-  | <take_prio>
-<tp n> ::= <tp n-1> (<op n> |)
-
-<tp_last> ::= <tp max>
-
-<nv0> ::= <op max>
-<nv n> ::= <op max-n> (<nv n-1> |) <nv n-1>
-<no_value> ::= <nv max>
- */
-
-pub enum Operations {
-    Mul,
-    Div,
-    Add,
-    Sub,
-    Equal,
-    NotEqual,
-    And,
-    Or,
-}
-
-impl Operations {
-    pub fn get_level(&self) -> u8 {
-        match self {
-            Operations::Mul => 1,
-            Operations::Div => 1,
-            Operations::Add => 2,
-            Operations::Sub => 2,
-            Operations::Equal => 3,
-            Operations::NotEqual => 3,
-            Operations::And => 4,
-            Operations::Or => 5,
-        }
-    }
-}
-
-macro_rules! match_level {
-    ($op: expr, $l: expr) => {
-        (op.get_level() == l)
-    };
-}
-
-pub struct OperationN {
-    level: u8,
-    operation: Operations,
-    tp_n1: Box<TP_N>,
-}
-
-pub struct TP_N {
-    tp_n1: Box<TP_N>,
-    op_n: Option<Box<OperationN>>,
-}
-
 // ----------------
 // --- Unary TP ---
 // ----------------
@@ -355,6 +291,92 @@ impl UnaryTP {
             }
         }
     }
+}
+
+/*
+<op n> ::= T_OPERATIONS_N <tp n-1>
+With:
+1. * and /
+2. + and -
+3. = and !=
+4. &&
+5. ||
+
+<tp0> ::=
+  (T_PLUS | T_MINUS | T_NOT) <tp>
+  | <take_prio>
+<tp n> ::= <tp n-1> (<op n> |)
+
+<tp_last> ::= <tp max>
+
+<nv0> ::= <op max>
+<nv n> ::= <op max-n> (<nv n-1> |) | <nv n-1>
+<no_value> ::= <nv max>
+ */
+
+pub enum Operations {
+    Mul,
+    Div,
+    Add,
+    Sub,
+    Equal,
+    NotEqual,
+    And,
+    Or,
+}
+
+impl Operations {
+    pub fn get_level(&self) -> u8 {
+        match self {
+            Operations::Mul => 1,
+            Operations::Div => 1,
+            Operations::Add => 2,
+            Operations::Sub => 2,
+            Operations::Equal => 3,
+            Operations::NotEqual => 3,
+            Operations::And => 4,
+            Operations::Or => 5,
+        }
+    }
+}
+
+macro_rules! match_level {
+    ($op: expr, $l: expr) => {
+        (op.get_level() == l)
+    };
+}
+
+pub struct OperationN {
+    level: u8,
+    operation: Operations,
+    tp_n1: Box<TakePriorityN>,
+}
+
+pub enum TakePriorityN {
+    ElementUnary0(Box<UnaryTP>),
+    ElementSimple0(Box<TakePriority>),
+    ElementN {
+        level: u8,
+        tp_n1: Box<TakePriorityN>,
+        op_n: Option<Box<OperationN>>,
+    },
+}
+
+pub struct TakePriorityLast {
+    child: TakePriorityN,
+}
+
+pub enum NoValueN {
+    Element0(Box<OperationN>),
+    ElementOperationN {
+        level: u8,
+        operation: Box<OperationN>,
+        no_value_before: Option<Box<NoValueN>>,
+    },
+    ElementSimpleN {
+        level: u8,
+        no_value_before: Box<NoValueN>,
+    },
 }
 
 // -----------------------------
@@ -528,179 +550,6 @@ impl TP1 {
 // ----------------------------
 // --- Add, sub, as and TP2 ---
 // ----------------------------
-
-// Enums and structs for Add, Sub, As and TP2
-
-/// `Add` represents the right part of an addition in the AST. This node is composed of a [TP2] node
-/// that can chain operations of same priority.
-#[derive(PartialEq)]
-pub struct Add {
-    tp2: TP2,
-}
-
-/// `Sub` represents the right part of a subtraction in the AST. This node is composed of a [TP2]
-/// node that can chain operations of same priority.
-#[derive(PartialEq)]
-pub struct Sub {
-    tp2: TP2,
-}
-
-/// `As` represents either an [Add] or a [Sub] in the AST. This node is only used for grammar
-/// commodity and to simplify the structure of [TP2].
-#[derive(PartialEq)]
-pub enum As {
-    Add(Add),
-    Sub(Sub),
-}
-
-/// `TP2` is used to chain operations of same priority. This node works exactly like [TP1] but with
-/// a lower priority. This node is composed of a [TP1] and an optional [As]. The [TP1] is the first
-/// operand of the chain and the [As] is the rest of the chain.
-///
-/// Example : `5 + 5 - 2` is represented by `TP2 {5, Add {TP2 {5, TP2 {Sub {2, Empty}}}}}`. In this
-/// example, details of operand values are not shown.
-///
-/// Like all `TP` nodes, the first operand is the operation node with a priority just over this node
-/// type. Here, multiplications and divisions have the priority over additions and subtractions.
-#[derive(PartialEq)]
-pub struct TP2 {
-    tp1: TP1,
-    as_: Option<Box<As>>,
-}
-
-// Implementations for Add, Sub, As and TP2 of GraphDisplay
-
-impl GraphDisplay for Add {
-    fn graph_display(&self, graph: &mut String, id: &mut usize) {
-        graph.push_str(&format!("\nsubgraph Add_{}[Add]", id));
-        *id += 1;
-        self.tp2.graph_display(graph, id);
-        graph.push_str("\nend");
-    }
-}
-
-impl_debug!(Add);
-
-impl GraphDisplay for Sub {
-    fn graph_display(&self, graph: &mut String, id: &mut usize) {
-        graph.push_str(&format!("\nsubgraph Sub_{}[Sub]", id));
-        *id += 1;
-        self.tp2.graph_display(graph, id);
-        graph.push_str("\nend");
-    }
-}
-
-impl_debug!(Sub);
-
-impl GraphDisplay for As {
-    fn graph_display(&self, graph: &mut String, id: &mut usize) {
-        graph.push_str(&format!("\nsubgraph As_{}[As]", id));
-        *id += 1;
-        match self {
-            As::Add(add) => {
-                add.graph_display(graph, id);
-            }
-            As::Sub(sub) => {
-                sub.graph_display(graph, id);
-            }
-        }
-        graph.push_str("\nend");
-    }
-}
-
-impl_debug!(As);
-
-impl GraphDisplay for TP2 {
-    fn graph_display(&self, graph: &mut String, id: &mut usize) {
-        graph.push_str(&format!("\nsubgraph TP2_{}[TP2]", id));
-        *id += 1;
-        self.tp1.graph_display(graph, id);
-        if let Some(as_) = &self.as_ {
-            as_.graph_display(graph, id);
-        }
-        graph.push_str("\nend");
-    }
-}
-
-impl_debug!(TP2);
-
-// Functions for parsing Add, Sub, As and TP2
-
-impl Add {
-    fn new(tp2: TP2) -> Add {
-        Add { tp2 }
-    }
-
-    fn parse(tokens: &mut VecDeque<Token>) -> ResultOption<Add> {
-        // <add> ::= T_ADD <tp2>
-        let front = tokens.front();
-        if let Some(Token::Add) = front {
-            tokens.pop_front();
-            let tp2 = TP2::parse(tokens)?;
-            match tp2 {
-                Some(tp2) => Ok(Some(Add::new(tp2))),
-                None => Err(CustomError::UnexpectedToken("Expected a tp2".to_string())),
-            }
-        } else {
-            Ok(None)
-        }
-    }
-}
-
-impl Sub {
-    fn new(tp2: TP2) -> Sub {
-        Sub { tp2 }
-    }
-
-    fn parse(tokens: &mut VecDeque<Token>) -> ResultOption<Sub> {
-        // <sub> ::= T_SUB <tp2>
-        let front = tokens.front();
-        if let Some(Token::Sub) = front {
-            tokens.pop_front();
-            let tp2 = TP2::parse(tokens)?;
-            match tp2 {
-                Some(tp2) => Ok(Some(Sub::new(tp2))),
-                None => Err(CustomError::UnexpectedToken("Expected a tp2".to_string())),
-            }
-        } else {
-            Ok(None)
-        }
-    }
-}
-
-impl As {
-    fn parse(tokens: &mut VecDeque<Token>) -> ResultOption<As> {
-        // <as> ::= <add> | <sub>
-        if let Some(add) = Add::parse(tokens)? {
-            Ok(Some(As::Add(add)))
-        } else if let Some(sub) = Sub::parse(tokens)? {
-            Ok(Some(As::Sub(sub)))
-        } else {
-            Ok(None)
-        }
-    }
-}
-
-impl TP2 {
-    fn new(tp1: TP1, as_: Option<As>) -> TP2 {
-        TP2 {
-            tp1,
-            as_: as_.map(Box::new),
-        }
-    }
-
-    fn parse(tokens: &mut VecDeque<Token>) -> ResultOption<TP2> {
-        // <tp2> ::= <tp1> (<as> |)
-        let tp1 = TP1::parse(tokens)?;
-        match tp1 {
-            Some(tp1) => {
-                let as_ = As::parse(tokens)?;
-                Ok(Some(TP2::new(tp1, as_)))
-            }
-            None => Ok(None),
-        }
-    }
-}
 
 // ----------------------------------
 // --- Eq, not_eq, eq_not and TP3 ---
@@ -1184,58 +1033,6 @@ impl NV1 {
 // -----------
 // --- NV2 ---
 // -----------
-
-/// `NV2` is a node used to parse the right part of an operation chain, without any value at the
-/// left. The chain inside this node can only contain [TP5] nodes, [EqNot] nodes, [And] nodes or
-/// [Or] nodes.
-///
-/// # Grammar
-///
-/// `<nv2> ::= <as> (<nv1> |) | <nv1>`
-///
-/// See also [As] and [NV1].
-#[derive(PartialEq)]
-pub enum NV2 {
-    As { as_: As, nv1: Option<NV1> },
-    NV1(NV1),
-}
-
-impl GraphDisplay for NV2 {
-    fn graph_display(&self, graph: &mut String, id: &mut usize) {
-        graph.push_str(&format!("\nsubgraph NV2_{}[NV2]", id));
-        *id += 1;
-        match self {
-            NV2::As { as_, nv1 } => {
-                as_.graph_display(graph, id);
-                if let Some(nv1) = nv1 {
-                    nv1.graph_display(graph, id);
-                }
-            }
-            NV2::NV1(nv1) => {
-                nv1.graph_display(graph, id);
-            }
-        }
-        graph.push_str("\nend");
-    }
-}
-
-impl_debug!(NV2);
-
-impl NV2 {
-    pub fn parse(tokens: &mut VecDeque<Token>) -> ResultOption<Self> {
-        // <nv2> ::= <as> (<nv1> |) | <nv1>
-        if let Some(as_) = As::parse(tokens)? {
-            Ok(Some(NV2::As {
-                as_,
-                nv1: NV1::parse(tokens)?,
-            }))
-        } else if let Some(nv1) = NV1::parse(tokens)? {
-            Ok(Some(NV2::NV1(nv1)))
-        } else {
-            Ok(None)
-        }
-    }
-}
 
 // -----------
 // --- NV3 ---
