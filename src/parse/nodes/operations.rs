@@ -1,10 +1,10 @@
-use std::collections::VecDeque;
-
 use crate::impl_debug;
 use crate::parse::nodes::expressions::{Exp, ExpBase};
 use crate::parse::nodes::GraphDisplay;
 use crate::skr_errors::{CustomError, ResultOption};
 use crate::tokens::Token;
+use std::collections::VecDeque;
+use std::fmt::format;
 
 // Grammar for this file :
 /*
@@ -379,48 +379,127 @@ pub enum NoValueN {
     },
 }
 
+impl_debug!(Operations);
+impl_debug!(OperationN);
+impl_debug!(TakePriorityLast);
+impl_debug!(NoValueN);
+impl_debug!(TakePriorityN);
+
+impl GraphDisplay for Operations {
+    fn graph_display(&self, graph: &mut String, id: &mut usize) {
+        graph.push_str(&format!(
+            "\nsubgraph Operation_{}[Op {}]",
+            id,
+            match self {
+                Operations::Mul => "OP *",
+                Operations::Div => "OP /",
+                Operations::Add => "OP +",
+                Operations::Sub => "OP -",
+                Operations::Equal => "CO =",
+                Operations::NotEqual => "CO !=",
+                Operations::And => "LG &&",
+                Operations::Or => "LG ||",
+            }
+        ));
+        *id += 1;
+        graph.push_str("\nend");
+    }
+}
+
+impl GraphDisplay for OperationN {
+    fn graph_display(&self, graph: &mut String, id: &mut usize) {
+        graph.push_str(&format!(
+            "\nsubgraph OperationN_{}[OP N={}]",
+            id, self.level
+        ));
+        *id += 1;
+        self.operation.graph_display(graph, id);
+        self.tp_n1.graph_display(graph, id);
+        graph.push_str("\nend");
+    }
+}
+
+impl GraphDisplay for TakePriorityN {
+    fn graph_display(&self, graph: &mut String, id: &mut usize) {
+        match self {
+            TakePriorityN::ElementUnary0(unary) => {
+                graph.push_str(&format!("\nsubgraph TakePriorityN_{}[TP0 UNARY]", id));
+                *id += 1;
+                unary.graph_display(graph, id);
+                graph.push_str("\nend");
+            }
+            TakePriorityN::ElementSimple0(simple) => {
+                graph.push_str(&format!("\nsubgraph TakePriorityN_{}[TP0 SIMPLE]", id));
+                *id += 1;
+                simple.graph_display(graph, id);
+                graph.push_str("\nend");
+            }
+            TakePriorityN::ElementN { level, tp_n1, op_n } => {
+                graph.push_str(&format!("\nsubgraph TakePriorityN_{}[TP N={}]", id, level));
+                *id += 1;
+                tp_n1.graph_display(graph, id);
+                if let Some(op_n) = op_n {
+                    op_n.graph_display(graph, id);
+                }
+                graph.push_str("\nend");
+            }
+        }
+    }
+}
+
+impl GraphDisplay for TakePriorityLast {
+    fn graph_display(&self, graph: &mut String, id: &mut usize) {
+        graph.push_str(&format!("\nsubgraph TakePriorityLst_{}[TP_LAST]", id));
+        *id += 1;
+        self.child.graph_display(graph, id);
+        graph.push_str("\nend");
+    }
+}
+
+impl GraphDisplay for NoValueN {
+    fn graph_display(&self, graph: &mut String, id: &mut usize) {
+        match self {
+            NoValueN::Element0(op) => {
+                graph.push_str(&format!("\nsubgraph NoValueN_{}[NoValue0]", id));
+                *id += 1;
+                op.graph_display(graph, id);
+                graph.push_str("\nend");
+            }
+            NoValueN::ElementOperationN {
+                level,
+                operation,
+                no_value_before,
+            } => {
+                graph.push_str(&format!(
+                    "\nsubgraph NoValueN_{}[NoValueOp N={}]",
+                    id, level
+                ));
+                *id += 1;
+                operation.graph_display(graph, id);
+                if let Some(no_value_before) = no_value_before {
+                    no_value_before.graph_display(graph, id);
+                }
+                graph.push_str("\nend");
+            }
+            NoValueN::ElementSimpleN {
+                level,
+                no_value_before,
+            } => {
+                graph.push_str(&format!(
+                    "\nsubgraph NoValueN_{}[NoValueSimple N={}]",
+                    id, level
+                ));
+                *id += 1;
+                no_value_before.graph_display(graph, id);
+                graph.push_str("\nend");
+            }
+        }
+    }
+}
+
 // -----------------------------
 // --- Mult, div, md and TP1 ---
 // -----------------------------
-
-// Enums and structs for Mult, Div, Md and TP1
-
-/// `Mult` represents the right part of a multiplication in the AST. This node is composed of a
-/// [TP1] node that can chain operations of same priority.
-#[derive(PartialEq)]
-pub struct Mult {
-    tp1: TP1,
-}
-
-/// `Div` represents the right part of a division in the AST. This node is composed of a [TP1] node
-/// that can chain operations of same priority.
-#[derive(PartialEq)]
-pub struct Div {
-    tp1: TP1,
-}
-
-/// `Md` represents either a [Mult] or a [Div] in the AST. This node is only used for grammar
-/// commodity and to simplify the structure of [TP1].
-#[derive(PartialEq)]
-pub enum Md {
-    Mult(Mult),
-    Div(Div),
-}
-
-/// `TP1` is used to chain operations of same priority. This node is composed of a [UnaryTP] and an
-/// optional [Md]. The [UnaryTP] is the first operand of the chain and the [Md] is the rest of the
-/// chain.
-///
-/// Example : `5 * 5 / 2` is represented by `TP1 {5, Mult {TP1 {5, Div {TP1 {2, Empty}}}}}`. In this
-/// example, details of operand values are not shown.
-///
-/// Like all `TP` nodes, the first operand is the operation node with a priority just over this node
-/// type. Here, unary operators have the priority over multiplications and divisions.
-#[derive(PartialEq)]
-pub struct TP1 {
-    unary_tp: UnaryTP,
-    md: Option<Box<Md>>,
-}
 
 // Implementations for Mult, Div, Md and TP1 of GraphDisplay
 
