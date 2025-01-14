@@ -16,24 +16,6 @@ use crate::tokens::Token;
   T_LEFT_P <exp> T_RIGHT_P
   | <value>
 
-<op n> ::= T_OPERATIONS_N <tp n-1>
-With:
-1. * and /
-2. + and -
-3. = and !=
-4. &&
-5. ||
-
-<tp0> ::=
-  (T_PLUS | T_MINUS | T_NOT) <tp>
-  | <take_prio>
-<tp n> ::= <tp n-1> (<op n> |)
-
-<tp_last> ::= <tp max>
-
-<nv0> ::= <op max>
-<nv n> ::= <op max-n> (<nv n-1> |) <nv n-1>
-<no_value> ::= <nv max>
  */
 
 // -----------------
@@ -231,6 +213,70 @@ impl TakePriority {
             Ok(None)
         }
     }
+}
+
+/*
+<op n> ::= T_OPERATIONS_N <tp n-1>
+With:
+1. * and /
+2. + and -
+3. = and !=
+4. &&
+5. ||
+
+<tp0> ::=
+  (T_PLUS | T_MINUS | T_NOT) <tp>
+  | <take_prio>
+<tp n> ::= <tp n-1> (<op n> |)
+
+<tp_last> ::= <tp max>
+
+<nv0> ::= <op max>
+<nv n> ::= <op max-n> (<nv n-1> |) <nv n-1>
+<no_value> ::= <nv max>
+ */
+
+pub enum Operations {
+    Mul,
+    Div,
+    Add,
+    Sub,
+    Equal,
+    NotEqual,
+    And,
+    Or,
+}
+
+impl Operations {
+    pub fn get_level(&self) -> u8 {
+        match self {
+            Operations::Mul => 1,
+            Operations::Div => 1,
+            Operations::Add => 2,
+            Operations::Sub => 2,
+            Operations::Equal => 3,
+            Operations::NotEqual => 3,
+            Operations::And => 4,
+            Operations::Or => 5,
+        }
+    }
+}
+
+macro_rules! match_level {
+    ($op: expr, $l: expr) => {
+        (op.get_level() == l)
+    };
+}
+
+pub struct OperationN {
+    level: u8,
+    operation: Operations,
+    tp_n1: Box<TP_N>,
+}
+
+pub struct TP_N {
+    tp_n1: Box<TP_N>,
+    op_n: Option<Box<OperationN>>,
 }
 
 // ----------------
