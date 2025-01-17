@@ -37,7 +37,7 @@ fn test_simple_chain() {
                     Token::Int(4),
                     Token::Add,
                     Token::Int(5),
-                    Token::Mult,
+                    Token::Mul,
                     Token::Int(2),
                     Token::Sub,
                     Token::Int(15),

@@ -1,5 +1,7 @@
 #![allow(dead_code)]
 
+use crate::tokens::TokenContainer;
+
 mod blocs;
 mod classes;
 pub(crate) mod expressions;
@@ -62,4 +64,16 @@ trait GraphDisplay {
         self.graph_display(&mut graph, &mut id);
         graph
     }
+}
+
+#[macro_export]
+macro_rules! some_token {
+    ($token:pat) => {
+        Some(crate::token_m!($token))
+    };
+}
+
+#[macro_export]
+macro_rules! token_m {
+    ($token:pat) => {TokenContainer {token: $token, ..}};
 }

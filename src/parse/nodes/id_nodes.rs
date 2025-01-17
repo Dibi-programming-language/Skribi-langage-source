@@ -3,8 +3,8 @@ use std::collections::VecDeque;
 use crate::parse::nodes::classes::is_type_def;
 use crate::parse::nodes::GraphDisplay;
 use crate::skr_errors::{CustomError, ResultOption};
-use crate::tokens::Token;
-use crate::{impl_debug, skr_errors};
+use crate::tokens::{Token, TokenContainer};
+use crate::{impl_debug, skr_errors, some_token};
 
 // Grammar of this file :
 // <cget> ::= T_TYPE_DEF
@@ -37,7 +37,7 @@ impl TupleNode {
         Self {}
     }
 
-    pub(crate) fn parse(_tokens: &mut VecDeque<Token>) -> ResultOption<Self> {
+    pub(crate) fn parse(_tokens: &mut VecDeque<TokenContainer>) -> ResultOption<Self> {
         // TODO: implémenter cette fonction
         Ok(None)
     }
@@ -81,7 +81,7 @@ impl GraphDisplay for CGet {
 
 impl_debug!(CGet);
 
-pub(crate) fn parse_cget(tokens: &mut VecDeque<Token>) -> Option<CGet> {
+pub(crate) fn parse_cget(tokens: &mut VecDeque<TokenContainer>) -> Option<CGet> {
     if let Some(Token::Identifier(identifier)) = tokens.front() {
         if is_type_def(identifier) {
             if let Some(Token::Identifier(identifier)) = tokens.pop_front() {
@@ -172,7 +172,7 @@ impl IdGet {
         }
     }
 
-    pub(crate) fn parse(tokens: &mut VecDeque<Token>) -> ResultOption<Self> {
+    pub(crate) fn parse(tokens: &mut VecDeque<TokenContainer>) -> ResultOption<Self> {
         // <id_get> ::= T_IDENTIFIER (<tuple> |) <op_in>
         if let Some(Token::Identifier(_)) = tokens.front() {
             if let Some(Token::Identifier(identifier)) = tokens.pop_front() {
@@ -226,9 +226,9 @@ impl GraphDisplay for OpIn {
 
 impl_debug!(OpIn);
 
-pub(crate) fn parse_op_in(tokens: &mut VecDeque<Token>) -> skr_errors::ShortResult<OpIn> {
+pub(crate) fn parse_op_in(tokens: &mut VecDeque<TokenContainer>) -> skr_errors::ShortResult<OpIn> {
     // <op_in> ::= (T_IN (<id_get> | <cget>) |)
-    return if let Some(Token::Inside) = tokens.front() {
+    if let some_token!(Token::Inside) = tokens.front() {
         tokens.pop_front();
         if let Some(c_get) = parse_cget(tokens) {
             Ok(OpIn::CGet(c_get))
@@ -241,5 +241,5 @@ pub(crate) fn parse_op_in(tokens: &mut VecDeque<Token>) -> skr_errors::ShortResu
         }
     } else {
         Ok(OpIn::Empty)
-    };
+    }
 }

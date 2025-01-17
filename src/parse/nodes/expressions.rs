@@ -1,6 +1,6 @@
 use std::collections::VecDeque;
 
-use crate::impl_debug;
+use crate::{impl_debug, some_token};
 use crate::parse::nodes::blocs::ScopeBase;
 use crate::parse::nodes::functions::FctDec;
 use crate::parse::nodes::id_nodes::{parse_op_in, OpIn, TupleNode};
@@ -9,7 +9,7 @@ use crate::parse::nodes::operations::{NoValue, TPLast};
 use crate::parse::nodes::vars::{VarDec, VarMod};
 use crate::parse::nodes::GraphDisplay;
 use crate::skr_errors::{CustomError, ResultOption};
-use crate::tokens::{SpaceTypes, Token};
+use crate::tokens::{SpaceTypes, Token, TokenContainer};
 
 // Grammar of this file :
 // <nat_call_in> ::= T_IDENTIFIER ("\n" | <nat_call_in>)
@@ -80,7 +80,7 @@ impl NatCallIn {
         }
     }
 
-    pub fn parse(tokens: &mut VecDeque<Token>) -> ResultOption<NatCallIn> {
+    pub fn parse(tokens: &mut VecDeque<TokenContainer>) -> ResultOption<NatCallIn> {
         // <nat_call_in> ::= T_IDENTIFIER ("\n" | <nat_call_in>)
         if let Some(Token::Identifier(_)) = tokens.front() {
             if let Some(Token::Identifier(identifier)) = tokens.pop_front() {
@@ -136,9 +136,9 @@ impl NatCall {
         Self { nat_call_in }
     }
 
-    pub fn parse(tokens: &mut VecDeque<Token>) -> ResultOption<NatCall> {
+    pub fn parse(tokens: &mut VecDeque<TokenContainer>) -> ResultOption<NatCall> {
         // <nat_call> ::= T_NAT_CALL <nat_call_in>
-        if let Some(Token::NatCall) = tokens.front() {
+        if let some_token!(Token::NatCall) = tokens.front() {
             tokens.pop_front();
             if let Some(nat_call_in) = NatCallIn::parse(tokens)? {
                 Ok(Some(NatCall::new(nat_call_in)))
@@ -209,7 +209,7 @@ impl IdUse {
         }
     }
 
-    pub fn parse(tokens: &mut VecDeque<Token>) -> ResultOption<IdUse> {
+    pub fn parse(tokens: &mut VecDeque<TokenContainer>) -> ResultOption<IdUse> {
         // <id_use> ::= T_IDENTIFIER (
         //     <tuple> <op_in>
         //     | <op_in> <var_mod>
@@ -322,7 +322,7 @@ impl IdUseV {
         }
     }
 
-    pub fn parse(tokens: &mut VecDeque<Token>) -> ResultOption<IdUseV> {
+    pub fn parse(tokens: &mut VecDeque<TokenContainer>) -> ResultOption<IdUseV> {
         // <id_use_v> ::= T_IDENTIFIER (
         //     <tuple> <op_in> (<no_value> |)
         //     | <op_in> (<no_value> | <var_mod> |)
@@ -409,7 +409,7 @@ impl ExpBase {
         Self::IdUse(Box::new(id_use))
     }
 
-    pub fn parse(tokens: &mut VecDeque<Token>) -> ResultOption<ExpBase> {
+    pub fn parse(tokens: &mut VecDeque<TokenContainer>) -> ResultOption<ExpBase> {
         // <exp_base> ::=
         //   <id_use>
         //   | <var_dec>
@@ -427,10 +427,10 @@ impl ExpBase {
             Ok(Some(ExpBase::ScopeBase(Box::new(scope_base))))
         } else if let Some(fct_dec) = FctDec::parse(tokens)? {
             Ok(Some(ExpBase::FctDec(Box::new(fct_dec))))
-        } else if let Some(Token::LeftParenthesis) = tokens.front() {
+        } else if let some_token!(Token::LeftParenthesis) = tokens.front() {
             tokens.pop_front();
             if let Some(exp) = Exp::parse(tokens)? {
-                if let Some(Token::RightParenthesis) = tokens.pop_front() {
+                if let some_token!(Token::RightParenthesis) = tokens.pop_front() {
                     Ok(Some(ExpBase::RightP(Box::new(exp))))
                 } else {
                     Err(CustomError::UnexpectedToken(
@@ -479,7 +479,7 @@ impl ExpTp {
         Self::ExpBase(exp_base)
     }
 
-    pub fn parse(tokens: &mut VecDeque<Token>) -> ResultOption<ExpTp> {
+    pub fn parse(tokens: &mut VecDeque<TokenContainer>) -> ResultOption<ExpTp> {
         // <exp_tp> ::=
         //   <exp_base>
         //   | <id_use_v>
@@ -521,7 +521,7 @@ impl GraphDisplay for Exp {
 impl_debug!(Exp);
 
 impl Exp {
-    pub fn parse(tokens: &mut VecDeque<Token>) -> ResultOption<Exp> {
+    pub fn parse(tokens: &mut VecDeque<TokenContainer>) -> ResultOption<Exp> {
         // <exp> ::=
         //   <exp_tp>
         //   | <tp_last>
@@ -558,9 +558,9 @@ impl GraphDisplay for Return {
 impl_debug!(Return);
 
 impl Return {
-    pub fn parse(tokens: &mut VecDeque<Token>) -> ResultOption<Return> {
+    pub fn parse(tokens: &mut VecDeque<TokenContainer>) -> ResultOption<Return> {
         // <return> ::= ei <exp>
-        if let Some(Token::KeywordReturn) = tokens.front() {
+        if let some_token!(Token::KeywordReturn) = tokens.front() {
             tokens.pop_front();
             if let Some(exp) = Exp::parse(tokens)? {
                 Ok(Some(Return { exp }))
@@ -601,7 +601,7 @@ impl GraphDisplay for Sta {
 impl_debug!(Sta);
 
 impl Sta {
-    pub fn parse(tokens: &mut VecDeque<Token>) -> ResultOption<Sta> {
+    pub fn parse(tokens: &mut VecDeque<TokenContainer>) -> ResultOption<Sta> {
         // <sta> ::= <return> | <exp>
         if let Some(return_node) = Return::parse(tokens)? {
             Ok(Some(Sta::Return(return_node)))
@@ -645,9 +645,9 @@ impl StaL {
         Self { sta_l }
     }
 
-    pub fn parse(tokens: &mut VecDeque<Token>) -> ResultOption<StaL> {
+    pub fn parse(tokens: &mut VecDeque<TokenContainer>) -> ResultOption<StaL> {
         // <sta_l> ::= T_LEFT_E {<sta>} T_RIGHT_E
-        if let Some(Token::LeftBrace) = tokens.front() {
+        if let some_token!(Token::LeftBrace) = tokens.front() {
             tokens.pop_front();
             let mut sta_l = Vec::new();
 
@@ -655,7 +655,7 @@ impl StaL {
                 sta_l.push(sta);
             }
 
-            if let Some(Token::RightBrace) = tokens.pop_front() {
+            if let Some(TokenContainer { token: Token::RightBrace, .. }) = tokens.pop_front() {
                 Ok(Some(StaL::new(sta_l)))
             } else {
                 Err(CustomError::UnexpectedToken(

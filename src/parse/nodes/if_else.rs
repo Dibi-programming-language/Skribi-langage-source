@@ -1,9 +1,9 @@
-use crate::impl_debug;
+use crate::{impl_debug, some_token};
 use crate::parse::nodes::blocs::Scope;
 use crate::parse::nodes::expressions::Exp;
 use crate::parse::nodes::GraphDisplay;
 use crate::skr_errors::{CustomError, ResultOption};
-use crate::tokens::Token;
+use crate::tokens::{Token, TokenContainer};
 use std::collections::VecDeque;
 // Grammar for this file:
 // <sula> ::= sula (<ij> (<sula> |) | <scope>)
@@ -64,9 +64,9 @@ impl Sula {
         }
     }
 
-    pub fn parse(tokens: &mut VecDeque<Token>) -> ResultOption<Self> {
+    pub fn parse(tokens: &mut VecDeque<TokenContainer>) -> ResultOption<Self> {
         // <sula> ::= sula (<ij> (<sula> |) | <scope>)
-        if let Some(Token::KeywordElse) = tokens.front() {
+        if let some_token!(Token::KeywordElse) = tokens.front() {
             tokens.pop_front();
             if let Some(ij) = Ij::parse(tokens)? {
                 if let Some(sula) = Sula::parse(tokens)? {
@@ -126,9 +126,9 @@ impl Ij {
         Self { exp, scope }
     }
 
-    pub fn parse(tokens: &mut VecDeque<Token>) -> ResultOption<Self> {
+    pub fn parse(tokens: &mut VecDeque<TokenContainer>) -> ResultOption<Self> {
         // <ij> ::= ij <exp> <scope>
-        if let Some(Token::KeywordIf) = tokens.front() {
+        if let some_token!(Token::KeywordIf) = tokens.front() {
             tokens.pop_front();
             match Exp::parse(tokens)? {
                 Some(exp) => match Scope::parse(tokens)? {
@@ -186,7 +186,7 @@ impl Cond {
         }
     }
 
-    pub fn parse(tokens: &mut VecDeque<Token>) -> ResultOption<Self> {
+    pub fn parse(tokens: &mut VecDeque<TokenContainer>) -> ResultOption<Self> {
         // <cond> ::= <ij> (<sula> |)
         if let Some(ij) = Ij::parse(tokens)? {
             if let Some(sula) = Sula::parse(tokens)? {

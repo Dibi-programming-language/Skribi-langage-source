@@ -1,10 +1,9 @@
-use crate::impl_debug;
 use crate::parse::nodes::expressions::{Exp, ExpBase};
 use crate::parse::nodes::GraphDisplay;
 use crate::skr_errors::{CustomError, ResultOption};
-use crate::tokens::Token;
+use crate::tokens::{Token, TokenContainer};
+use crate::{impl_debug, some_token};
 use std::collections::VecDeque;
-use std::fmt::format;
 
 // Grammar for this file :
 /*
@@ -68,7 +67,7 @@ impl GraphDisplay for ValueBase {
 impl_debug!(ValueBase);
 
 impl ValueBase {
-    pub fn parse(tokens: &mut VecDeque<Token>) -> Option<Self> {
+    pub fn parse(tokens: &mut VecDeque<TokenContainer>) -> Option<Self> {
         // <value_base> ::= T_BOOL | T_INT | T_STRING | T_FLOAT
         match tokens.front() {
             Some(Token::Bool(_)) => {
@@ -140,7 +139,7 @@ impl GraphDisplay for ValueNode {
 impl_debug!(ValueNode);
 
 impl ValueNode {
-    pub fn parse(tokens: &mut VecDeque<Token>) -> ResultOption<Self> {
+    pub fn parse(tokens: &mut VecDeque<TokenContainer>) -> ResultOption<Self> {
         // <value> ::=
         //   <value_base>
         //   | <exp_base>
@@ -186,16 +185,16 @@ impl GraphDisplay for TakePriority {
 impl_debug!(TakePriority);
 
 impl TakePriority {
-    pub fn parse(tokens: &mut VecDeque<Token>) -> ResultOption<Self> {
+    pub fn parse(tokens: &mut VecDeque<TokenContainer>) -> ResultOption<Self> {
         // <take_prio> ::=
         //   T_LEFT_P <exp> T_RIGHT_P
         //   | <value>
         let front = tokens.front();
-        if let Some(Token::LeftParenthesis) = front {
+        if let some_token!(Token::LeftParenthesis) = front {
             tokens.pop_front();
             match Exp::parse(tokens)? {
                 Some(exp) => {
-                    if let Some(Token::RightParenthesis) = tokens.pop_front() {
+                    if let some_token!(Token::RightParenthesis) = tokens.pop_front() {
                         Ok(Some(TakePriority::Exp(Box::new(exp))))
                     } else {
                         Err(CustomError::UnexpectedToken(
@@ -255,13 +254,13 @@ impl GraphDisplay for UnaryTP {
 impl_debug!(UnaryTP);
 
 impl UnaryTP {
-    pub fn parse(tokens: &mut VecDeque<Token>) -> ResultOption<Self> {
+    pub fn parse(tokens: &mut VecDeque<TokenContainer>) -> ResultOption<Self> {
         // <tp> ::=
         //   (T_PLUS | T_MINUS | T_NOT) <tp>
         //   | <take_prio>
         let front = tokens.front();
         match front {
-            Some(Token::Add) => {
+            some_token!(Token::Add) => {
                 tokens.pop_front();
                 let unary_tp = UnaryTP::parse(tokens)?;
                 match unary_tp {
@@ -271,7 +270,7 @@ impl UnaryTP {
                     )),
                 }
             }
-            Some(Token::Sub) => {
+            some_token!(Token::Sub) => {
                 tokens.pop_front();
                 let unary_tp = UnaryTP::parse(tokens)?;
                 match unary_tp {
@@ -325,17 +324,18 @@ pub enum Operations {
     Or,
 }
 
-impl Operations {
+impl Token {
     pub fn get_level(&self) -> u8 {
         match self {
-            Operations::Mul => 1,
-            Operations::Div => 1,
-            Operations::Add => 2,
-            Operations::Sub => 2,
-            Operations::Equal => 3,
-            Operations::NotEqual => 3,
-            Operations::And => 4,
-            Operations::Or => 5,
+            Token::Mul => 1,
+            Token::Div => 1,
+            Token::Add => 2,
+            Token::Sub => 2,
+            Token::Equal => 3,
+            Token::NotEqual => 3,
+            Token::And => 4,
+            Token::Or => 5,
+            _ => panic!("Invalid token level"),
         }
     }
 }
@@ -378,6 +378,8 @@ pub enum NoValueN {
         no_value_before: Box<NoValueN>,
     },
 }
+
+
 
 impl_debug!(Operations);
 impl_debug!(OperationN);
@@ -501,69 +503,13 @@ impl GraphDisplay for NoValueN {
 // --- Mult, div, md and TP1 ---
 // -----------------------------
 
-// Implementations for Mult, Div, Md and TP1 of GraphDisplay
-
-impl GraphDisplay for Mult {
-    fn graph_display(&self, graph: &mut String, id: &mut usize) {
-        graph.push_str(&format!("\nsubgraph Mult_{}[Mult]", id));
-        *id += 1;
-        self.tp1.graph_display(graph, id);
-        graph.push_str("\nend");
-    }
-}
-
-impl_debug!(Mult);
-
-impl GraphDisplay for Div {
-    fn graph_display(&self, graph: &mut String, id: &mut usize) {
-        graph.push_str(&format!("\nsubgraph Div_{}[Div]", id));
-        *id += 1;
-        self.tp1.graph_display(graph, id);
-        graph.push_str("\nend");
-    }
-}
-
-impl_debug!(Div);
-
-impl GraphDisplay for Md {
-    fn graph_display(&self, graph: &mut String, id: &mut usize) {
-        graph.push_str(&format!("\nsubgraph Md_{}[Md]", id));
-        *id += 1;
-        match self {
-            Md::Mult(mult) => {
-                mult.graph_display(graph, id);
-            }
-            Md::Div(div) => {
-                div.graph_display(graph, id);
-            }
-        }
-        graph.push_str("\nend");
-    }
-}
-
-impl_debug!(Md);
-
-impl GraphDisplay for TP1 {
-    fn graph_display(&self, graph: &mut String, id: &mut usize) {
-        graph.push_str(&format!("\nsubgraph TP1_{}[TP1]", id));
-        *id += 1;
-        self.unary_tp.graph_display(graph, id);
-        if let Some(md) = &self.md {
-            md.graph_display(graph, id);
-        }
-        graph.push_str("\nend");
-    }
-}
-
-impl_debug!(TP1);
-
 // Functions for parsing Mult, Div, Md and TP1
 
 impl Mult {
-    fn parse(tokens: &mut VecDeque<Token>) -> ResultOption<Self> {
+    fn parse(tokens: &mut VecDeque<TokenContainer>) -> ResultOption<Self> {
         // <mult> ::= T_MULT <tp1>
         let front = tokens.front();
-        if let Some(Token::Mult) = front {
+        if let some_token!(Token::Mul) = front {
             tokens.pop_front();
             let tp1 = TP1::parse(tokens)?;
             match tp1 {
@@ -577,10 +523,10 @@ impl Mult {
 }
 
 impl Div {
-    fn parse(tokens: &mut VecDeque<Token>) -> ResultOption<Self> {
+    fn parse(tokens: &mut VecDeque<TokenContainer>) -> ResultOption<Self> {
         // <div> ::= T_DIV <tp1>
         let front = tokens.front();
-        if let Some(Token::Div) = front {
+        if let some_token!(Token::Div) = front {
             tokens.pop_front();
             let tp1 = TP1::parse(tokens)?;
             match tp1 {
@@ -594,7 +540,7 @@ impl Div {
 }
 
 impl Md {
-    fn parse(tokens: &mut VecDeque<Token>) -> ResultOption<Self> {
+    fn parse(tokens: &mut VecDeque<TokenContainer>) -> ResultOption<Self> {
         // <md> ::= <mult> | <div>
         if let Some(mult) = Mult::parse(tokens)? {
             Ok(Some(Md::Mult(mult)))
@@ -607,7 +553,7 @@ impl Md {
 }
 
 impl TP1 {
-    fn parse(tokens: &mut VecDeque<Token>) -> ResultOption<Self> {
+    fn parse(tokens: &mut VecDeque<TokenContainer>) -> ResultOption<Self> {
         // <tp1> ::= <tp> (<md> |)
         let unary_tp = UnaryTP::parse(tokens)?;
         match unary_tp {
@@ -733,7 +679,7 @@ impl Eq {
         Eq { tp3 }
     }
 
-    fn parse(tokens: &mut VecDeque<Token>) -> ResultOption<Eq> {
+    fn parse(tokens: &mut VecDeque<TokenContainer>) -> ResultOption<Eq> {
         // <eq> ::= T_EQUAL <tp3>
         let front = tokens.front();
         if let Some(Token::Equal) = front {
@@ -754,7 +700,7 @@ impl NotEq {
         NotEq { tp3 }
     }
 
-    fn parse(tokens: &mut VecDeque<Token>) -> ResultOption<NotEq> {
+    fn parse(tokens: &mut VecDeque<TokenContainer>) -> ResultOption<NotEq> {
         // <not_eq> ::= T_NOT_EQUAL <tp3>
         let front = tokens.front();
         if let Some(Token::NotEqual) = front {
@@ -771,7 +717,7 @@ impl NotEq {
 }
 
 impl EqNot {
-    fn parse(tokens: &mut VecDeque<Token>) -> ResultOption<EqNot> {
+    fn parse(tokens: &mut VecDeque<TokenContainer>) -> ResultOption<EqNot> {
         // <eq_not> ::= <eq> | <not_eq>
         if let Some(eq) = Eq::parse(tokens)? {
             Ok(Some(EqNot::Eq(eq)))
@@ -791,7 +737,7 @@ impl TP3 {
         }
     }
 
-    fn parse(tokens: &mut VecDeque<Token>) -> ResultOption<TP3> {
+    fn parse(tokens: &mut VecDeque<TokenContainer>) -> ResultOption<TP3> {
         // <tp3> ::= <tp2> (<eq_not> |)
         let tp2 = TP2::parse(tokens)?;
         match tp2 {
@@ -866,7 +812,7 @@ impl And {
         And { tp4 }
     }
 
-    fn parse(tokens: &mut VecDeque<Token>) -> ResultOption<And> {
+    fn parse(tokens: &mut VecDeque<TokenContainer>) -> ResultOption<And> {
         // <and> ::= T_AND <tp4>
         let front = tokens.front();
         if let Some(Token::And) = front {
@@ -890,7 +836,7 @@ impl TP4 {
         }
     }
 
-    fn parse(tokens: &mut VecDeque<Token>) -> ResultOption<Self> {
+    fn parse(tokens: &mut VecDeque<TokenContainer>) -> ResultOption<Self> {
         // <tp4> ::= <tp3> (<and> |)
         let tp3 = TP3::parse(tokens)?;
         match tp3 {
@@ -962,7 +908,7 @@ impl Or {
         Or { tp5 }
     }
 
-    fn parse(tokens: &mut VecDeque<Token>) -> ResultOption<Or> {
+    fn parse(tokens: &mut VecDeque<TokenContainer>) -> ResultOption<Or> {
         // <or> ::= T_OR <tp5>
         let front = tokens.front();
         if let Some(Token::Or) = front {
@@ -986,7 +932,7 @@ impl TP5 {
         }
     }
 
-    fn parse(tokens: &mut VecDeque<Token>) -> ResultOption<Self> {
+    fn parse(tokens: &mut VecDeque<TokenContainer>) -> ResultOption<Self> {
         // <tp5> ::= <tp4> (<or> |)
         let tp4 = TP4::parse(tokens)?;
         match tp4 {
@@ -1039,7 +985,7 @@ impl GraphDisplay for NV0 {
 impl_debug!(NV0);
 
 impl NV0 {
-    pub fn parse(tokens: &mut VecDeque<Token>) -> ResultOption<Self> {
+    pub fn parse(tokens: &mut VecDeque<TokenContainer>) -> ResultOption<Self> {
         // <nv0> ::= <and> (<or> |) | <or>
         if let Some(and) = And::parse(tokens)? {
             Ok(Some(NV0::And {
@@ -1094,7 +1040,7 @@ impl GraphDisplay for NV1 {
 impl_debug!(NV1);
 
 impl NV1 {
-    pub fn parse(tokens: &mut VecDeque<Token>) -> ResultOption<Self> {
+    pub fn parse(tokens: &mut VecDeque<TokenContainer>) -> ResultOption<Self> {
         // <nv1> ::= <eq_not> (<nv0> |) | <nv0>
         if let Some(eq_not) = EqNot::parse(tokens)? {
             Ok(Some(NV1::EqNot {
@@ -1154,7 +1100,7 @@ impl GraphDisplay for NV3 {
 impl_debug!(NV3);
 
 impl NV3 {
-    pub fn parse(tokens: &mut VecDeque<Token>) -> ResultOption<Self> {
+    pub fn parse(tokens: &mut VecDeque<TokenContainer>) -> ResultOption<Self> {
         // <nv3> ::= <md> (<nv2> |) | <nv2>
         if let Some(md) = Md::parse(tokens)? {
             Ok(Some(NV3::Md {
@@ -1225,7 +1171,7 @@ impl TPLast {
         TPLast { tp5 }
     }
 
-    pub fn parse(tokens: &mut VecDeque<Token>) -> ResultOption<TPLast> {
+    pub fn parse(tokens: &mut VecDeque<TokenContainer>) -> ResultOption<TPLast> {
         // <tp_last> ::= <tp5>
         let tp5 = TP5::parse(tokens)?;
         match tp5 {
@@ -1240,7 +1186,7 @@ impl NoValue {
         NoValue { nv3 }
     }
 
-    pub(crate) fn parse(tokens: &mut VecDeque<Token>) -> ResultOption<Self> {
+    pub(crate) fn parse(tokens: &mut VecDeque<TokenContainer>) -> ResultOption<Self> {
         // <no_value> ::= <nv3>
         let nv3 = NV3::parse(tokens)?;
         match nv3 {

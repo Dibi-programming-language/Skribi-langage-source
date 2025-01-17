@@ -1,11 +1,11 @@
 use std::collections::VecDeque;
 
-use crate::impl_debug;
+use crate::{impl_debug, some_token};
 use crate::parse::nodes::classes::is_type_def;
 use crate::parse::nodes::expressions::Exp;
 use crate::parse::nodes::GraphDisplay;
 use crate::skr_errors::{CustomError, ResultOption};
-use crate::tokens::{ModifierKeyword, Token};
+use crate::tokens::{ModifierKeyword, Token, TokenContainer};
 
 // Grammar of this file :
 /*
@@ -39,10 +39,10 @@ impl GraphDisplay for Type {
 
 impl_debug!(Type);
 
-pub(crate) fn parse_type(tokens: &mut VecDeque<Token>) -> Option<Type> {
-    if let Some(Token::Identifier(identifier)) = tokens.front() {
+pub(crate) fn parse_type(tokens: &mut VecDeque<TokenContainer>) -> Option<Type> {
+    if let some_token!(Token::Identifier(identifier)) = tokens.front() {
         if is_type_def(identifier) {
-            if let Some(Token::Identifier(identifier)) = tokens.pop_front() {
+            if let some_token!(Token::Identifier(identifier)) = tokens.pop_front() {
                 return Some(Type { name: identifier });
             }
         }
@@ -84,14 +84,14 @@ impl Vd {
         }
     }
 
-    fn parse(tokens: &mut VecDeque<Token>) -> ResultOption<Self> {
+    fn parse(tokens: &mut VecDeque<TokenContainer>) -> ResultOption<Self> {
         // <vd> ::= <type> T_IDENTIFIER <exp>
         let type_ = match parse_type(tokens) {
             Some(type_) => type_,
             None => return Ok(None),
         };
 
-        if let Some(Token::Identifier(identifier)) = tokens.pop_front() {
+        if let some_token!(Token::Identifier(identifier)) = tokens.pop_front() {
             if let Some(exp0) = Exp::parse(tokens)? {
                 Ok(Some(Vd::new(type_, identifier, exp0)))
             } else {
@@ -152,9 +152,9 @@ impl GlobalVar {
         Self { vd }
     }
 
-    fn parse(tokens: &mut VecDeque<Token>) -> ResultOption<Self> {
+    fn parse(tokens: &mut VecDeque<TokenContainer>) -> ResultOption<Self> {
         // <global_var> ::= fu <vd>
-        if let Some(Token::KeywordModifier(ModifierKeyword::Global)) = tokens.front() {
+        if let some_token!(Token::KeywordModifier(ModifierKeyword::Global)) = tokens.front() {
             tokens.pop_front();
             match Vd::parse(tokens)? {
                 Some(vd) => Ok(Some(GlobalVar::new(vd))),
@@ -173,9 +173,9 @@ impl PrivateVar {
         Self { vd }
     }
 
-    fn parse(tokens: &mut VecDeque<Token>) -> ResultOption<Self> {
+    fn parse(tokens: &mut VecDeque<TokenContainer>) -> ResultOption<Self> {
         // <private_var> ::= pu <vd>
-        if let Some(Token::KeywordModifier(ModifierKeyword::Private)) = tokens.front() {
+        if let some_token!(Token::KeywordModifier(ModifierKeyword::Private)) = tokens.front() {
             tokens.pop_front();
             match Vd::parse(tokens)? {
                 Some(vd) => Ok(Some(PrivateVar::new(vd))),
@@ -229,9 +229,9 @@ impl ConstVar {
         ConstVar::Vd(vd)
     }
 
-    fn parse(tokens: &mut VecDeque<Token>) -> ResultOption<Self> {
+    fn parse(tokens: &mut VecDeque<TokenContainer>) -> ResultOption<Self> {
         // <const_var> ::= ju (<private_var> | <global_var> | <vd>)
-        if let Some(Token::KeywordModifier(ModifierKeyword::Constant)) = tokens.front() {
+        if let some_token!(Token::KeywordModifier(ModifierKeyword::Constant)) = tokens.front() {
             tokens.pop_front();
             if let Some(private_var) = PrivateVar::parse(tokens)? {
                 Ok(Some(ConstVar::PrivateVar(private_var)))
@@ -288,7 +288,7 @@ impl GraphDisplay for VarDec {
 impl_debug!(VarDec);
 
 impl VarDec {
-    pub(crate) fn parse(tokens: &mut VecDeque<Token>) -> ResultOption<Self> {
+    pub(crate) fn parse(tokens: &mut VecDeque<TokenContainer>) -> ResultOption<Self> {
         // <var_dec> ::= <const_var> | <private_var> | <global_var> | <vd>
         if let Some(const_var) = ConstVar::parse(tokens)? {
             Ok(Some(VarDec::ConstVar(const_var)))
@@ -340,7 +340,7 @@ impl VarMod {
         Self { exp }
     }
 
-    pub(crate) fn parse(tokens: &mut VecDeque<Token>) -> ResultOption<Self> {
+    pub(crate) fn parse(tokens: &mut VecDeque<TokenContainer>) -> ResultOption<Self> {
         match Exp::parse(tokens)? {
             Some(exp) => Ok(Some(VarMod::new(exp))),
             None => Ok(None),

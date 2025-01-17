@@ -21,9 +21,9 @@ pub enum NotYetImplementedType {
 #[allow(dead_code)]
 pub enum CustomError {
     #[error("Invalid float: {0} at line {1}")]
-    InvalidFloat(String, u16),
+    InvalidFloat(String, usize),
     #[error("Invalid string: {0} at line {1}")]
-    InvalidString(String, u16),
+    InvalidString(String, usize),
     #[error("Unexpected token: {0}")]
     UnexpectedToken(String),
     #[error("Not yet implemented: {0}")]

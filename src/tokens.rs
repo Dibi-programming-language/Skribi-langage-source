@@ -28,7 +28,7 @@ pub enum Token {
     Add,
     Sub,
     Div,
-    Mult,
+    Mul,
     LeftParenthesis,
     RightParenthesis,
     LeftBrace,
@@ -64,7 +64,13 @@ impl Display for Token {
     }
 }
 
-fn tokenize_string(file: &mut Chars, line: u16) -> Result<Token, CustomError> {
+pub struct TokenContainer {
+    pub token: Token,
+    pub line: usize,
+    pub column: usize,
+}
+
+fn tokenize_string(file: &mut Chars, line: usize) -> Result<Token, CustomError> {
     let mut current_ch = file.next();
     let mut string_escape = false;
     let mut res = String::new();
@@ -98,7 +104,7 @@ fn tokenize_string(file: &mut Chars, line: u16) -> Result<Token, CustomError> {
 
 fn tokenize_number(
     file: &mut Chars,
-    line: u16,
+    line: usize,
     first_char: char,
 ) -> Result<(Token, Option<char>), CustomError> {
     let mut current_ch = file.next();
@@ -189,9 +195,20 @@ fn tokenize_comment_classic(file: &mut Chars) {
     }
 }
 
-pub(crate) fn tokenize(file: String) -> Result<Vec<Token>, CustomError> {
-    let mut tokens: Vec<Token> = Vec::new();
+macro_rules! add_token {
+    ($tokens:expr, $line:expr, $column:expr, $token:expr) => {
+        $tokens.push(TokenContainer {
+            token: $token,
+            line: $line,
+            column: $column,
+        });
+    };
+}
+
+pub(crate) fn tokenize(file: String) -> Result<Vec<TokenContainer>, CustomError> {
+    let mut tokens: Vec<TokenContainer> = Vec::new();
     let mut line = 1;
+    let mut column = 0;
 
     let mut file_ch = file.chars();
     let mut current_ch = file_ch.next();
@@ -202,31 +219,31 @@ pub(crate) fn tokenize(file: String) -> Result<Vec<Token>, CustomError> {
             if let Some(next_ch) = file_ch.next() {
                 if next_ch == '/' {
                     tokenize_comment_classic(&mut file_ch);
-                    tokens.push(Token::Space(SpaceTypes::NewLine));
+                    add_token!(tokens, line, column, Token::Space(SpaceTypes::NewLine));
                     current_ch = file_ch.next();
                 } else {
-                    tokens.push(Token::Div);
+                    add_token!(tokens, line, column, Token::Div);
                     current_ch = Some(next_ch);
                 }
             } else {
-                tokens.push(Token::Div);
+                add_token!(tokens, line, column, Token::Div);
             }
         } else if ch.is_alphabetic() || ch == '_' {
             let token = tokenize_word(&mut file_ch, ch)?;
-            tokens.push(token.0);
+            add_token!(tokens, line, column, token.0);
             current_ch = token.1;
         } else if ch.is_numeric() {
             let token = tokenize_number(&mut file_ch, line, ch)?;
-            tokens.push(token.0);
+            add_token!(tokens, line, column, token.0);
             current_ch = token.1;
         } else {
             if ch == ' ' {
                 // unused - tokens.push(Token::Space(Space::Space));
             } else {
-                tokens.push(match ch {
+                add_token!(tokens, line, column, match ch {
                     '+' => Token::Add,
                     '-' => Token::Sub,
-                    '*' => Token::Mult,
+                    '*' => Token::Mul,
                     '"' => tokenize_string(&mut file_ch, line)?,
                     ':' => Token::Inside,
                     '(' => Token::LeftParenthesis,

@@ -1,10 +1,10 @@
 use std::collections::VecDeque;
 
-use crate::impl_debug;
+use crate::{impl_debug, some_token};
 use crate::parse::nodes::expressions::StaL;
 use crate::parse::nodes::GraphDisplay;
 use crate::skr_errors::{CustomError, ResultOption};
-use crate::tokens::Token;
+use crate::tokens::{Token, TokenContainer};
 
 // Grammar of this file :
 // <k_name> ::=
@@ -47,10 +47,10 @@ impl KName {
         Self { name }
     }
 
-    pub fn parse(tokens: &mut VecDeque<Token>) -> ResultOption<KName> {
+    pub fn parse(tokens: &mut VecDeque<TokenContainer>) -> ResultOption<KName> {
         // <k_name> ::= T_IDENTIFIER | {(* - T_LEFT_E)}
-        if let Some(Token::Identifier(_)) = tokens.front() {
-            if let Some(Token::Identifier(name)) = tokens.pop_front() {
+        if let some_token!(Token::Identifier(_)) = tokens.front() {
+            if let some_token!(Token::Identifier(name)) = tokens.pop_front() {
                 Ok(Some(KName::new(name)))
             } else {
                 Err(CustomError::UnexpectedToken(
@@ -60,7 +60,7 @@ impl KName {
         } else {
             // While the token is not a left bracket, we consume it and add it to the name
             let mut name = String::new();
-            while let Some(token) = tokens.pop_front() {
+            while let some_token!(token) = tokens.pop_front() {
                 match token {
                     Token::LeftBrace => break,
                     _ => name.push_str(&format!("{} ", token)),
@@ -100,7 +100,7 @@ impl KStart {
         Self { name, sta_l }
     }
 
-    pub fn parse(tokens: &mut VecDeque<Token>) -> ResultOption<Self> {
+    pub fn parse(tokens: &mut VecDeque<TokenContainer>) -> ResultOption<Self> {
         // <k_start> ::= <sta_l> | <k_name> <sta_l>
         if let Some(sta_l) = StaL::parse(tokens)? {
             Ok(Some(KStart::new(None, sta_l)))
@@ -139,9 +139,9 @@ impl GraphDisplay for Kodi {
 impl_debug!(Kodi);
 
 impl Kodi {
-    pub fn parse(tokens: &mut VecDeque<Token>) -> ResultOption<Self> {
+    pub fn parse(tokens: &mut VecDeque<TokenContainer>) -> ResultOption<Self> {
         // <kodi> ::= kodi <k_start>
-        if let Some(Token::KeywordSimpleScope) = tokens.front() {
+        if let some_token!(Token::KeywordSimpleScope) = tokens.front() {
             tokens.pop_front();
             if let Some(start) = KStart::parse(tokens)? {
                 Ok(Some(Kodi { start }))
@@ -177,9 +177,9 @@ impl GraphDisplay for Biuli {
 impl_debug!(Biuli);
 
 impl Biuli {
-    pub fn parse(tokens: &mut VecDeque<Token>) -> ResultOption<Self> {
+    pub fn parse(tokens: &mut VecDeque<TokenContainer>) -> ResultOption<Self> {
         // <biuli> ::= biuli <k_start>
-        if let Some(Token::KeywordBubbleScope) = tokens.front() {
+        if let some_token!(Token::KeywordBubbleScope) = tokens.front() {
             tokens.pop_front();
             if let Some(start) = KStart::parse(tokens)? {
                 Ok(Some(Biuli { start }))
@@ -215,9 +215,9 @@ impl GraphDisplay for Spoki {
 impl_debug!(Spoki);
 
 impl Spoki {
-    pub fn parse(tokens: &mut VecDeque<Token>) -> ResultOption<Self> {
+    pub fn parse(tokens: &mut VecDeque<TokenContainer>) -> ResultOption<Self> {
         // <spoki> ::= spoki <k_start>
-        if let Some(Token::KeywordUnusedScope) = tokens.front() {
+        if let some_token!(Token::KeywordUnusedScope) = tokens.front() {
             tokens.pop_front();
             if let Some(start) = KStart::parse(tokens)? {
                 Ok(Some(Spoki { start }))
@@ -261,7 +261,7 @@ impl GraphDisplay for ScopeBase {
 impl_debug!(ScopeBase);
 
 impl ScopeBase {
-    pub fn parse(tokens: &mut VecDeque<Token>) -> ResultOption<Self> {
+    pub fn parse(tokens: &mut VecDeque<TokenContainer>) -> ResultOption<Self> {
         // <scope_base> ::= <sta_l> | <kodi> | <spoki> | <biuli>
         if let Some(sta_l) = StaL::parse(tokens)? {
             Ok(Some(ScopeBase::StaL(sta_l)))
@@ -302,7 +302,7 @@ impl GraphDisplay for Scope {
 impl_debug!(Scope);
 
 impl Scope {
-    pub fn parse(tokens: &mut VecDeque<Token>) -> ResultOption<Self> {
+    pub fn parse(tokens: &mut VecDeque<TokenContainer>) -> ResultOption<Self> {
         // <scope> ::= <scope_base> | <sta>
         if let Some(scope_base) = ScopeBase::parse(tokens)? {
             Ok(Some(Scope::ScopeBase(scope_base)))
