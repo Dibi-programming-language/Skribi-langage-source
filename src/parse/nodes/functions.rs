@@ -1,11 +1,11 @@
 use std::collections::VecDeque;
 
-use crate::{impl_debug, some_token};
 use crate::parse::nodes::blocs::Scope;
 use crate::parse::nodes::id_nodes::TupleNode;
 use crate::parse::nodes::GraphDisplay;
 use crate::skr_errors::{CustomError, ResultOption};
 use crate::tokens::{Token, TokenContainer};
+use crate::{impl_debug, some_token};
 
 // Grammar of this file :
 // <fct_dec> ::= ums T_IDENTIFIER <tuple> <scope>
@@ -49,7 +49,7 @@ impl FctDec {
         // <fct_dec> ::= ums T_IDENTIFIER <tuple> <scope>
         if let some_token!(Token::KeywordFunction) = tokens.front() {
             tokens.pop_front();
-            if let Some(Token::Identifier(identifier)) = tokens.pop_front() {
+            if let some_token!(Token::Identifier(identifier)) = tokens.pop_front() {
                 match TupleNode::parse(tokens)? {
                     Some(tuple) => match Scope::parse(tokens)? {
                         Some(scope) => Ok(Some(FctDec {

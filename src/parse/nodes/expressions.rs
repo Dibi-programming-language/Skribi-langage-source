@@ -1,6 +1,5 @@
 use std::collections::VecDeque;
 
-use crate::{impl_debug, some_token};
 use crate::parse::nodes::blocs::ScopeBase;
 use crate::parse::nodes::functions::FctDec;
 use crate::parse::nodes::id_nodes::{parse_op_in, OpIn, TupleNode};
@@ -10,6 +9,7 @@ use crate::parse::nodes::vars::{VarDec, VarMod};
 use crate::parse::nodes::GraphDisplay;
 use crate::skr_errors::{CustomError, ResultOption};
 use crate::tokens::{SpaceTypes, Token, TokenContainer};
+use crate::{impl_debug, some_token};
 
 // Grammar of this file :
 // <nat_call_in> ::= T_IDENTIFIER ("\n" | <nat_call_in>)
@@ -82,9 +82,9 @@ impl NatCallIn {
 
     pub fn parse(tokens: &mut VecDeque<TokenContainer>) -> ResultOption<NatCallIn> {
         // <nat_call_in> ::= T_IDENTIFIER ("\n" | <nat_call_in>)
-        if let Some(Token::Identifier(_)) = tokens.front() {
-            if let Some(Token::Identifier(identifier)) = tokens.pop_front() {
-                if let Some(Token::Space(SpaceTypes::NewLine)) = tokens.front() {
+        if let some_token!(Token::Identifier(_)) = tokens.front() {
+            if let some_token!(Token::Identifier(identifier)) = tokens.pop_front() {
+                if let some_token!(Token::Space(SpaceTypes::NewLine)) = tokens.front() {
                     tokens.pop_front();
                     Ok(Some(NatCallIn::new(identifier, None)))
                 } else {
@@ -215,8 +215,8 @@ impl IdUse {
         //     | <op_in> <var_mod>
         //     | <op_in>
         //   )
-        if let Some(Token::Identifier(_)) = tokens.front() {
-            if let Some(Token::Identifier(identifier)) = tokens.pop_front() {
+        if let some_token!(Token::Identifier(_)) = tokens.front() {
+            if let some_token!(Token::Identifier(identifier)) = tokens.pop_front() {
                 if let Some(tuple) = TupleNode::parse(tokens)? {
                     let op_in = parse_op_in(tokens)?;
                     Ok(Some(IdUse::new(
@@ -327,8 +327,8 @@ impl IdUseV {
         //     <tuple> <op_in> (<no_value> |)
         //     | <op_in> (<no_value> | <var_mod> |)
         //   )
-        if let Some(Token::Identifier(_)) = tokens.front() {
-            if let Some(Token::Identifier(identifier)) = tokens.pop_front() {
+        if let some_token!(Token::Identifier(_)) = tokens.front() {
+            if let some_token!(Token::Identifier(identifier)) = tokens.pop_front() {
                 if let Some(tuple) = TupleNode::parse(tokens)? {
                     let op_in = parse_op_in(tokens)?;
                     Ok(Some(IdUseV::new(
@@ -655,7 +655,11 @@ impl StaL {
                 sta_l.push(sta);
             }
 
-            if let Some(TokenContainer { token: Token::RightBrace, .. }) = tokens.pop_front() {
+            if let Some(TokenContainer {
+                token: Token::RightBrace,
+                ..
+            }) = tokens.pop_front()
+            {
                 Ok(Some(StaL::new(sta_l)))
             } else {
                 Err(CustomError::UnexpectedToken(

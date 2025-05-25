@@ -1,11 +1,11 @@
 use std::collections::VecDeque;
 
-use crate::{impl_debug, some_token};
 use crate::parse::nodes::classes::is_type_def;
 use crate::parse::nodes::expressions::Exp;
 use crate::parse::nodes::GraphDisplay;
 use crate::skr_errors::{CustomError, ResultOption};
 use crate::tokens::{ModifierKeyword, Token, TokenContainer};
+use crate::{impl_debug, some_token};
 
 // Grammar of this file :
 /*

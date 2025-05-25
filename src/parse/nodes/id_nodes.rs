@@ -82,9 +82,9 @@ impl GraphDisplay for CGet {
 impl_debug!(CGet);
 
 pub(crate) fn parse_cget(tokens: &mut VecDeque<TokenContainer>) -> Option<CGet> {
-    if let Some(Token::Identifier(identifier)) = tokens.front() {
+    if let some_token!(Token::Identifier(identifier)) = tokens.front() {
         if is_type_def(identifier) {
-            if let Some(Token::Identifier(identifier)) = tokens.pop_front() {
+            if let some_token!(Token::Identifier(identifier)) = tokens.pop_front() {
                 return Some(CGet { name: identifier });
             }
         }
@@ -174,8 +174,8 @@ impl IdGet {
 
     pub(crate) fn parse(tokens: &mut VecDeque<TokenContainer>) -> ResultOption<Self> {
         // <id_get> ::= T_IDENTIFIER (<tuple> |) <op_in>
-        if let Some(Token::Identifier(_)) = tokens.front() {
-            if let Some(Token::Identifier(identifier)) = tokens.pop_front() {
+        if let some_token!(Token::Identifier(_)) = tokens.front() {
+            if let some_token!(Token::Identifier(identifier)) = tokens.pop_front() {
                 let tuple_parsed = TupleNode::parse(tokens)?;
                 let tuple = tuple_parsed;
                 let op_in = parse_op_in(tokens)?;

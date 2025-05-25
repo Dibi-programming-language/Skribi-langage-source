@@ -28,6 +28,7 @@ fn test_parse_id_simple() {
 
     let mut tokens = vec![Token::Identifier(String::from("hello"))]
         .into_iter()
+        .map(|x| x.into())
         .collect();
     let c_get = parse_cget(&mut tokens);
 
@@ -37,6 +38,7 @@ fn test_parse_id_simple() {
 
     let mut tokens = vec![Token::Identifier(String::from("dar"))]
         .into_iter()
+        .map(|x| x.into())
         .collect();
     let c_get = parse_cget(&mut tokens).unwrap();
 
@@ -52,7 +54,7 @@ fn test_parse_id_simple() {
 fn test_parse_set_maxi() {
     // test with "maxi:mini:hello:dar"
 
-    let mut tokens: VecDeque<Token> = vec![
+    let mut tokens: VecDeque<_> = vec![
         Token::Identifier(String::from("maxi")),
         Token::Inside,
         Token::Identifier(String::from("mini")),
@@ -62,6 +64,7 @@ fn test_parse_set_maxi() {
         Token::Identifier(String::from("dar")),
     ]
     .into_iter()
+    .map(|x| x.into())
     .collect();
 
     let res = IdGet::parse(&mut tokens);
@@ -88,7 +91,7 @@ fn test_parse_set_maxi() {
 fn test_parse_set_mini() {
     // test with "mini:hello:dar"
 
-    let mut tokens: VecDeque<Token> = vec![
+    let mut tokens: VecDeque<_> = vec![
         Token::Identifier(String::from("mini")),
         Token::Inside,
         Token::Identifier(String::from("hello")),
@@ -96,6 +99,7 @@ fn test_parse_set_mini() {
         Token::Identifier(String::from("dar")),
     ]
     .into_iter()
+    .map(|x| x.into())
     .collect();
 
     let res = IdGet::parse(&mut tokens);

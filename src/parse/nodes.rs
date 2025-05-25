@@ -75,5 +75,7 @@ macro_rules! some_token {
 
 #[macro_export]
 macro_rules! token_m {
-    ($token:pat) => {TokenContainer {token: $token, ..}};
+    ($token:pat) => {
+        TokenContainer { token: $token, .. }
+    };
 }

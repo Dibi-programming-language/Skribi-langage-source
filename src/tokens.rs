@@ -64,10 +64,28 @@ impl Display for Token {
     }
 }
 
+#[derive(Debug, PartialEq)]
 pub struct TokenContainer {
     pub token: Token,
     pub line: usize,
     pub column: usize,
+}
+
+impl TokenContainer {
+    pub fn new(token: Token, line: usize, column: usize) -> Self {
+        Self {
+            token,
+            line,
+            column,
+        }
+    }
+}
+
+#[cfg(test)]
+impl Into<TokenContainer> for Token {
+    fn into(self) -> TokenContainer {
+        TokenContainer::new(self, 0, 0)
+    }
 }
 
 fn tokenize_string(file: &mut Chars, line: usize) -> Result<Token, CustomError> {
@@ -240,22 +258,27 @@ pub(crate) fn tokenize(file: String) -> Result<Vec<TokenContainer>, CustomError>
             if ch == ' ' {
                 // unused - tokens.push(Token::Space(Space::Space));
             } else {
-                add_token!(tokens, line, column, match ch {
-                    '+' => Token::Add,
-                    '-' => Token::Sub,
-                    '*' => Token::Mul,
-                    '"' => tokenize_string(&mut file_ch, line)?,
-                    ':' => Token::Inside,
-                    '(' => Token::LeftParenthesis,
-                    ')' => Token::RightParenthesis,
-                    '{' => Token::LeftBrace,
-                    '}' => Token::RightBrace,
-                    '\n' => {
-                        line += 1;
-                        Token::Space(SpaceTypes::NewLine)
+                add_token!(
+                    tokens,
+                    line,
+                    column,
+                    match ch {
+                        '+' => Token::Add,
+                        '-' => Token::Sub,
+                        '*' => Token::Mul,
+                        '"' => tokenize_string(&mut file_ch, line)?,
+                        ':' => Token::Inside,
+                        '(' => Token::LeftParenthesis,
+                        ')' => Token::RightParenthesis,
+                        '{' => Token::LeftBrace,
+                        '}' => Token::RightBrace,
+                        '\n' => {
+                            line += 1;
+                            Token::Space(SpaceTypes::NewLine)
+                        }
+                        _ => Token::Invalid(ch.to_string()),
                     }
-                    _ => Token::Invalid(ch.to_string()),
-                });
+                );
             }
             current_ch = file_ch.next();
         }

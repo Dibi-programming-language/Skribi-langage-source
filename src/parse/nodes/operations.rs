@@ -70,29 +70,29 @@ impl ValueBase {
     pub fn parse(tokens: &mut VecDeque<TokenContainer>) -> Option<Self> {
         // <value_base> ::= T_BOOL | T_INT | T_STRING | T_FLOAT
         match tokens.front() {
-            Some(Token::Bool(_)) => {
-                if let Some(Token::Bool(value)) = tokens.pop_front() {
+            some_token!(Token::Bool(_)) => {
+                if let some_token!(Token::Bool(value)) = tokens.pop_front() {
                     Some(ValueBase::Bool(value))
                 } else {
                     None
                 }
             }
-            Some(Token::Int(_)) => {
-                if let Some(Token::Int(value)) = tokens.pop_front() {
+            some_token!(Token::Int(_)) => {
+                if let some_token!(Token::Int(value)) = tokens.pop_front() {
                     Some(ValueBase::Int(value))
                 } else {
                     None
                 }
             }
-            Some(Token::Float(_)) => {
-                if let Some(Token::Float(value)) = tokens.pop_front() {
+            some_token!(Token::Float(_)) => {
+                if let some_token!(Token::Float(value)) = tokens.pop_front() {
                     Some(ValueBase::Float(value))
                 } else {
                     None
                 }
             }
-            Some(Token::String(_)) => {
-                if let Some(Token::String(value)) = tokens.pop_front() {
+            some_token!(Token::String(_)) => {
+                if let some_token!(Token::String(value)) = tokens.pop_front() {
                     Some(ValueBase::String(value))
                 } else {
                     None
@@ -378,8 +378,6 @@ pub enum NoValueN {
         no_value_before: Box<NoValueN>,
     },
 }
-
-
 
 impl_debug!(Operations);
 impl_debug!(OperationN);
