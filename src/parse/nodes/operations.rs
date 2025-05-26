@@ -5,17 +5,17 @@ use crate::tokens::{Token, TokenContainer};
 use crate::{impl_debug, some_token};
 use std::collections::VecDeque;
 
-// Grammar for this file :
-/*
-<value_base> ::= T_BOOL | T_INT | T_STRING | T_FLOAT
-<value> ::=
-  <value_base>
-  | <exp_base>
-<take_prio> ::=
-  T_LEFT_P <exp> T_RIGHT_P
-  | <value>
-
- */
+/// This file is pretty long
+/// Start of grammar for this file :
+/// ```
+/// <value_base> ::= T_BOOL | T_INT | T_STRING | T_FLOAT
+/// <value> ::=
+///   <value_base>
+///   | <exp_base>
+/// <take_prio> ::=
+///   T_LEFT_P <exp> T_RIGHT_P
+///   | <value>
+/// ```
 
 // -----------------
 // --- ValueBase ---
@@ -253,6 +253,21 @@ impl GraphDisplay for UnaryTP {
 
 impl_debug!(UnaryTP);
 
+macro_rules! extract_unary {
+    ($ret:path, $tokens: ident) => {
+        {
+            $tokens.pop_front();
+            let unary_tp = UnaryTP::parse($tokens)?;
+            match unary_tp {
+                Some(unary_tp) => Ok(Some($ret(Box::new(unary_tp)))),
+                None => Err(CustomError::UnexpectedToken(
+                    "Expected an unary_tp".to_string(),
+                )),
+            }
+        }
+    };
+}
+
 impl UnaryTP {
     pub fn parse(tokens: &mut VecDeque<TokenContainer>) -> ResultOption<Self> {
         // <tp> ::=
@@ -260,26 +275,9 @@ impl UnaryTP {
         //   | <take_prio>
         let front = tokens.front();
         match front {
-            some_token!(Token::Add) => {
-                tokens.pop_front();
-                let unary_tp = UnaryTP::parse(tokens)?;
-                match unary_tp {
-                    Some(unary_tp) => Ok(Some(UnaryTP::Plus(Box::new(unary_tp)))),
-                    None => Err(CustomError::UnexpectedToken(
-                        "Expected an unary_tp".to_string(),
-                    )),
-                }
-            }
-            some_token!(Token::Sub) => {
-                tokens.pop_front();
-                let unary_tp = UnaryTP::parse(tokens)?;
-                match unary_tp {
-                    Some(unary_tp) => Ok(Some(UnaryTP::Minus(Box::new(unary_tp)))),
-                    None => Err(CustomError::UnexpectedToken(
-                        "Expected an unary_tp".to_string(),
-                    )),
-                }
-            }
+            some_token!(Token::Add) => extract_unary!(UnaryTP::Plus, tokens),
+            some_token!(Token::Sub) => extract_unary!(UnaryTP::Minus, tokens),
+            some_token!(Token::Not) => extract_unary!(UnaryTP::Not, tokens),
             // TODO not
             _ => {
                 let take_priority = TakePriority::parse(tokens)?;

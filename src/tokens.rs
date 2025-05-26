@@ -1,4 +1,5 @@
 use crate::skr_errors::CustomError;
+use std::collections::VecDeque;
 use std::fmt::{Display, Formatter};
 use std::str::Chars;
 
@@ -27,6 +28,7 @@ pub enum Token {
     NatCall,
     Add,
     Sub,
+    Not,
     Div,
     Mul,
     LeftParenthesis,
@@ -215,7 +217,7 @@ fn tokenize_comment_classic(file: &mut Chars) {
 
 macro_rules! add_token {
     ($tokens:expr, $line:expr, $column:expr, $token:expr) => {
-        $tokens.push(TokenContainer {
+        $tokens.push_back(TokenContainer {
             token: $token,
             line: $line,
             column: $column,
@@ -223,10 +225,10 @@ macro_rules! add_token {
     };
 }
 
-pub(crate) fn tokenize(file: String) -> Result<Vec<TokenContainer>, CustomError> {
-    let mut tokens: Vec<TokenContainer> = Vec::new();
+pub(crate) fn tokenize(file: String) -> Result<VecDeque<TokenContainer>, CustomError> {
+    let mut tokens: VecDeque<TokenContainer> = VecDeque::new();
     let mut line = 1;
-    let mut column = 0;
+    let column = 0;
 
     let mut file_ch = file.chars();
     let mut current_ch = file_ch.next();
