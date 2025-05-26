@@ -1,9 +1,10 @@
 use crate::parse::nodes::expressions::{Exp, ExpBase};
-use crate::parse::nodes::GraphDisplay;
+use crate::parse::nodes::{GraphDisplay, Parsable};
 use crate::skr_errors::{CustomError, ResultOption};
 use crate::tokens::{Token, TokenContainer};
 use crate::{impl_debug, some_token};
 use std::collections::VecDeque;
+use crate::parse::nodes::operations::Operations::{Add, Div, Equal, Mul, NotEqual, Sub};
 
 /// This file is pretty long
 /// Start of grammar for this file :
@@ -234,13 +235,7 @@ impl GraphDisplay for UnaryTP {
         graph.push_str(&format!("\nsubgraph UnaryTP_{}[unary_tp]", id));
         *id += 1;
         match self {
-            UnaryTP::Plus(unary_tp) => {
-                unary_tp.graph_display(graph, id);
-            }
-            UnaryTP::Minus(unary_tp) => {
-                unary_tp.graph_display(graph, id);
-            }
-            UnaryTP::Not(unary_tp) => {
+            UnaryTP::Plus(unary_tp) | UnaryTP::Minus(unary_tp) | UnaryTP::Not(unary_tp) => {
                 unary_tp.graph_display(graph, id);
             }
             UnaryTP::TakePriority(take_priority) => {
@@ -254,22 +249,20 @@ impl GraphDisplay for UnaryTP {
 impl_debug!(UnaryTP);
 
 macro_rules! extract_unary {
-    ($ret:path, $tokens: ident) => {
-        {
-            $tokens.pop_front();
-            let unary_tp = UnaryTP::parse($tokens)?;
-            match unary_tp {
-                Some(unary_tp) => Ok(Some($ret(Box::new(unary_tp)))),
-                None => Err(CustomError::UnexpectedToken(
-                    "Expected an unary_tp".to_string(),
-                )),
-            }
+    ($ret:path, $tokens: ident) => {{
+        $tokens.pop_front();
+        let unary_tp = UnaryTP::parse($tokens)?;
+        match unary_tp {
+            Some(unary_tp) => Ok(Some($ret(Box::new(unary_tp)))),
+            None => Err(CustomError::UnexpectedToken(
+                "Expected an unary_tp".to_string(),
+            )),
         }
-    };
+    }};
 }
 
-impl UnaryTP {
-    pub fn parse(tokens: &mut VecDeque<TokenContainer>) -> ResultOption<Self> {
+impl Parsable for UnaryTP {
+    fn parse(tokens: &mut VecDeque<TokenContainer>) -> ResultOption<Self> {
         // <tp> ::=
         //   (T_PLUS | T_MINUS | T_NOT) <tp>
         //   | <take_prio>
@@ -278,38 +271,16 @@ impl UnaryTP {
             some_token!(Token::Add) => extract_unary!(UnaryTP::Plus, tokens),
             some_token!(Token::Sub) => extract_unary!(UnaryTP::Minus, tokens),
             some_token!(Token::Not) => extract_unary!(UnaryTP::Not, tokens),
-            // TODO not
             _ => {
-                let take_priority = TakePriority::parse(tokens)?;
-                match take_priority {
-                    Some(take_priority) => Ok(Some(UnaryTP::TakePriority(take_priority))),
-                    None => Ok(None),
+                if let Some(take_priority) = TakePriority::parse(tokens)? {
+                    Ok(Some(UnaryTP::TakePriority(take_priority)))
+                } else {
+                    Ok(None)
                 }
             }
         }
     }
 }
-
-/*
-<op n> ::= T_OPERATIONS_N <tp n-1>
-With:
-1. * and /
-2. + and -
-3. = and !=
-4. &&
-5. ||
-
-<tp0> ::=
-  (T_PLUS | T_MINUS | T_NOT) <tp>
-  | <take_prio>
-<tp n> ::= <tp n-1> (<op n> |)
-
-<tp_last> ::= <tp max>
-
-<nv0> ::= <op max>
-<nv n> ::= <op max-n> (<nv n-1> |) | <nv n-1>
-<no_value> ::= <nv max>
- */
 
 pub enum Operations {
     Mul,
@@ -322,48 +293,101 @@ pub enum Operations {
     Or,
 }
 
+const HIGHER_LEVEL: u8 = 5;
+const LOWER_LEVEL: u8 = 1;
+
+/// With:
+/// 1. * and /
+/// 2. + and -
+/// 3. = and !=
+/// 4. &&
+/// 5. ||
 impl Token {
-    pub fn get_level(&self) -> u8 {
+    pub fn get_level(&self) -> Option<u8> {
         match self {
-            Token::Mul => 1,
-            Token::Div => 1,
-            Token::Add => 2,
-            Token::Sub => 2,
-            Token::Equal => 3,
-            Token::NotEqual => 3,
-            Token::And => 4,
-            Token::Or => 5,
-            _ => panic!("Invalid token level"),
+            Token::Mul => Some(1),
+            Token::Div => Some(1),
+            Token::Add => Some(2),
+            Token::Sub => Some(2),
+            Token::Equal => Some(3),
+            Token::NotEqual => Some(3),
+            Token::And => Some(4),
+            Token::Or => Some(5),
+            _ => None,
+        }
+    }
+    
+    /// [Token::get_level] should be called before
+    pub fn get_operation(&self) -> Operations {
+        match self {
+            Token::Mul => Mul,
+            Token::Div => Div,
+            Token::Add => Add,
+            Token::Sub => Sub,
+            Token::Equal => Equal,
+            Token::NotEqual => NotEqual,
+            Token::And => Operations::And,
+            Token::Or => Operations::Or,
+            _ => panic!("Unexpected token found"),
         }
     }
 }
 
-macro_rules! match_level {
-    ($op: expr, $l: expr) => {
-        (op.get_level() == l)
-    };
-}
-
+/// Grammar for [OperationN]
+/// ```grammar
+/// <op n> ::= T_OPERATIONS_N <tp n-1>
+/// ```
+/// See also [TakePriorityN] and [Operations]
 pub struct OperationN {
     level: u8,
     operation: Operations,
-    tp_n1: Box<TakePriorityN>,
+    tp_nm1: Box<TakePriorityN>,
 }
 
+impl OperationN {
+    pub fn parse(tokens: &mut VecDeque<TokenContainer>, level: u8) -> ResultOption<Self> {
+        if let Some(container) = tokens.front() {
+            if let Some(level) = container.token.get_level() {
+                tokens.pop_front();
+                todo!()
+            } else {
+                Ok(None)
+            }
+        } else {
+            Ok(None)
+        }
+    }
+}
+
+/// Grammar for [TakePriorityN]
+/// ```grammar
+/// <tp0> ::= <unary_tp> | <take_prio>
+/// <tp n> ::= <tp n-1> (<op n> |)
+/// ```
 pub enum TakePriorityN {
     ElementUnary0(Box<UnaryTP>),
     ElementSimple0(Box<TakePriority>),
     ElementN {
         level: u8,
-        tp_n1: Box<TakePriorityN>,
+        tp_nm1: Box<TakePriorityN>,
         op_n: Option<Box<OperationN>>,
     },
 }
 
+/// Level is always the higher level.
+/// ```grammar
+/// <tp_last> ::= <tp max>
+/// ```
 pub struct TakePriorityLast {
     child: TakePriorityN,
 }
 
+/// Grammar for [NoValueN]
+/// ```grammar
+/// <nv0> ::= <op max>
+/// <nv n> ::= <op max-n> (<nv n-1> |) | <nv n-1>
+/// <no_value> ::= <nv max>
+/// ```
 pub enum NoValueN {
     Element0(Box<OperationN>),
     ElementOperationN {
@@ -412,7 +436,7 @@ impl GraphDisplay for OperationN {
         ));
         *id += 1;
         self.operation.graph_display(graph, id);
-        self.tp_n1.graph_display(graph, id);
+        self.tp_nm1.graph_display(graph, id);
         graph.push_str("\nend");
     }
 }
@@ -432,7 +456,7 @@ impl GraphDisplay for TakePriorityN {
                 simple.graph_display(graph, id);
                 graph.push_str("\nend");
             }
-            TakePriorityN::ElementN { level, tp_n1, op_n } => {
+            TakePriorityN::ElementN { level, tp_nm1: tp_n1, op_n } => {
                 graph.push_str(&format!("\nsubgraph TakePriorityN_{}[TP N={}]", id, level));
                 *id += 1;
                 tp_n1.graph_display(graph, id);
