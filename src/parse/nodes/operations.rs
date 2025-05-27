@@ -1,10 +1,11 @@
 use crate::parse::nodes::expressions::{Exp, ExpBase};
-use crate::parse::nodes::{GraphDisplay, Parsable};
+use crate::parse::nodes::operations::Operations::{Add, Div, Equal, Mul, NotEqual, Sub};
+use crate::parse::nodes::{GraphDisplay, Parsable, ParsableWithLevel};
+use crate::skr_errors::CustomError::UnexpectedToken;
 use crate::skr_errors::{CustomError, ResultOption};
 use crate::tokens::{Token, TokenContainer};
 use crate::{impl_debug, some_token};
 use std::collections::VecDeque;
-use crate::parse::nodes::operations::Operations::{Add, Div, Equal, Mul, NotEqual, Sub};
 
 /// This file is pretty long
 /// Start of grammar for this file :
@@ -293,8 +294,8 @@ pub enum Operations {
     Or,
 }
 
-const HIGHER_LEVEL: u8 = 5;
-const LOWER_LEVEL: u8 = 1;
+const HIGHEST_LEVEL: u8 = 5;
+const LOWEST_LEVEL: u8 = 1;
 
 /// With:
 /// 1. * and /
@@ -316,7 +317,7 @@ impl Token {
             _ => None,
         }
     }
-    
+
     /// [Token::get_level] should be called before
     pub fn get_operation(&self) -> Operations {
         match self {
@@ -344,12 +345,25 @@ pub struct OperationN {
     tp_nm1: Box<TakePriorityN>,
 }
 
-impl OperationN {
-    pub fn parse(tokens: &mut VecDeque<TokenContainer>, level: u8) -> ResultOption<Self> {
+impl ParsableWithLevel for OperationN {
+    fn parse(tokens: &mut VecDeque<TokenContainer>, level: u8) -> ResultOption<Self> {
         if let Some(container) = tokens.front() {
-            if let Some(level) = container.token.get_level() {
-                tokens.pop_front();
-                todo!()
+            if let Some(level_token) = container.token.get_level() {
+                if level_token != level {
+                    return Ok(None);
+                }
+                let operation = tokens.pop_front().unwrap().token.get_operation();
+                if let Some(tp_nm1) = TakePriorityN::parse(tokens, level - 1)? {
+                    Ok(Some(Self {
+                        level,
+                        operation,
+                        tp_nm1: Box::new(tp_nm1),
+                    }))
+                } else {
+                    Err(UnexpectedToken(String::from(
+                        "Missing TakePriorityN with level-1",
+                    )))
+                }
             } else {
                 Ok(None)
             }
@@ -374,12 +388,52 @@ pub enum TakePriorityN {
     },
 }
 
+impl ParsableWithLevel for TakePriorityN {
+    fn parse(tokens: &mut VecDeque<TokenContainer>, level: u8) -> ResultOption<Self> {
+        if level == 0 {
+            if let Some(unary) = UnaryTP::parse(tokens)? {
+                Ok(Some(Self::ElementUnary0(Box::new(unary))))
+            } else if let Some(takePriority) = TakePriority::parse(tokens)? {
+                Ok(Some(Self::ElementSimple0(Box::new(takePriority))))
+            } else {
+                Ok(None)
+            }
+        } else if let Some(takePriorityNm1) = TakePriorityN::parse(tokens, level - 1)? {
+            let optional = OperationN::parse(tokens, level)?;
+            let optional = match optional {
+                Some(opn) => Some(Box::new(opn)),
+                None => None,
+            };
+            Ok(Some(Self::ElementN {
+                level,
+                tp_nm1: Box::new(takePriorityNm1),
+                op_n: optional,
+            }))
+        } else {
+            Ok(None)
+        }
+    }
+}
+
 /// Level is always the higher level.
 /// ```grammar
 /// <tp_last> ::= <tp max>
 /// ```
+/// See [HIGHEST_LEVEL] and [TakePriorityN]
 pub struct TakePriorityLast {
     child: TakePriorityN,
+}
+
+impl Parsable for TakePriorityLast {
+    fn parse(tokens: &mut VecDeque<TokenContainer>) -> ResultOption<Self> {
+        if let Some(child) = TakePriorityN::parse(tokens, HIGHEST_LEVEL)? {
+            Ok(Some(Self {
+                child,
+            }))
+        } else {
+            Ok(None)
+        }
+    }
 }
 
 /// Grammar for [NoValueN]
@@ -401,6 +455,29 @@ pub enum NoValueN {
     },
 }
 
+impl ParsableWithLevel for NoValueN {
+    fn parse(tokens: &mut VecDeque<TokenContainer>, level: u8) -> ResultOption<Self> {
+        if level == 0 {
+            if let Some(operation) = OperationN::parse(tokens, HIGHEST_LEVEL)? {
+                Ok(Some(Self::Element0(Box::new(operation))))
+            } else {
+                Ok(None)
+            }
+        } else {
+            todo!()
+        }
+    }
+}
+
+impl Parsable for NoValueN {
+    fn parse(tokens: &mut VecDeque<TokenContainer>) -> ResultOption<Self>
+    where
+        Self: Sized,
+    {
+        <NoValueN as ParsableWithLevel>::parse(tokens, HIGHEST_LEVEL)
+    }
+}
+
 impl_debug!(Operations);
 impl_debug!(OperationN);
 impl_debug!(TakePriorityLast);
@@ -413,12 +490,12 @@ impl GraphDisplay for Operations {
             "\nsubgraph Operation_{}[Op {}]",
             id,
             match self {
-                Operations::Mul => "OP *",
-                Operations::Div => "OP /",
-                Operations::Add => "OP +",
-                Operations::Sub => "OP -",
-                Operations::Equal => "CO =",
-                Operations::NotEqual => "CO !=",
+                Mul => "OP *",
+                Div => "OP /",
+                Add => "OP +",
+                Sub => "OP -",
+                Equal => "CO =",
+                NotEqual => "CO !=",
                 Operations::And => "LG &&",
                 Operations::Or => "LG ||",
             }
@@ -456,7 +533,11 @@ impl GraphDisplay for TakePriorityN {
                 simple.graph_display(graph, id);
                 graph.push_str("\nend");
             }
-            TakePriorityN::ElementN { level, tp_nm1: tp_n1, op_n } => {
+            TakePriorityN::ElementN {
+                level,
+                tp_nm1: tp_n1,
+                op_n,
+            } => {
                 graph.push_str(&format!("\nsubgraph TakePriorityN_{}[TP N={}]", id, level));
                 *id += 1;
                 tp_n1.graph_display(graph, id);

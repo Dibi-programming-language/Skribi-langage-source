@@ -85,3 +85,7 @@ macro_rules! token_m {
 pub trait Parsable {
     fn parse(tokens: &mut VecDeque<TokenContainer>) -> ResultOption<Self> where Self: Sized;
 }
+
+pub trait ParsableWithLevel {
+    fn parse(tokens: &mut VecDeque<TokenContainer>, level: u8) -> ResultOption<Self> where Self: Sized;
+}
