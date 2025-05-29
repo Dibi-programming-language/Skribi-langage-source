@@ -4,9 +4,9 @@ use crate::parse::nodes::blocs::ScopeBase;
 use crate::parse::nodes::functions::FctDec;
 use crate::parse::nodes::id_nodes::{parse_op_in, OpIn, TupleNode};
 use crate::parse::nodes::if_else::Cond;
-use crate::parse::nodes::operations::{NoValue, TPLast};
+use crate::parse::nodes::operations::{NoValueN, TakePriorityLast};
 use crate::parse::nodes::vars::{VarDec, VarMod};
-use crate::parse::nodes::GraphDisplay;
+use crate::parse::nodes::{GraphDisplay, Parsable};
 use crate::skr_errors::{CustomError, ResultOption};
 use crate::tokens::{SpaceTypes, Token, TokenContainer};
 use crate::{impl_debug, some_token};
@@ -257,9 +257,9 @@ impl IdUse {
 pub(crate) enum InsideIdUseV {
     Tuple {
         tuple: TupleNode,
-        no_value: Option<NoValue>,
+        no_value: Option<NoValueN>,
     },
-    NoValue(NoValue),
+    NoValue(NoValueN),
     VarMod(VarMod),
     Empty,
 }
@@ -336,12 +336,12 @@ impl IdUseV {
                         op_in,
                         InsideIdUseV::Tuple {
                             tuple,
-                            no_value: NoValue::parse(tokens)?,
+                            no_value: NoValueN::parse(tokens)?,
                         },
                     )))
                 } else {
                     let op_in = parse_op_in(tokens)?;
-                    if let Some(no_value) = NoValue::parse(tokens)? {
+                    if let Some(no_value) = NoValueN::parse(tokens)? {
                         Ok(Some(IdUseV::new(
                             identifier,
                             op_in,
@@ -503,7 +503,7 @@ impl ExpTp {
 #[derive(PartialEq)]
 pub enum Exp {
     ExpTp(ExpTp),
-    TPLast(TPLast),
+    TPLast(TakePriorityLast),
 }
 
 impl GraphDisplay for Exp {
@@ -527,7 +527,7 @@ impl Exp {
         //   | <tp_last>
         if let Some(exp_tp) = ExpTp::parse(tokens)? {
             Ok(Some(Exp::ExpTp(exp_tp)))
-        } else if let Some(tp_last) = TPLast::parse(tokens)? {
+        } else if let Some(tp_last) = TakePriorityLast::parse(tokens)? {
             Ok(Some(Exp::TPLast(tp_last)))
         } else {
             Ok(None)
