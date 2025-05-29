@@ -1,8 +1,8 @@
 #![allow(dead_code)]
 
-use std::collections::VecDeque;
 use crate::skr_errors::ResultOption;
 use crate::tokens::TokenContainer;
+use std::collections::VecDeque;
 
 mod blocs;
 mod classes;
@@ -83,9 +83,13 @@ macro_rules! token_m {
 }
 
 pub trait Parsable {
-    fn parse(tokens: &mut VecDeque<TokenContainer>) -> ResultOption<Self> where Self: Sized;
+    fn parse(tokens: &mut VecDeque<TokenContainer>) -> ResultOption<Self>
+    where
+        Self: Sized;
 }
 
 pub trait ParsableWithLevel {
-    fn parse(tokens: &mut VecDeque<TokenContainer>, level: u8) -> ResultOption<Self> where Self: Sized;
+    fn parse(tokens: &mut VecDeque<TokenContainer>, level: u8) -> ResultOption<Self>
+    where
+        Self: Sized;
 }
