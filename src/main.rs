@@ -19,6 +19,7 @@ mod skr_errors;
 mod tests;
 mod tokens;
 mod utils;
+pub mod execute;
 
 const FLAG_CHAR: &str = "--";
 

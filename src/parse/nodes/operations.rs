@@ -199,7 +199,7 @@ impl TakePriority {
                     if let some_token!(Token::RightParenthesis) = tokens.pop_front() {
                         Ok(Some(TakePriority::Exp(Box::new(exp))))
                     } else {
-                        Err(CustomError::UnexpectedToken(
+                        Err(UnexpectedToken(
                             "Expected a right parenthesis".to_string(),
                         ))
                     }
