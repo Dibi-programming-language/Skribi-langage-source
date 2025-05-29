@@ -480,7 +480,7 @@ impl ParsableWithLevel for NoValueN {
                 no_value_before: nv_mn1,
             }))
         } else if let Some(no_value_before) =
-            <NoValueN as ParsableWithLevel>::parse(tokens, HIGHEST_LEVEL)?
+            <NoValueN as ParsableWithLevel>::parse(tokens, level - 1)?
         {
             Ok(Some(Self::ElementSimpleN {
                 level,
