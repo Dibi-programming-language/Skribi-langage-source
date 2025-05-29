@@ -73,6 +73,7 @@ pub struct TokenContainer {
     pub column: usize,
 }
 
+#[cfg(test)]
 impl TokenContainer {
     pub fn new(token: Token, line: usize, column: usize) -> Self {
         Self {

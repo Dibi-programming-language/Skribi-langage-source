@@ -132,12 +132,12 @@ pub(crate) fn parse_cget(tokens: &mut VecDeque<TokenContainer>) -> Option<CGet> 
 ///
 /// In a Skribi code we can do :
 /// - `T0:T` to get the static field T0 of the class T, T0 can be an IdGet node and also T. But in
-/// reality, T will be represented as an IdSet if we can set it, (inside an OpIn node), inside a
-/// CGet node. This will not be detailed in latter examples.
+///   reality, T will be represented as an IdSet if we can set it, (inside an OpIn node), inside a
+///   CGet node. This will not be detailed in latter examples.
 /// - `B0:D`, get the field B0 of the variable D
 /// - `C0:D`, get the field C0 of the variable D
 /// - `T1:F():D`, get the field T1 of the result of the function F with no arguments. Here, F() must
-/// be an IdGet node, this is the only solution.
+///   be an IdGet node, this is the only solution.
 /// - `T1:C0:D`, get the field T1 of the field C0 of the variable D. Here, C0 must also be an IdGet.
 #[derive(PartialEq)]
 pub struct IdGet {

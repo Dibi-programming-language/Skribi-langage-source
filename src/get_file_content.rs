@@ -11,7 +11,7 @@ pub fn get_content(args: Vec<String>, extensions: Vec<String>) -> Result<String,
         let path = args[1].clone();
 
         // Check if the file has the right extension
-        let extension = String::from(path.split('.').last().unwrap());
+        let extension = String::from(path.split('.').next_back().unwrap());
         if !extensions.contains(&extension) {
             return Err(ErrorKind::InvalidInput);
         }

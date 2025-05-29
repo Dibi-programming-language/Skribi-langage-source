@@ -7,17 +7,17 @@ use crate::tokens::{Token, TokenContainer};
 use crate::{impl_debug, some_token};
 use std::collections::VecDeque;
 
-/// This file is pretty long
-/// Start of grammar for this file :
-/// ```
-/// <value_base> ::= T_BOOL | T_INT | T_STRING | T_FLOAT
-/// <value> ::=
-///   <value_base>
-///   | <exp_base>
-/// <take_prio> ::=
-///   T_LEFT_P <exp> T_RIGHT_P
-///   | <value>
-/// ```
+// This file is pretty long
+// Start of grammar for this file :
+// ```
+// <value_base> ::= T_BOOL | T_INT | T_STRING | T_FLOAT
+// <value> ::=
+//   <value_base>
+//   | <exp_base>
+// <take_prio> ::=
+//   T_LEFT_P <exp> T_RIGHT_P
+//   | <value>
+// ```
 
 // -----------------
 // --- ValueBase ---
@@ -304,6 +304,7 @@ const LOWEST_LEVEL: u8 = 1;
 /// 3. = and !=
 /// 4. &&
 /// 5. ||
+///
 /// 0 is for unary
 impl Token {
     pub fn get_level(&self) -> Option<u8> {
@@ -397,20 +398,17 @@ impl ParsableWithLevel for TakePriorityN {
         if level + 1 == LOWEST_LEVEL {
             if let Some(unary) = UnaryTP::parse(tokens)? {
                 Ok(Some(Self::ElementUnary0(Box::new(unary))))
-            } else if let Some(takePriority) = TakePriority::parse(tokens)? {
-                Ok(Some(Self::ElementSimple0(Box::new(takePriority))))
+            } else if let Some(take_priority) = TakePriority::parse(tokens)? {
+                Ok(Some(Self::ElementSimple0(Box::new(take_priority))))
             } else {
                 Ok(None)
             }
-        } else if let Some(takePriorityNm1) = TakePriorityN::parse(tokens, level - 1)? {
+        } else if let Some(take_priority_nm1) = TakePriorityN::parse(tokens, level - 1)? {
             let optional = OperationN::parse(tokens, level)?;
-            let optional = match optional {
-                Some(opn) => Some(Box::new(opn)),
-                None => None,
-            };
+            let optional = optional.map(Box::new);
             Ok(Some(Self::ElementN {
                 level,
-                tp_nm1: Box::new(takePriorityNm1),
+                tp_nm1: Box::new(take_priority_nm1),
                 op_n: optional,
             }))
         } else {
@@ -475,10 +473,7 @@ impl ParsableWithLevel for NoValueN {
                 Ok(None)
             }
         } else if let Some(operation) = OperationN::parse(tokens, HIGHEST_LEVEL - level)? {
-            let nv_mn1 = match <NoValueN as ParsableWithLevel>::parse(tokens, level - 1)? {
-                Some(nv_mn1) => Some(Box::new(nv_mn1)),
-                None => None,
-            };
+            let nv_mn1 = <NoValueN as ParsableWithLevel>::parse(tokens, level - 1)?.map(Box::new);
             Ok(Some(Self::ElementOperationN {
                 level,
                 operation: Box::new(operation),

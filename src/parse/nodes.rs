@@ -71,7 +71,7 @@ trait GraphDisplay {
 #[macro_export]
 macro_rules! some_token {
     ($token:pat) => {
-        Some(crate::token_m!($token))
+        Some($crate::token_m!($token))
     };
 }
 
