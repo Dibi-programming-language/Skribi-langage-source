@@ -6,7 +6,7 @@ use crate::skr_errors::{CustomError, ResultOption};
 use crate::tokens::{Token, TokenContainer};
 use crate::{impl_debug, some_token};
 use std::collections::VecDeque;
-
+use crate::execute::{Evaluate, EvaluateFromInput, IntType, OperationContext, OperationIO};
 // This file is pretty long
 // Start of grammar for this file :
 // ```
@@ -29,7 +29,7 @@ use std::collections::VecDeque;
 #[derive(PartialEq)]
 pub enum ValueBase {
     Bool(bool),
-    Int(u32),
+    Int(IntType),
     Float(f32),
     String(String),
 }
@@ -74,33 +74,42 @@ impl ValueBase {
         match tokens.front() {
             some_token!(Token::Bool(_)) => {
                 if let some_token!(Token::Bool(value)) = tokens.pop_front() {
-                    Some(ValueBase::Bool(value))
+                    Some(Self::Bool(value))
                 } else {
                     None
                 }
             }
             some_token!(Token::Int(_)) => {
                 if let some_token!(Token::Int(value)) = tokens.pop_front() {
-                    Some(ValueBase::Int(value))
+                    Some(Self::Int(value))
                 } else {
                     None
                 }
             }
             some_token!(Token::Float(_)) => {
                 if let some_token!(Token::Float(value)) = tokens.pop_front() {
-                    Some(ValueBase::Float(value))
+                    Some(Self::Float(value))
                 } else {
                     None
                 }
             }
             some_token!(Token::String(_)) => {
                 if let some_token!(Token::String(value)) = tokens.pop_front() {
-                    Some(ValueBase::String(value))
+                    Some(Self::String(value))
                 } else {
                     None
                 }
             }
             _ => None,
+        }
+    }
+}
+
+impl Evaluate for ValueBase {
+    fn evaluate(&self, _operation_context: &OperationContext) -> OperationIO {
+        match self {
+            ValueBase::Int(value) => *value,
+            _ => todo!()
         }
     }
 }
@@ -152,6 +161,15 @@ impl ValueNode {
                 Some(exp_base) => Ok(Some(ValueNode::ExpBase(exp_base))),
                 None => Ok(None),
             }
+        }
+    }
+}
+
+impl Evaluate for ValueNode {
+    fn evaluate(&self, _operation_context: &OperationContext) -> OperationIO {
+        match self {
+            ValueNode::ValueBase(base) => base.evaluate(_operation_context),
+            ValueNode::ExpBase(_) => todo!()
         }
     }
 }
@@ -212,6 +230,15 @@ impl TakePriority {
             Ok(Some(TakePriority::Value(value)))
         } else {
             Ok(None)
+        }
+    }
+}
+
+impl Evaluate for TakePriority {
+    fn evaluate(&self, operation_context: &OperationContext) -> OperationIO {
+        match self {
+            TakePriority::Exp(_) => todo!(),
+            TakePriority::Value(value) => value.evaluate(operation_context),
         }
     }
 }
@@ -279,6 +306,16 @@ impl Parsable for UnaryTP {
                     Ok(None)
                 }
             }
+        }
+    }
+}
+
+impl Evaluate for UnaryTP {
+    fn evaluate(&self, _operation_context: &OperationContext) -> OperationIO {
+        match self {
+            UnaryTP::Plus(unary_tp) => unary_tp.evaluate(_operation_context),
+            UnaryTP::TakePriority(take_priority) => take_priority.evaluate(_operation_context),
+            _ => todo!(),
         }
     }
 }
@@ -377,6 +414,15 @@ impl ParsableWithLevel for OperationN {
     }
 }
 
+impl EvaluateFromInput for OperationN {
+    fn evaluate_from_input(&self, operation_context: &OperationContext, input: OperationIO) -> OperationIO {
+        match self.operation {
+            Add => input + self.tp_nm1.evaluate(operation_context),
+            _ => todo!()
+        }
+    }
+}
+
 /// Grammar for [TakePriorityN]
 /// ```grammar
 /// <tp0> ::= <unary_tp> | <take_prio>
@@ -417,6 +463,17 @@ impl ParsableWithLevel for TakePriorityN {
     }
 }
 
+impl Evaluate for TakePriorityN {
+    fn evaluate(&self, operation_context: &OperationContext) -> OperationIO {
+        match self {
+            TakePriorityN::ElementUnary0(unary) => unary.evaluate(operation_context),
+            TakePriorityN::ElementSimple0(take_priority) => take_priority.evaluate(operation_context),
+            TakePriorityN::ElementN { level: _, tp_nm1, op_n: None } => tp_nm1.evaluate(operation_context),
+            TakePriorityN::ElementN { level: _, tp_nm1, op_n: Some(op) } => op.evaluate_from_input(operation_context, tp_nm1.evaluate(operation_context)),
+        }
+    }
+}
+
 /// Level is always the higher level.
 /// ```grammar
 /// <tp_last> ::= <tp max>
@@ -434,6 +491,12 @@ impl Parsable for TakePriorityLast {
         } else {
             Ok(None)
         }
+    }
+}
+
+impl Evaluate for TakePriorityLast {
+    fn evaluate(&self, operation_context: &OperationContext) -> OperationIO {
+        self.child.evaluate(operation_context)
     }
 }
 
@@ -498,6 +561,17 @@ impl Parsable for NoValueN {
         Self: Sized,
     {
         <NoValueN as ParsableWithLevel>::parse(tokens, HIGHEST_LEVEL)
+    }
+}
+
+impl EvaluateFromInput for NoValueN {
+    fn evaluate_from_input(&self, operation_context: &OperationContext, input: OperationIO) -> OperationIO {
+        match self {
+            NoValueN::Element0(op) => op.evaluate_from_input(operation_context, input), 
+            NoValueN::ElementOperationN { level, operation, no_value_before: None } => operation.evaluate_from_input(operation_context, input),
+            NoValueN::ElementSimpleN { level: _, no_value_before } => no_value_before.evaluate_from_input(operation_context, input),
+            NoValueN::ElementOperationN { level: _, operation, no_value_before: Some(value_before) } => value_before.evaluate_from_input(operation_context, operation.evaluate_from_input(operation_context, input)),
+        }
     }
 }
 
