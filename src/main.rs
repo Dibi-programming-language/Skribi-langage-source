@@ -12,6 +12,7 @@ use get_file_content::get_content;
 use crate::tokens::tokenize;
 use crate::utils::clear;
 
+pub mod execute;
 mod get_file_content;
 mod parse;
 mod skr_errors;
@@ -19,7 +20,6 @@ mod skr_errors;
 mod tests;
 mod tokens;
 mod utils;
-pub mod execute;
 
 const FLAG_CHAR: &str = "--";
 

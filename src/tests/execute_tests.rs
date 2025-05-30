@@ -1,8 +1,8 @@
-use std::collections::VecDeque;
 use crate::execute::Evaluate;
 use crate::parse::nodes::operations::TakePriorityLast;
 use crate::parse::nodes::Parsable;
 use crate::tokens::{Token, TokenContainer};
+use std::collections::VecDeque;
 
 #[test]
 fn add_test() {
@@ -10,7 +10,10 @@ fn add_test() {
         .into_iter()
         .map(|x| x.into())
         .collect();
-    
-    let res = TakePriorityLast::parse(&mut vec).unwrap().unwrap().evaluate(&());
+
+    let res = TakePriorityLast::parse(&mut vec)
+        .unwrap()
+        .unwrap()
+        .evaluate(&());
     assert_eq!(res, 3);
 }

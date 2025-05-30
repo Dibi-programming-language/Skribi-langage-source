@@ -1,3 +1,4 @@
+use crate::execute::{Evaluate, EvaluateFromInput, IntType, OperationContext, OperationIO};
 use crate::parse::nodes::expressions::{Exp, ExpBase};
 use crate::parse::nodes::operations::Operations::{Add, Div, Equal, Mul, NotEqual, Sub};
 use crate::parse::nodes::{GraphDisplay, Parsable, ParsableWithLevel};
@@ -6,7 +7,6 @@ use crate::skr_errors::{CustomError, ResultOption};
 use crate::tokens::{Token, TokenContainer};
 use crate::{impl_debug, some_token};
 use std::collections::VecDeque;
-use crate::execute::{Evaluate, EvaluateFromInput, IntType, OperationContext, OperationIO};
 // This file is pretty long
 // Start of grammar for this file :
 // ```
@@ -109,7 +109,7 @@ impl Evaluate for ValueBase {
     fn evaluate(&self, _operation_context: &OperationContext) -> OperationIO {
         match self {
             ValueBase::Int(value) => *value,
-            _ => todo!()
+            _ => todo!(),
         }
     }
 }
@@ -169,7 +169,7 @@ impl Evaluate for ValueNode {
     fn evaluate(&self, _operation_context: &OperationContext) -> OperationIO {
         match self {
             ValueNode::ValueBase(base) => base.evaluate(_operation_context),
-            ValueNode::ExpBase(_) => todo!()
+            ValueNode::ExpBase(_) => todo!(),
         }
     }
 }
@@ -217,9 +217,7 @@ impl TakePriority {
                     if let some_token!(Token::RightParenthesis) = tokens.pop_front() {
                         Ok(Some(TakePriority::Exp(Box::new(exp))))
                     } else {
-                        Err(UnexpectedToken(
-                            "Expected a right parenthesis".to_string(),
-                        ))
+                        Err(UnexpectedToken("Expected a right parenthesis".to_string()))
                     }
                 }
                 None => Err(CustomError::UnexpectedToken(
@@ -415,10 +413,17 @@ impl ParsableWithLevel for OperationN {
 }
 
 impl EvaluateFromInput for OperationN {
-    fn evaluate_from_input(&self, operation_context: &OperationContext, input: OperationIO) -> OperationIO {
+    fn evaluate_from_input(
+        &self,
+        operation_context: &OperationContext,
+        input: OperationIO,
+    ) -> OperationIO {
         match self.operation {
             Add => input + self.tp_nm1.evaluate(operation_context),
-            _ => todo!()
+            Sub => input - self.tp_nm1.evaluate(operation_context),
+            Div => input / self.tp_nm1.evaluate(operation_context),
+            Mul => input * self.tp_nm1.evaluate(operation_context),
+            _ => todo!(),
         }
     }
 }
@@ -451,12 +456,14 @@ impl ParsableWithLevel for TakePriorityN {
             }
         } else if let Some(take_priority_nm1) = TakePriorityN::parse(tokens, level - 1)? {
             let optional = OperationN::parse(tokens, level)?;
-            let optional = optional.map(Box::new);
-            Ok(Some(Self::ElementN {
-                level,
-                tp_nm1: Box::new(take_priority_nm1),
-                op_n: optional,
-            }))
+            match optional {
+                Some(op_n) => Ok(Some(Self::ElementN {
+                    level,
+                    tp_nm1: Box::new(take_priority_nm1),
+                    op_n: Some(Box::new(op_n)),
+                })),
+                None => Ok(Some(take_priority_nm1)),
+            }
         } else {
             Ok(None)
         }
@@ -467,9 +474,19 @@ impl Evaluate for TakePriorityN {
     fn evaluate(&self, operation_context: &OperationContext) -> OperationIO {
         match self {
             TakePriorityN::ElementUnary0(unary) => unary.evaluate(operation_context),
-            TakePriorityN::ElementSimple0(take_priority) => take_priority.evaluate(operation_context),
-            TakePriorityN::ElementN { level: _, tp_nm1, op_n: None } => tp_nm1.evaluate(operation_context),
-            TakePriorityN::ElementN { level: _, tp_nm1, op_n: Some(op) } => op.evaluate_from_input(operation_context, tp_nm1.evaluate(operation_context)),
+            TakePriorityN::ElementSimple0(take_priority) => {
+                take_priority.evaluate(operation_context)
+            }
+            TakePriorityN::ElementN {
+                level: _,
+                tp_nm1,
+                op_n: Some(op),
+            } => op.evaluate_from_input(operation_context, tp_nm1.evaluate(operation_context)),
+            TakePriorityN::ElementN {
+                level: _,
+                tp_nm1,
+                op_n: _,
+            } => tp_nm1.evaluate(operation_context),
         }
     }
 }
@@ -565,12 +582,30 @@ impl Parsable for NoValueN {
 }
 
 impl EvaluateFromInput for NoValueN {
-    fn evaluate_from_input(&self, operation_context: &OperationContext, input: OperationIO) -> OperationIO {
+    fn evaluate_from_input(
+        &self,
+        operation_context: &OperationContext,
+        input: OperationIO,
+    ) -> OperationIO {
         match self {
-            NoValueN::Element0(op) => op.evaluate_from_input(operation_context, input), 
-            NoValueN::ElementOperationN { level, operation, no_value_before: None } => operation.evaluate_from_input(operation_context, input),
-            NoValueN::ElementSimpleN { level: _, no_value_before } => no_value_before.evaluate_from_input(operation_context, input),
-            NoValueN::ElementOperationN { level: _, operation, no_value_before: Some(value_before) } => value_before.evaluate_from_input(operation_context, operation.evaluate_from_input(operation_context, input)),
+            NoValueN::Element0(op) => op.evaluate_from_input(operation_context, input),
+            NoValueN::ElementSimpleN {
+                level: _,
+                no_value_before,
+            } => no_value_before.evaluate_from_input(operation_context, input),
+            NoValueN::ElementOperationN {
+                level: _,
+                operation,
+                no_value_before: Some(value_before),
+            } => value_before.evaluate_from_input(
+                operation_context,
+                operation.evaluate_from_input(operation_context, input),
+            ),
+            NoValueN::ElementOperationN {
+                level: _,
+                operation,
+                no_value_before: None,
+            } => operation.evaluate_from_input(operation_context, input),
         }
     }
 }
