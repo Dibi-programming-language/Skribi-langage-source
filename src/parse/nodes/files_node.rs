@@ -4,7 +4,7 @@ use crate::impl_debug;
 use crate::parse::nodes::expressions::Exp;
 use crate::parse::nodes::GraphDisplay;
 use crate::skr_errors::ResultOption;
-use crate::tokens::Token;
+use crate::tokens::TokenContainer;
 
 /// Node representing a file. This is the root node of the AST.
 #[derive(PartialEq)]
@@ -30,7 +30,7 @@ impl FileNode {
         Self { exps }
     }
 
-    pub fn parse(tokens: &mut VecDeque<Token>) -> ResultOption<Self> {
+    pub fn parse(tokens: &mut VecDeque<TokenContainer>) -> ResultOption<Self> {
         let mut exps = Vec::new();
         while let Some(exp) = Exp::parse(tokens)? {
             exps.push(exp);

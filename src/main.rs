@@ -12,6 +12,7 @@ use get_file_content::get_content;
 use crate::tokens::tokenize;
 use crate::utils::clear;
 
+pub mod execute;
 mod get_file_content;
 mod parse;
 mod skr_errors;
@@ -43,8 +44,7 @@ fn main() {
             // Remove the comments and split the code into instructions
             match tokenize(lines) {
                 Ok(tokens) => {
-                    let tokens_deque = tokens.into_iter().collect();
-                    let _nodes = parse::parse(tokens_deque);
+                    let _nodes = parse::parse(tokens);
                     // TODO
                 }
                 Err(err) => {
