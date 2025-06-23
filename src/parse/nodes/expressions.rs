@@ -85,26 +85,23 @@ impl NatCallIn {
 
     pub fn parse(tokens: &mut VecDeque<TokenContainer>) -> ResultOption<NatCallIn> {
         // <nat_call_in> ::= T_IDENTIFIER ("\n" | <nat_call_in>)
-        if let some_token!(Token::Identifier(_)) = tokens.front() {
-            if let some_token!(Token::Identifier(identifier)) = tokens.pop_front() {
-                if let some_token!(Token::Space(SpaceTypes::NewLine)) = tokens.front() {
-                    tokens.pop_front();
-                    Ok(Some(NatCallIn::new(identifier, None)))
-                } else {
-                    let nat_call_in = NatCallIn::parse(tokens)?;
-                    match nat_call_in {
-                        Some(nat_call_in) => {
-                            Ok(Some(NatCallIn::new(identifier, Some(nat_call_in))))
-                        }
-                        None => Err(CustomError::UnexpectedToken(
-                            "Expected a new line or a nat_call_in".to_string(),
-                        )),
-                    }
-                }
+        if let some_token!(Token::Identifier(identifier)) = tokens.front() {
+            let identifier = identifier.to_string();
+            let token_container = tokens.pop_front().unwrap();
+
+            if let some_token!(Token::Space(SpaceTypes::NewLine)) = tokens.front() {
+                tokens.pop_front();
+                Ok(Some(NatCallIn::new(identifier, None)))
             } else {
-                Err(CustomError::UnexpectedToken(
-                    "Had an identifier, but couldn't get it".to_string(),
-                ))
+                let nat_call_in = NatCallIn::parse(tokens)?;
+                match nat_call_in {
+                    Some(nat_call_in) => {
+                        Ok(Some(NatCallIn::new(identifier, Some(nat_call_in))))
+                    }
+                    None => Err(CustomError::UnexpectedToken(
+                            format!("Expected a new line or a nat_call_in (l{}:{})", token_container.line, token_container.column)
+                    )),
+                }
             }
         } else {
             Ok(None)
@@ -175,12 +172,12 @@ impl Execute for NatCall {
         ) -> GeneralOutput {
         match &self.nat_call_in.identifier[..] {
             "print" => self.print(operation_context),
-            "pintln" => {
+            "println" => {
                 self.print(operation_context)?;
                 println!();
                 Ok(())
             },
-            _ => Err(ExecutionError::native_call_invalid()),
+            name => Err(ExecutionError::native_call_invalid(name)),
         }
     }
 }
@@ -660,6 +657,20 @@ impl Sta {
     }
 }
 
+impl Execute for Sta {
+    fn execute(
+        &self,
+        operation_context: &mut OperationContext
+    ) -> GeneralOutput {
+        match self {
+            Sta::Return(_return_node) => { todo!() }
+            Sta::NatCall(nat_call) => { nat_call.execute(operation_context)?; }
+            Sta::Exp(exp) => { exp.evaluate(operation_context)?; }
+        }
+        Ok(())
+    }
+}
+
 // ------------
 // --- StaL ---
 // ------------
@@ -678,8 +689,8 @@ impl GraphDisplay for StaL {
         for sta in &self.sta_l {
             match sta {
                 Sta::Return(return_node) => return_node.graph_display(graph, id),
-                Sta::Exp(exp) => exp.graph_display(graph, id),
                 Sta::NatCall(nat_call) => nat_call.graph_display(graph, id),
+                Sta::Exp(exp) => exp.graph_display(graph, id),
             }
         }
         graph.push_str("\nend");

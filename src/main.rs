@@ -50,9 +50,12 @@ fn main() {
                     if let Ok(Some(ast)) = nodes {
                         println!("{}", "Executing...".italic());
                         let result = ast.execute(&mut ());
-                        if let Err(_err) = result {
+                        if let Err(err) = result {
+                            println!();
+                            err.show();
                             panic!("{}", "--- Your program stopped in a unexpected way ---".red());
                         } else {
+                            println!();
                             println!("{}", "Program's end with no error".bold());
                         }
                     } else if let Err(err) = nodes {
