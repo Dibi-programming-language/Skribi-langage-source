@@ -26,7 +26,17 @@ pub trait Execute {
 
 #[allow(dead_code)]
 #[derive(PartialEq, Debug)]
-pub enum ExecutionError {
+pub struct ExecutionError {
+    message: String,
+}
 
+impl ExecutionError {
+    pub fn variable_not_exists() -> Self {
+        ExecutionError { message: "This variable does not exists.".to_string() }
+    }
+
+    pub fn native_call_invalid() -> Self {
+        ExecutionError { message: "Cannot process this native call.".to_string() }
+    }
 }
 
