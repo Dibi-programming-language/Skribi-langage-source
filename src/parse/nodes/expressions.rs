@@ -1,5 +1,6 @@
 use std::collections::VecDeque;
 
+use crate::execute::Evaluate;
 use crate::parse::nodes::blocs::ScopeBase;
 use crate::parse::nodes::functions::FctDec;
 use crate::parse::nodes::id_nodes::{parse_op_in, OpIn, TupleNode};
@@ -10,6 +11,8 @@ use crate::parse::nodes::{GraphDisplay, Parsable};
 use crate::skr_errors::{CustomError, ResultOption};
 use crate::tokens::{SpaceTypes, Token, TokenContainer};
 use crate::{impl_debug, some_token};
+use crate::execute::OperationContext;
+use crate::execute::OperationO;
 
 // Grammar of this file :
 // <nat_call_in> ::= T_IDENTIFIER ("\n" | <nat_call_in>)
@@ -497,9 +500,11 @@ impl ExpTp {
 // --- Exp ---
 // -----------
 
-/// `Exp` represents any expression with low priority. It might be between parentheses to work. It
-/// contains [ExpTp] or [TPLast]. [TPLast] represents any chain of operations, and [ExpTp] a high
-/// priority expression.
+/// `Exp` represents any expression with low priority.
+/// It might be between parentheses to work.
+/// It contains [ExpTp] or [TakePriorityLast].
+/// [TakePriorityLast] represents any chain of operations,
+/// and [ExpTp] a high priority expression.
 #[derive(PartialEq)]
 pub enum Exp {
     ExpTp(ExpTp),
@@ -532,6 +537,12 @@ impl Exp {
         } else {
             Ok(None)
         }
+    }
+}
+
+impl Evaluate for Exp {
+    fn evaluate(&self, _operation_context: &mut OperationContext) -> OperationO {
+        todo!()
     }
 }
 

@@ -248,6 +248,8 @@ pub(crate) fn tokenize(file: String) -> Result<VecDeque<TokenContainer>, CustomE
         current: None,
     };
 
+    file_ch.next();
+
     while let Some(ch) = file_ch.current {
         if ch == '/' {
             if let Some(next_ch) = file_ch.next() {

@@ -1,4 +1,4 @@
-use crate::execute::{Evaluate, EvaluateFromInput, IntType, OperationContext, OperationIO};
+use crate::execute::{Evaluate, EvaluateFromInput, IntType, OperationContext, OperationO, OperationI};
 use crate::parse::nodes::expressions::{Exp, ExpBase};
 use crate::parse::nodes::operations::Operations::{Add, Div, Equal, Mul, NotEqual, Sub};
 use crate::parse::nodes::{GraphDisplay, Parsable, ParsableWithLevel};
@@ -106,7 +106,7 @@ impl ValueBase {
 }
 
 impl Evaluate for ValueBase {
-    fn evaluate(&self, _operation_context: &OperationContext) -> OperationIO {
+    fn evaluate(&self, _operation_context: &mut OperationContext) -> OperationO {
         match self {
             ValueBase::Int(value) => *value,
             _ => todo!(),
@@ -166,9 +166,9 @@ impl ValueNode {
 }
 
 impl Evaluate for ValueNode {
-    fn evaluate(&self, _operation_context: &OperationContext) -> OperationIO {
+    fn evaluate(&self, operation_context: &mut OperationContext) -> OperationO {
         match self {
-            ValueNode::ValueBase(base) => base.evaluate(_operation_context),
+            ValueNode::ValueBase(base) => base.evaluate(operation_context),
             ValueNode::ExpBase(_) => todo!(),
         }
     }
@@ -233,7 +233,7 @@ impl TakePriority {
 }
 
 impl Evaluate for TakePriority {
-    fn evaluate(&self, operation_context: &OperationContext) -> OperationIO {
+    fn evaluate(&self, operation_context: &mut OperationContext) -> OperationO {
         match self {
             TakePriority::Exp(_) => todo!(),
             TakePriority::Value(value) => value.evaluate(operation_context),
@@ -309,10 +309,10 @@ impl Parsable for UnaryTP {
 }
 
 impl Evaluate for UnaryTP {
-    fn evaluate(&self, _operation_context: &OperationContext) -> OperationIO {
+    fn evaluate(&self, operation_context: &mut OperationContext) -> OperationO {
         match self {
-            UnaryTP::Plus(unary_tp) => unary_tp.evaluate(_operation_context),
-            UnaryTP::TakePriority(take_priority) => take_priority.evaluate(_operation_context),
+            UnaryTP::Plus(unary_tp) => unary_tp.evaluate(operation_context),
+            UnaryTP::TakePriority(take_priority) => take_priority.evaluate(operation_context),
             _ => todo!(),
         }
     }
@@ -415,9 +415,9 @@ impl ParsableWithLevel for OperationN {
 impl EvaluateFromInput for OperationN {
     fn evaluate_from_input(
         &self,
-        operation_context: &OperationContext,
-        input: OperationIO,
-    ) -> OperationIO {
+        operation_context: &mut OperationContext,
+        input: OperationI,
+    ) -> OperationO {
         match self.operation {
             Add => input + self.tp_nm1.evaluate(operation_context),
             Sub => input - self.tp_nm1.evaluate(operation_context),
@@ -471,7 +471,7 @@ impl ParsableWithLevel for TakePriorityN {
 }
 
 impl Evaluate for TakePriorityN {
-    fn evaluate(&self, operation_context: &OperationContext) -> OperationIO {
+    fn evaluate(&self, operation_context: &mut OperationContext) -> OperationO {
         match self {
             TakePriorityN::ElementUnary0(unary) => unary.evaluate(operation_context),
             TakePriorityN::ElementSimple0(take_priority) => {
@@ -481,7 +481,10 @@ impl Evaluate for TakePriorityN {
                 level: _,
                 tp_nm1,
                 op_n: Some(op),
-            } => op.evaluate_from_input(operation_context, tp_nm1.evaluate(operation_context)),
+            } => {
+                let res = tp_nm1.evaluate(operation_context);
+                op.evaluate_from_input(operation_context, res)
+            }
             TakePriorityN::ElementN {
                 level: _,
                 tp_nm1,
@@ -512,7 +515,7 @@ impl Parsable for TakePriorityLast {
 }
 
 impl Evaluate for TakePriorityLast {
-    fn evaluate(&self, operation_context: &OperationContext) -> OperationIO {
+    fn evaluate(&self, operation_context: &mut OperationContext) -> OperationO {
         self.child.evaluate(operation_context)
     }
 }
@@ -584,9 +587,9 @@ impl Parsable for NoValueN {
 impl EvaluateFromInput for NoValueN {
     fn evaluate_from_input(
         &self,
-        operation_context: &OperationContext,
-        input: OperationIO,
-    ) -> OperationIO {
+        operation_context: &mut OperationContext,
+        input: OperationI,
+    ) -> OperationO {
         match self {
             NoValueN::Element0(op) => op.evaluate_from_input(operation_context, input),
             NoValueN::ElementSimpleN {
@@ -597,10 +600,13 @@ impl EvaluateFromInput for NoValueN {
                 level: _,
                 operation,
                 no_value_before: Some(value_before),
-            } => value_before.evaluate_from_input(
-                operation_context,
-                operation.evaluate_from_input(operation_context, input),
-            ),
+            } => {
+                let res = operation.evaluate_from_input(operation_context, input);
+                value_before.evaluate_from_input(
+                    operation_context,
+                    res,
+                )
+            }
             NoValueN::ElementOperationN {
                 level: _,
                 operation,
