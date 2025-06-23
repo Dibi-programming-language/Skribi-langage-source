@@ -14,6 +14,7 @@ fn add_test() {
     let res = TakePriorityLast::parse(&mut vec)
         .unwrap()
         .unwrap()
-        .evaluate(&mut ());
+        .evaluate(&mut ())
+        .unwrap();
     assert_eq!(res, 3);
 }

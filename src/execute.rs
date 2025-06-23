@@ -1,6 +1,8 @@
 pub type IntType = u32;
 pub type OperationI = u32;
-pub type OperationO = u32;
+pub type OperationCleanOutput = u32;
+pub type OperationO = Result<OperationCleanOutput, ExecutionError>;
+pub type GeneralOutput = Result<(), ExecutionError>;
 pub type OperationContext = ();
 
 pub trait EvaluateFromInput {
@@ -16,5 +18,15 @@ pub trait Evaluate {
 }
 
 pub trait Execute {
-    fn execute(&self, operation_context: &mut OperationContext);
+    fn execute(
+        &self,
+        operation_context: &mut OperationContext
+    ) -> GeneralOutput;
 }
+
+#[allow(dead_code)]
+#[derive(PartialEq, Debug)]
+pub enum ExecutionError {
+
+}
+

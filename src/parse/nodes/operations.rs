@@ -108,7 +108,7 @@ impl ValueBase {
 impl Evaluate for ValueBase {
     fn evaluate(&self, _operation_context: &mut OperationContext) -> OperationO {
         match self {
-            ValueBase::Int(value) => *value,
+            ValueBase::Int(value) => Ok(*value),
             _ => todo!(),
         }
     }
@@ -418,13 +418,13 @@ impl EvaluateFromInput for OperationN {
         operation_context: &mut OperationContext,
         input: OperationI,
     ) -> OperationO {
-        match self.operation {
-            Add => input + self.tp_nm1.evaluate(operation_context),
-            Sub => input - self.tp_nm1.evaluate(operation_context),
-            Div => input / self.tp_nm1.evaluate(operation_context),
-            Mul => input * self.tp_nm1.evaluate(operation_context),
+        Ok(match self.operation {
+            Add => input + self.tp_nm1.evaluate(operation_context)?,
+            Sub => input - self.tp_nm1.evaluate(operation_context)?,
+            Div => input / self.tp_nm1.evaluate(operation_context)?,
+            Mul => input * self.tp_nm1.evaluate(operation_context)?,
             _ => todo!(),
-        }
+        })
     }
 }
 
@@ -482,7 +482,7 @@ impl Evaluate for TakePriorityN {
                 tp_nm1,
                 op_n: Some(op),
             } => {
-                let res = tp_nm1.evaluate(operation_context);
+                let res = tp_nm1.evaluate(operation_context)?;
                 op.evaluate_from_input(operation_context, res)
             }
             TakePriorityN::ElementN {
@@ -601,7 +601,7 @@ impl EvaluateFromInput for NoValueN {
                 operation,
                 no_value_before: Some(value_before),
             } => {
-                let res = operation.evaluate_from_input(operation_context, input);
+                let res = operation.evaluate_from_input(operation_context, input)?;
                 value_before.evaluate_from_input(
                     operation_context,
                     res,

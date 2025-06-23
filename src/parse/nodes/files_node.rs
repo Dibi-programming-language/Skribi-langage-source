@@ -1,6 +1,6 @@
 use std::collections::VecDeque;
 
-use crate::execute::{Evaluate, Execute};
+use crate::execute::{Evaluate, Execute, GeneralOutput};
 use crate::impl_debug;
 use crate::parse::nodes::expressions::Exp;
 use crate::parse::nodes::GraphDisplay;
@@ -43,10 +43,11 @@ impl FileNode {
 }
 
 impl Execute for FileNode {
-    fn execute(&self, operation_context: &mut OperationContext) {
+    fn execute(&self, operation_context: &mut OperationContext) -> GeneralOutput {
         for exp in &self.exps {
-            exp.evaluate(operation_context);
+            exp.evaluate(operation_context)?;
         }
+        Ok(())
     }
 }
 

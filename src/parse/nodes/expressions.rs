@@ -541,8 +541,11 @@ impl Exp {
 }
 
 impl Evaluate for Exp {
-    fn evaluate(&self, _operation_context: &mut OperationContext) -> OperationO {
-        todo!()
+    fn evaluate(&self, operation_context: &mut OperationContext) -> OperationO {
+        match self {
+            Exp::ExpTp(exp_tp) => todo!(),
+            Exp::TPLast(tp_last) => tp_last.evaluate(operation_context),
+        }
     }
 }
 
