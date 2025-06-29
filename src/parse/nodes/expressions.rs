@@ -186,8 +186,8 @@ impl Execute for NatCall {
 // --- IdUse ---
 // -------------
 
-/// `InsideIdUse` represents the possible values that can be inside an [IdUse]. It can be a
-/// [TupleNode], a [VarMod], or nothing.
+/// `InsideIdUse` represents the possible values that can be inside an [IdUse].
+/// It can be a [TupleNode], a [VarMod], or nothing.
 #[derive(PartialEq)]
 pub(crate) enum InsideIdUse {
     Tuple(TupleNode),
@@ -195,8 +195,9 @@ pub(crate) enum InsideIdUse {
     Empty,
 }
 
-/// `IdUse` represents two types of expressions that have a link with identifiers. It can be a
-/// function call with a [TupleNode], or a variable usage (get / set with [VarMod]).
+/// `IdUse` represents two types of expressions that have a link with identifiers.
+/// It can be a function call with a [TupleNode],
+/// or a variable usage (get / set with [VarMod]).
 ///
 /// # Grammar
 ///
@@ -276,12 +277,22 @@ impl IdUse {
     }
 }
 
+impl Evaluate for IdUse {
+    fn evaluate(
+            &self,
+            _operation_context: &mut OperationContext
+        ) -> OperationO {
+        todo!()
+    }
+}
+
 // --------------
 // --- IdUseV ---
 // --------------
 
-/// `InsideIdUseV` represents the possible values that can be inside an [IdUseV]. It can be a
-/// [TupleNode] (with an optional [NoValueN]), a [VarMod], a [NoValueN], or nothing.
+/// `InsideIdUseV` represents the possible values that can be inside an [IdUseV].
+/// It can be a [TupleNode] (with an optional [NoValueN]),
+/// a [VarMod], a [NoValueN], or nothing.
 #[derive(PartialEq)]
 pub(crate) enum InsideIdUseV {
     Tuple {
@@ -293,14 +304,21 @@ pub(crate) enum InsideIdUseV {
     Empty,
 }
 
-/// `IdUseV` works like an [IdUse] but can apply operations on the result of a get. This means that
-/// it can be an identifier usage on which we apply operations, or not. We must notice that we
-/// cannot directly apply a [NoValueN] to an [IdUse] because [NoValueN] has a higher priority than
+/// `IdUseV` works like an [IdUse] but can apply operations on the result of a get.
+/// This means that it can be an identifier usage
+/// on which we apply operations, or not.
+/// We must notice that we cannot directly apply a [NoValueN]
+/// to an [IdUse] because [NoValueN] has a higher priority than
 /// [VarMod] and cannot be used with it.
 ///
 /// # Grammar
 ///
-/// `<id_use_v> ::= T_IDENTIFIER ( <tuple> <op_in> (<no_value> |) | <op_in> (<no_value> | <var_mod> |) )`
+/// ```
+/// <id_use_v> ::= T_IDENTIFIER (
+///     <tuple> <op_in> (<no_value> |)
+///     | <op_in> (<no_value> | <var_mod> |)
+/// )
+/// ```
 ///
 /// See also [TupleNode], [OpIn], [NoValueN] and [VarMod].
 ///
@@ -397,12 +415,18 @@ impl IdUseV {
     }
 }
 
+impl Evaluate for IdUseV {
+    fn evaluate(&self, _operation_context: &mut OperationContext) -> OperationO {
+        todo!()
+    }
+}
+
 // ---------------
 // --- ExpBase ---
 // ---------------
 
-/// `ExpBase` represents any expression node that has the priority over many grammar rules with high
-/// priority, like operations.
+/// `ExpBase` represents any expression node that has the priority
+/// over many grammar rules with high priority, like operations.
 #[derive(PartialEq)]
 pub enum ExpBase {
     IdUse(Box<IdUse>),
@@ -477,12 +501,27 @@ impl ExpBase {
     }
 }
 
+impl Evaluate for ExpBase {
+    fn evaluate(&self, operation_context: &mut OperationContext) -> OperationO {
+        match self {
+            Self::IdUse(id_use) => id_use.evaluate(operation_context),
+            Self::Cond(_cond) => todo!(),
+            Self::LeftP(_leftp) => todo!(),
+            Self::VarDec(_var_dec) => todo!(),
+            Self::RightP(_rightp) => todo!(),
+            Self::FctDec(_fct_dec) => todo!(),
+            Self::ScopeBase(_scope_base) => todo!(),
+        }
+    }
+}
+
 // -------------
 // --- ExpTp ---
 // -------------
 
-/// `ExpTp` represents the second level of high priority expressions. This contains [ExpBase] and
-/// [IdUseV]. For now, it is only used to represent the [IdUseV].
+/// `ExpTp` represents the second level of high priority expressions.
+/// This contains [ExpBase] and [IdUseV].
+/// For now, it is only used to represent the [IdUseV].
 #[derive(PartialEq)]
 pub enum ExpTp {
     ExpBase(ExpBase),
@@ -518,6 +557,15 @@ impl ExpTp {
             Ok(Some(ExpTp::IdUseV(id_use_v)))
         } else {
             Ok(None)
+        }
+    }
+}
+
+impl Evaluate for ExpTp {
+    fn evaluate(&self, operation_context: &mut OperationContext) -> OperationO {
+        match self {
+            Self::IdUseV(id_use_v) => id_use_v.evaluate(operation_context),
+            Self::ExpBase(exp_base) => exp_base.evaluate(operation_context),
         }
     }
 }
