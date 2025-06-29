@@ -98,9 +98,10 @@ impl NatCallIn {
                     Some(nat_call_in) => {
                         Ok(Some(NatCallIn::new(identifier, Some(nat_call_in))))
                     }
-                    None => Err(CustomError::UnexpectedToken(
-                            format!("Expected a new line or a nat_call_in (l{}:{})", token_container.line, token_container.column)
-                    )),
+                    None => Err(CustomError::UnexpectedToken(format!(
+                                "Expected a new line or a nat_call_in (l{}:{})",
+                                token_container.line, token_container.column
+                    ))),
                 }
             }
         } else {
@@ -154,11 +155,11 @@ impl NatCall {
 
     fn print(
         &self,
-        _operation_context: &mut OperationContext,
+        operation_context: &mut OperationContext,
     ) -> GeneralOutput {
         let mut current = &self.nat_call_in.nat_call_in;
         while let Some(content) = current {
-            print!("{}", content.identifier);
+            print!("{}", operation_context.get_variable(&content.identifier, 0)?);
             current = &content.nat_call_in;
         }
         Ok(())
@@ -231,7 +232,11 @@ impl GraphDisplay for IdUse {
 impl_debug!(IdUse);
 
 impl IdUse {
-    pub(crate) fn new(identifier: String, op_in: OpIn, inside_id_use: InsideIdUse) -> Self {
+    pub(crate) fn new(
+        identifier: String,
+        op_in: OpIn,
+        inside_id_use: InsideIdUse
+    ) -> Self {
         Self {
             identifier,
             op_in,
@@ -279,9 +284,9 @@ impl IdUse {
 
 impl Evaluate for IdUse {
     fn evaluate(
-            &self,
-            _operation_context: &mut OperationContext
-        ) -> OperationO {
+        &self,
+        _operation_context: &mut OperationContext,
+    ) -> OperationO {
         todo!()
     }
 }
@@ -617,7 +622,7 @@ impl Exp {
 impl Evaluate for Exp {
     fn evaluate(&self, operation_context: &mut OperationContext) -> OperationO {
         match self {
-            Exp::ExpTp(_exp_tp) => todo!(),
+            Exp::ExpTp(exp_tp) => exp_tp.evaluate(operation_context),
             Exp::TPLast(tp_last) => tp_last.evaluate(operation_context),
         }
     }

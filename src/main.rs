@@ -9,7 +9,7 @@ use std::env;
 use colored::Colorize;
 use get_file_content::get_content;
 
-use crate::execute::Execute;
+use crate::execute::{Execute, ExecutionContext};
 // Import
 use crate::tokens::tokenize;
 use crate::utils::clear;
@@ -49,7 +49,7 @@ fn main() {
                     let nodes = parse::parse(tokens);
                     if let Ok(Some(ast)) = nodes {
                         println!("{}", "Executing...".italic());
-                        let result = ast.execute(&mut ());
+                        let result = ast.execute(&mut ExecutionContext::new());
                         if let Err(err) = result {
                             println!();
                             err.show();

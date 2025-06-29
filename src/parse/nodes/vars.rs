@@ -1,11 +1,13 @@
 use std::collections::VecDeque;
 
+use crate::execute::Evaluate;
 use crate::parse::nodes::classes::is_type_def;
 use crate::parse::nodes::expressions::Exp;
 use crate::parse::nodes::GraphDisplay;
 use crate::skr_errors::{CustomError, ResultOption};
 use crate::tokens::{ModifierKeyword, Token, TokenContainer};
 use crate::{impl_debug, some_token};
+use crate::execute::{OperationO, OperationContext};
 
 // Grammar of this file :
 /*
@@ -55,8 +57,9 @@ pub(crate) fn parse_type(tokens: &mut VecDeque<TokenContainer>) -> Option<Type> 
 // --- Vd ---
 // ----------
 
-/// `Vd` represents a variable declaration in the AST. It contains a type, an identifier and an
-/// expression. The expression is not yet implemented.
+/// `Vd` represents a variable declaration in the AST.
+/// It contains a type, an identifier and an expression.
+/// The expression is not yet implemented.
 #[derive(PartialEq)]
 pub struct Vd {
     type_: Type,
@@ -104,6 +107,17 @@ impl Vd {
                 "Expected an identifier".to_string(),
             ))
         }
+    }
+}
+
+impl Evaluate for Vd {
+    fn evaluate(
+        &self,
+        operation_context: &mut OperationContext
+    ) -> OperationO {
+        let content = self.exp.evaluate(operation_context)?;
+        operation_context.associate_new(self.identifier.clone(), content);
+        operation_context.get_variable(&self.identifier, 0)
     }
 }
 

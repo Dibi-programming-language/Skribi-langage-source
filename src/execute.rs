@@ -36,15 +36,30 @@ impl ExecutionScope {
     fn edit_variable(
         &mut self,
         name: &String,
-        new_value: OperationI
+        new_value: OperationI,
+        line: usize
     ) -> Result<(), ExecutionError> {
         if let Some(variable) = self.variables.get_mut(name) {
             variable.content = new_value;
             Ok(())
         } else if let Some(ref mut outer) = self.outer_scope {
-            outer.edit_variable(name, new_value)
+            outer.edit_variable(name, new_value, line)
         } else {
-            Err(ExecutionError::no_return_at_root())
+            Err(ExecutionError::variable_not_exists(name, line))
+        }
+    }
+
+    fn get_variable(
+        &mut self,
+        name: &String,
+        line: usize
+    ) -> Result<OperationI, ExecutionError> {
+        if let Some(variable) = self.variables.get_mut(name) {
+            Ok(variable.content)
+        } else if let Some(ref mut outer) = self.outer_scope {
+            outer.get_variable(name, line)
+        } else {
+            Err(ExecutionError::variable_not_exists(name, line))
         }
     }
 }
@@ -69,15 +84,28 @@ impl ExecutionContext {
         }
     }
 
-    fn change_value(
+    pub fn change_value(
         &mut self,
-        name: String,
-        value: OperationI
+        name: &String,
+        value: OperationI,
+        line: usize,
     ) -> Result<(), ExecutionError> {
         if let Some(ref mut scope) = self.scope {
-            scope.edit_variable(&name, value)
+            scope.edit_variable(name, value, line)
         } else {
-            Err(ExecutionError::no_return_at_root())
+            Err(ExecutionError::variable_not_exists(name, line))
+        }
+    }
+
+    pub fn get_variable(
+        &mut self,
+        name: &String,
+        line: usize,
+    ) -> Result<OperationI, ExecutionError> {
+        if let Some(ref mut scope) = self.scope {
+            scope.get_variable(name, line)
+        } else {
+            Err(ExecutionError::variable_not_exists(name, line))
         }
     }
 }
@@ -86,7 +114,7 @@ pub type IntType = u32;
 pub type OperationCleanOutput = u32;
 pub type OperationO = Result<OperationCleanOutput, ExecutionError>;
 pub type GeneralOutput = Result<(), ExecutionError>;
-pub type OperationContext = ();
+pub type OperationContext = ExecutionContext;
 
 pub trait EvaluateFromInput {
     fn evaluate_from_input(
@@ -156,12 +184,18 @@ impl ExecutionError {
         self
     }
 
-    pub fn variable_not_exists() -> Self {
-        Self::new("This variable does not exists.")
+    pub fn variable_not_exists(name: &String, line: usize) -> Self {
+        Self::new_str(format!(
+                "The variable {} does not exists at line {}",
+                name, line
+        ))
     }
 
     pub fn native_call_invalid(name: &str) -> Self {
-        Self::new_str(format!("Cannot process the native call named {}.", name.italic()))
+        Self::new_str(format!(
+                "Cannot process the native call named {}.",
+                name.italic()
+        ))
     }
 
     pub fn no_return_at_root() -> Self {
@@ -174,7 +208,11 @@ impl ExecutionError {
         println!("Error: {}", self.message.red().bold());
 
         if self.hints.len() == 1 {
-            println!("{} {}", "Hint:".bold().green(), self.hints[0].message.green())
+            println!(
+                "{} {}",
+                "Hint:".bold().green(),
+                self.hints[0].message.green()
+            )
         } else if self.hints.len() > 1 {
             println!("{}", "Hints:".bold().green());
             for hint in &self.hints {

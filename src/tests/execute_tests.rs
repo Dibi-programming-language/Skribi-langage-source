@@ -1,4 +1,4 @@
-use crate::execute::Evaluate;
+use crate::execute::{Evaluate, ExecutionContext};
 use crate::parse::nodes::operations::TakePriorityLast;
 use crate::parse::nodes::Parsable;
 use crate::tokens::{Token, TokenContainer};
@@ -14,7 +14,7 @@ fn add_test() {
     let res = TakePriorityLast::parse(&mut vec)
         .unwrap()
         .unwrap()
-        .evaluate(&mut ())
+        .evaluate(&mut ExecutionContext::new())
         .unwrap();
     assert_eq!(res, 3);
 }
