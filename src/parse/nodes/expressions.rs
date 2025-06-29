@@ -469,16 +469,16 @@ impl ExpBase {
 
     pub fn parse(tokens: &mut VecDeque<TokenContainer>) -> ResultOption<ExpBase> {
         // <exp_base> ::=
-        //   <id_use>
-        //   | <var_dec>
+        //   <var_dec>
+        //   | <id_use>
         //   | <cond>
         //   | <scope_base>
         //   | <fct_dec>
         //   | T_LEFT_P <exp> T_RIGHT_P
-        if let Some(id_use) = IdUse::parse(tokens)? {
-            Ok(Some(ExpBase::new(id_use)))
-        } else if let Some(var_dec) = VarDec::parse(tokens)? {
+        if let Some(var_dec) = VarDec::parse(tokens)? {
             Ok(Some(ExpBase::VarDec(Box::new(var_dec))))
+        } else if let Some(id_use) = IdUse::parse(tokens)? {
+            Ok(Some(ExpBase::new(id_use)))
         } else if let Some(cond) = Cond::parse(tokens)? {
             Ok(Some(ExpBase::Cond(Box::new(cond))))
         } else if let Some(scope_base) = ScopeBase::parse(tokens)? {
@@ -512,7 +512,7 @@ impl Evaluate for ExpBase {
             Self::IdUse(id_use) => id_use.evaluate(operation_context),
             Self::Cond(_cond) => todo!(),
             Self::LeftP(_leftp) => todo!(),
-            Self::VarDec(_var_dec) => todo!(),
+            Self::VarDec(var_dec) => var_dec.evaluate(operation_context),
             Self::RightP(_rightp) => todo!(),
             Self::FctDec(_fct_dec) => todo!(),
             Self::ScopeBase(_scope_base) => todo!(),
@@ -697,7 +697,10 @@ impl_debug!(Sta);
 
 impl Sta {
     pub fn parse(tokens: &mut VecDeque<TokenContainer>) -> ResultOption<Sta> {
-        // <sta> ::= <return> | <exp> | <nat_call>
+        // <sta> ::=
+        //     <return>
+        //     | <nat_call>
+        //     | <exp>
         if let Some(return_node) = Return::parse(tokens)? {
             Ok(Some(Sta::Return(return_node)))
         } else if let Some(nat_call) = NatCall::parse(tokens)? {

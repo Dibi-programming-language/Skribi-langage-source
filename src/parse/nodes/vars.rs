@@ -32,6 +32,21 @@ pub struct Type {
     pub(crate) name: String,
 }
 
+impl Type {
+    pub(crate) fn parse(tokens: &mut VecDeque<TokenContainer>) -> Option<Type> {
+        if let some_token!(Token::Identifier(identifier)) = tokens.front() {
+            if is_type_def(identifier) {
+                if let some_token!(Token::Identifier(identifier)) =
+                    tokens.pop_front() {
+                        return Some(Type { name: identifier });
+                }
+            }
+        }
+
+        None
+    }
+}
+
 impl GraphDisplay for Type {
     fn graph_display(&self, graph: &mut String, id: &mut usize) {
         graph.push_str(&format!("\nsubgraph CGet_{}[CGet {}]\nend", id, self.name));
@@ -40,18 +55,6 @@ impl GraphDisplay for Type {
 }
 
 impl_debug!(Type);
-
-pub(crate) fn parse_type(tokens: &mut VecDeque<TokenContainer>) -> Option<Type> {
-    if let some_token!(Token::Identifier(identifier)) = tokens.front() {
-        if is_type_def(identifier) {
-            if let some_token!(Token::Identifier(identifier)) = tokens.pop_front() {
-                return Some(Type { name: identifier });
-            }
-        }
-    }
-
-    None
-}
 
 // ----------
 // --- Vd ---
@@ -89,7 +92,7 @@ impl Vd {
 
     fn parse(tokens: &mut VecDeque<TokenContainer>) -> ResultOption<Self> {
         // <vd> ::= <type> T_IDENTIFIER <exp>
-        let type_ = match parse_type(tokens) {
+        let type_ = match Type::parse(tokens) {
             Some(type_) => type_,
             None => return Ok(None),
         };
@@ -314,6 +317,15 @@ impl VarDec {
             Ok(Some(VarDec::Vd(vd)))
         } else {
             Ok(None)
+        }
+    }
+}
+
+impl Evaluate for VarDec {
+    fn evaluate(&self, operation_context: &mut OperationContext) -> OperationO {
+        match self {
+            Self::Vd(vd) => vd.evaluate(operation_context),
+            _ => todo!()
         }
     }
 }
