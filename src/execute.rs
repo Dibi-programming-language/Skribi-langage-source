@@ -1,7 +1,52 @@
+use std::collections::{HashMap, VecDeque};
+
 use colored::Colorize;
 
-pub type IntType = u32;
 pub type OperationI = u32;
+pub type Variable = OperationI;
+
+struct ExecutionScope {
+    variables: HashMap<String, Variable>
+}
+
+impl ExecutionScope {
+    fn new() -> Self {
+        Self {
+            variables: HashMap::new()
+        }
+    }
+
+    fn associate_new(&mut self, name: String, value: OperationI) {
+        self.variables.insert(name, value);
+    }
+}
+
+pub struct ExecutionContext {
+    variables: VecDeque<ExecutionScope>
+}
+
+impl ExecutionContext {
+    pub fn new() -> Self {
+        Self {
+            variables: VecDeque::new(),
+        }
+    }
+
+    pub fn associate_new(&mut self, name: String, value: OperationI) {
+        if let Some(scope) = self.variables.front_mut() {
+            scope.associate_new(name, value);
+        } else {
+            self.variables.push_front(ExecutionScope::new());
+            self.associate_new(name, value);
+        }
+    }
+
+    fn change_value(&mut self, name: String, value: OperationI) {
+        todo!()
+    }
+}
+
+pub type IntType = u32;
 pub type OperationCleanOutput = u32;
 pub type OperationO = Result<OperationCleanOutput, ExecutionError>;
 pub type GeneralOutput = Result<(), ExecutionError>;
