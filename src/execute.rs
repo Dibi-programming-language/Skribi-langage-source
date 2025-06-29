@@ -1,48 +1,84 @@
-use std::collections::{HashMap, VecDeque};
+use std::collections::{HashMap};
 
 use colored::Colorize;
 
 pub type OperationI = u32;
-pub type Variable = OperationI;
+
+struct Variable {
+    pub content: u32,
+}
+
+impl Variable {
+    fn new(value: OperationI) -> Self {
+        Self {
+            content: value
+        }
+    }
+}
 
 struct ExecutionScope {
-    variables: HashMap<String, Variable>
+    variables: HashMap<String, Variable>,
+    outer_scope: Option<Box<ExecutionScope>>
 }
 
 impl ExecutionScope {
-    fn new() -> Self {
+    fn new(outer_scope: Option<Box<ExecutionScope>>) -> Self {
         Self {
-            variables: HashMap::new()
+            variables: HashMap::new(),
+            outer_scope
         }
     }
 
     fn associate_new(&mut self, name: String, value: OperationI) {
-        self.variables.insert(name, value);
+        self.variables.insert(name, Variable::new(value));
+    }
+
+    fn edit_variable(
+        &mut self,
+        name: &String,
+        new_value: OperationI
+    ) -> Result<(), ExecutionError> {
+        if let Some(variable) = self.variables.get_mut(name) {
+            variable.content = new_value;
+            Ok(())
+        } else if let Some(ref mut outer) = self.outer_scope {
+            outer.edit_variable(name, new_value)
+        } else {
+            Err(ExecutionError::no_return_at_root())
+        }
     }
 }
 
 pub struct ExecutionContext {
-    variables: VecDeque<ExecutionScope>
+    scope: Option<ExecutionScope>,
 }
 
 impl ExecutionContext {
     pub fn new() -> Self {
         Self {
-            variables: VecDeque::new(),
+            scope: None
         }
     }
 
     pub fn associate_new(&mut self, name: String, value: OperationI) {
-        if let Some(scope) = self.variables.front_mut() {
+        if let Some(ref mut scope) = self.scope {
             scope.associate_new(name, value);
         } else {
-            self.variables.push_front(ExecutionScope::new());
+            self.scope = Some(ExecutionScope::new(None));
             self.associate_new(name, value);
         }
     }
 
-    fn change_value(&mut self, name: String, value: OperationI) {
-        todo!()
+    fn change_value(
+        &mut self,
+        name: String,
+        value: OperationI
+    ) -> Result<(), ExecutionError> {
+        if let Some(ref mut scope) = self.scope {
+            scope.edit_variable(&name, value)
+        } else {
+            Err(ExecutionError::no_return_at_root())
+        }
     }
 }
 
