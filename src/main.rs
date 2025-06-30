@@ -38,6 +38,8 @@ fn main() {
         clear();
     }
 
+    let show_ast = args.contains(&format!("{FLAG_CHAR}show-ast"));
+
     // Read the file
     match get_content(args, extension.clone()) {
         Ok(content) => {
@@ -49,7 +51,9 @@ fn main() {
                     let nodes = parse::parse(tokens);
                     if let Ok(Some(ast)) = nodes {
                         println!("{}", "Executing...".italic());
-                        println!("{:?}", ast);
+                        if show_ast {
+                            println!("{:?}", ast);
+                        }
                         let result = ast.execute(&mut ExecutionContext::new());
                         if let Err(err) = result {
                             println!();

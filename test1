@@ -1,0 +1,87 @@
+Reading...
+Analysing...
+Executing...
+flowchart TD
+subgraph File_0[File]
+  subgraph Sta_1[Sta]
+    subgraph Exp_2[Exp]
+      subgraph ExpTp_3[ExpTp]
+        subgraph ExpBase_4[ExpBase]
+          subgraph VarDec_5[VarDec]
+            subgraph Vd_6[Vd my_int]
+              subgraph CGet_7[CGet int]
+              end
+              subgraph Exp_8[Exp]
+                subgraph ExpTp_9[ExpTp]
+                  subgraph ExpBase_10[ExpBase]
+                    subgraph Exp_11[Exp]
+                      subgraph TakePriorityLst_12[TP_LAST]
+                        subgraph TakePriorityN_13[TP N=1]
+                          subgraph TakePriorityN_14[TP0 UNARY]
+                            subgraph UnaryTP_15[unary_tp]
+                              subgraph TakePriority_16[TakePriority]
+                                subgraph ValueNode_17[ValueNode]
+                                  subgraph ValueBase_18[ValueBase Int 4]
+                                  end
+                                end
+                              end
+                            end
+                          end
+                          subgraph OperationN_19[OP N=1]
+                            subgraph Operation_20[Op OP *]
+                            end
+                            subgraph TakePriorityN_21[TP0 UNARY]
+                              subgraph UnaryTP_22[unary_tp]
+                                subgraph TakePriority_23[TakePriority]
+                                  subgraph ValueNode_24[ValueNode]
+                                    subgraph ValueBase_25[ValueBase Int 2]
+                                    end
+                                  end
+                                end
+                              end
+                            end
+                          end
+                        end
+                      end
+                    end
+                  end
+                end
+              end
+            end
+          end
+        end
+      end
+    end
+  end
+  subgraph Sta_26[Sta]
+    subgraph Exp_27[Exp]
+      subgraph TakePriorityLst_28[TP_LAST]
+        subgraph TakePriorityN_29[TP0 UNARY]
+          subgraph UnaryTP_30[unary_tp]
+            subgraph UnaryTP_31[unary_tp]
+              subgraph TakePriority_32[TakePriority]
+                subgraph ValueNode_33[ValueNode]
+                  subgraph ValueBase_34[ValueBase Int 10]
+                  end
+                end
+              end
+            end
+          end
+        end
+      end
+    end
+  end
+  subgraph Sta_35[Sta]
+    subgraph NatCall_36[NatCall]
+      subgraph NatCallIn_37[NatCallIn println]
+        subgraph NatCallIn_38[NatCallIn my_int]
+        end
+      end
+    end
+  end
+end
+Executing 3 lines
+
+8
+
+Program's end with no error

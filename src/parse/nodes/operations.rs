@@ -235,7 +235,7 @@ impl TakePriority {
 impl Evaluate for TakePriority {
     fn evaluate(&self, operation_context: &mut OperationContext) -> OperationO {
         match self {
-            TakePriority::Exp(_) => todo!(),
+            TakePriority::Exp(exp) => exp.evaluate(operation_context),
             TakePriority::Value(value) => value.evaluate(operation_context),
         }
     }

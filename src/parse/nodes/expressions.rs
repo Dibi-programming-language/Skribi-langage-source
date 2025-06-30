@@ -452,7 +452,10 @@ impl GraphDisplay for ExpBase {
             ExpBase::Cond(cond) => cond.graph_display(graph, id, indent + 2),
             ExpBase::ScopeBase(scope_base) => scope_base.graph_display(graph, id, indent + 2),
             ExpBase::FctDec(fct_dec) => fct_dec.graph_display(graph, id, indent + 2),
-            ExpBase::RightP(exp) => exp.graph_display(graph, id, indent + 2),
+            ExpBase::RightP(exp) => {
+                graph.push_str(" with ()");
+                exp.graph_display(graph, id, indent + 2)
+            },
         }
         graph.push_str(&format!("\n{:indent$}end", "", indent=indent));
     }
