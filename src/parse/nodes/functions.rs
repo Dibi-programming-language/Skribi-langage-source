@@ -36,9 +36,9 @@ impl GraphDisplay for FctDec {
             id, self.identifier
         ));
         *id += 1;
-        self.tuple.graph_display(graph, id, indent);
-        self.scope.graph_display(graph, id, indent);
-        graph.push_str("\nend");
+        self.tuple.graph_display(graph, id, indent + 2);
+        self.scope.graph_display(graph, id, indent + 2);
+        graph.push_str(&format!("\n{:indent$}end", "", indent=indent));
     }
 }
 
