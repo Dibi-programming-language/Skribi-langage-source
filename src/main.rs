@@ -49,6 +49,7 @@ fn main() {
                     let nodes = parse::parse(tokens);
                     if let Ok(Some(ast)) = nodes {
                         println!("{}", "Executing...".italic());
+                        println!("{:?}", ast);
                         let result = ast.execute(&mut ExecutionContext::new());
                         if let Err(err) = result {
                             println!();

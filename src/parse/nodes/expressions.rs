@@ -439,7 +439,6 @@ pub enum ExpBase {
     Cond(Box<Cond>),
     ScopeBase(Box<ScopeBase>),
     FctDec(Box<FctDec>),
-    LeftP(Box<Exp>),
     RightP(Box<Exp>),
 }
 
@@ -453,7 +452,6 @@ impl GraphDisplay for ExpBase {
             ExpBase::Cond(cond) => cond.graph_display(graph, id),
             ExpBase::ScopeBase(scope_base) => scope_base.graph_display(graph, id),
             ExpBase::FctDec(fct_dec) => fct_dec.graph_display(graph, id),
-            ExpBase::LeftP(exp) => exp.graph_display(graph, id),
             ExpBase::RightP(exp) => exp.graph_display(graph, id),
         }
         graph.push_str("\nend");
@@ -511,9 +509,8 @@ impl Evaluate for ExpBase {
         match self {
             Self::IdUse(id_use) => id_use.evaluate(operation_context),
             Self::Cond(_cond) => todo!(),
-            Self::LeftP(_leftp) => todo!(),
             Self::VarDec(var_dec) => var_dec.evaluate(operation_context),
-            Self::RightP(_rightp) => todo!(),
+            Self::RightP(rightp) => rightp.evaluate(operation_context),
             Self::FctDec(_fct_dec) => todo!(),
             Self::ScopeBase(_scope_base) => todo!(),
         }
