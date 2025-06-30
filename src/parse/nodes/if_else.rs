@@ -166,7 +166,7 @@ pub struct Cond {
 
 impl GraphDisplay for Cond {
     fn graph_display(&self, graph: &mut String, id: &mut usize, indent: usize) {
-        graph.push_str(&format!("\nsubgraph Cond_{}[Cond]", id));
+        graph.push_str(&format!("{:indent$}\nsubgraph Cond_{}[Cond]", "", id, indent=indent));
         *id += 1;
         self.ij.graph_display(graph, id, indent + 2);
         if let Some(sula) = &self.sula {

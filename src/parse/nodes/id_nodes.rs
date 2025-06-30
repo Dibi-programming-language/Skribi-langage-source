@@ -216,8 +216,8 @@ impl GraphDisplay for OpIn {
         graph.push_str(&format!("\n{:indent$}subgraph OpIn_{}[OpIn]", "", id, indent=indent));
         *id += 1;
         match self {
-            OpIn::IdGet(id_get) => id_get.graph_display(graph, id, indent),
-            OpIn::CGet(c_get) => c_get.graph_display(graph, id, indent),
+            OpIn::IdGet(id_get) => id_get.graph_display(graph, id, indent + 2),
+            OpIn::CGet(c_get) => c_get.graph_display(graph, id, indent + 2),
             OpIn::Empty => {}
         }
         graph.push_str(&format!("\n{:indent$}end", "", indent=indent));

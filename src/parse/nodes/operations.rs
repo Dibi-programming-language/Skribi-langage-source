@@ -39,26 +39,26 @@ impl GraphDisplay for ValueBase {
         match self {
             ValueBase::Bool(value) => {
                 graph.push_str(&format!(
-                    "\n{:indent$}subgraph ValueBase_{}[ValueBase Bool {}]\nend",
-                    "", id, value, indent=indent
+                    "\n{:indent$}subgraph ValueBase_{}[ValueBase Bool {}]\n{:indent$}end",
+                    "", id, value, "", indent=indent
                 ));
             }
             ValueBase::Int(value) => {
                 graph.push_str(&format!(
-                    "\n{:indent$}subgraph ValueBase_{}[ValueBase Int {}]\nend",
-                    "", id, value, indent=indent
+                    "\n{:indent$}subgraph ValueBase_{}[ValueBase Int {}]\n{:indent$}end",
+                    "", id, value, "", indent=indent
                 ));
             }
             ValueBase::Float(value) => {
                 graph.push_str(&format!(
-                    "\n{:indent$}subgraph ValueBase_{}[ValueBase Float {}]\nend",
-                    "", id, value, indent=indent
+                    "\n{:indent$}subgraph ValueBase_{}[ValueBase Float {}]\n{:indent$}end",
+                    "", id, value, "", indent=indent
                 ));
             }
             ValueBase::String(value) => {
                 graph.push_str(&format!(
-                    "\n{:indent$}subgraph ValueBase_{}[ValueBase String {}]\nend",
-                    "", id, value, indent=indent
+                    "\n{:indent$}subgraph ValueBase_{}[ValueBase String {}]\n{:indent$}end",
+                    "", id, value, "", indent=indent
                 ));
             }
         }

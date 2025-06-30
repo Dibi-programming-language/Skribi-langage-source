@@ -49,7 +49,7 @@ impl Type {
 
 impl GraphDisplay for Type {
     fn graph_display(&self, graph: &mut String, id: &mut usize, indent: usize) {
-        graph.push_str(&format!("\n{:indent$}subgraph CGet_{}[CGet {}]\nend", "", id, self.name, indent=indent));
+        graph.push_str(&format!("\n{:indent$}subgraph CGet_{}[CGet {}]\n{:indent$}end", "", id, self.name, "", indent=indent));
         *id += 1;
     }
 }
@@ -74,7 +74,8 @@ impl GraphDisplay for Vd {
     fn graph_display(&self, graph: &mut String, id: &mut usize, indent: usize) {
         graph.push_str(&format!("\n{:indent$}subgraph Vd_{}[Vd {}]", "", id, self.identifier, indent=indent));
         *id += 1;
-        self.type_.graph_display(graph, id, indent);
+        self.type_.graph_display(graph, id, indent + 2);
+        self.exp.graph_display(graph, id, indent + 2);
         graph.push_str(&format!("\n{:indent$}end", "", indent=indent))
     }
 }
@@ -146,7 +147,7 @@ impl GraphDisplay for GlobalVar {
     fn graph_display(&self, graph: &mut String, id: &mut usize, indent: usize) {
         graph.push_str(&format!("\n{:indent$}subgraph GlobalVar_{}[GlobalVar]", "", id, indent=indent));
         *id += 1;
-        self.vd.graph_display(graph, id, indent);
+        self.vd.graph_display(graph, id, indent + 2);
         graph.push_str(&format!("\n{:indent$}end", "", indent=indent))
     }
 }
@@ -157,7 +158,7 @@ impl GraphDisplay for PrivateVar {
     fn graph_display(&self, graph: &mut String, id: &mut usize, indent: usize) {
         graph.push_str(&format!("\n{:indent$}subgraph PrivateVar_{}[PrivateVar]", "", id, indent=indent));
         *id += 1;
-        self.vd.graph_display(graph, id, indent);
+        self.vd.graph_display(graph, id, indent + 2);
         graph.push_str(&format!("\n{:indent$}end", "", indent=indent))
     }
 }
@@ -231,9 +232,9 @@ impl GraphDisplay for ConstVar {
         graph.push_str(&format!("\n{:indent$}subgraph ConstVar_{}[ConstVar]", "", id, indent=indent));
         *id += 1;
         match self {
-            ConstVar::PrivateVar(private_var) => private_var.graph_display(graph, id, indent),
-            ConstVar::GlobalVar(global_var) => global_var.graph_display(graph, id, indent),
-            ConstVar::Vd(vd) => vd.graph_display(graph, id, indent),
+            ConstVar::PrivateVar(private_var) => private_var.graph_display(graph, id, indent + 2),
+            ConstVar::GlobalVar(global_var) => global_var.graph_display(graph, id, indent + 2),
+            ConstVar::Vd(vd) => vd.graph_display(graph, id, indent + 2),
         }
         graph.push_str(&format!("\n{:indent$}end", "", indent=indent))
     }
@@ -293,10 +294,10 @@ impl GraphDisplay for VarDec {
         graph.push_str(&format!("\n{:indent$}subgraph VarDec_{}[VarDec]", "", id, indent=indent));
         *id += 1;
         match self {
-            VarDec::ConstVar(const_var) => const_var.graph_display(graph, id, indent),
-            VarDec::PrivateVar(private_var) => private_var.graph_display(graph, id, indent),
-            VarDec::GlobalVar(global_var) => global_var.graph_display(graph, id, indent),
-            VarDec::Vd(vd) => vd.graph_display(graph, id, indent),
+            VarDec::ConstVar(const_var) => const_var.graph_display(graph, id, indent + 2),
+            VarDec::PrivateVar(private_var) => private_var.graph_display(graph, id, indent + 2),
+            VarDec::GlobalVar(global_var) => global_var.graph_display(graph, id, indent + 2),
+            VarDec::Vd(vd) => vd.graph_display(graph, id, indent + 2),
         }
         graph.push_str(&format!("\n{:indent$}end", "", indent=indent))
     }
@@ -354,7 +355,7 @@ pub struct VarMod {
 impl GraphDisplay for VarMod {
     fn graph_display(&self, graph: &mut String, id: &mut usize, indent: usize) {
         graph.push_str(&format!("\n{:indent$}subgraph VarMod_{}[VarMod]", "", id, indent=indent));
-        self.exp.graph_display(graph, id, indent);
+        self.exp.graph_display(graph, id, indent + 2);
         graph.push_str(&format!("\n{:indent$}end", "", indent=indent))
     }
 }

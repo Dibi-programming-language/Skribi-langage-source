@@ -32,8 +32,8 @@ pub struct FctDec {
 impl GraphDisplay for FctDec {
     fn graph_display(&self, graph: &mut String, id: &mut usize, indent: usize) {
         graph.push_str(&format!(
-            "\nsubgraph FctDec_{}[FctDec {}]",
-            id, self.identifier
+            "{:indent$}\nsubgraph FctDec_{}[FctDec {}]",
+            "", id, self.identifier, indent=indent
         ));
         *id += 1;
         self.tuple.graph_display(graph, id, indent + 2);

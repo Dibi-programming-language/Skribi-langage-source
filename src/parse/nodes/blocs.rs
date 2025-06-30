@@ -249,10 +249,10 @@ impl GraphDisplay for ScopeBase {
         graph.push_str(&format!("\n{:indent$}subgraph ScopeBase_{}[ScopeBase]", "", id, indent=indent));
         *id += 1;
         match self {
-            ScopeBase::StaL(sta_l) => sta_l.graph_display(graph, id, indent),
-            ScopeBase::Kodi(kodi) => kodi.graph_display(graph, id, indent),
-            ScopeBase::Spoki(spoki) => spoki.graph_display(graph, id, indent),
-            ScopeBase::Biuli(biuli) => biuli.graph_display(graph, id, indent),
+            ScopeBase::StaL(sta_l) => sta_l.graph_display(graph, id, indent + 2),
+            ScopeBase::Kodi(kodi) => kodi.graph_display(graph, id, indent + 2),
+            ScopeBase::Spoki(spoki) => spoki.graph_display(graph, id, indent + 2),
+            ScopeBase::Biuli(biuli) => biuli.graph_display(graph, id, indent + 2),
         }
         graph.push_str(&format!("\n{:indent$}end", "", indent=indent));
     }
@@ -292,8 +292,8 @@ impl GraphDisplay for Scope {
         graph.push_str(&format!("\n{:indent$}subgraph Scope_{}[Scope]", "", id, indent=indent));
         *id += 1;
         match self {
-            Scope::ScopeBase(scope_base) => scope_base.graph_display(graph, id, indent),
-            Scope::Sta(sta_l) => sta_l.graph_display(graph, id, indent),
+            Scope::ScopeBase(scope_base) => scope_base.graph_display(graph, id, indent + 2),
+            Scope::Sta(sta_l) => sta_l.graph_display(graph, id, indent + 2),
         }
         graph.push_str(&format!("\n{:indent$}end", "", indent=indent));
     }
