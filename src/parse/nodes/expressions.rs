@@ -191,8 +191,11 @@ impl Execute for NatCall {
 /// It can be a [TupleNode], a [VarMod], or nothing.
 #[derive(PartialEq)]
 pub(crate) enum InsideIdUse {
+    /// Function call
     Tuple(TupleNode),
+    /// Variable modification
     VarMod(VarMod),
+    /// Just get the value
     Empty,
 }
 
@@ -209,7 +212,7 @@ pub(crate) enum InsideIdUse {
 pub struct IdUse {
     identifier: String,
     op_in: OpIn,
-    inside_id_use: Box<InsideIdUse>,
+    inside_id_use: InsideIdUse,
 }
 
 impl GraphDisplay for IdUse {
@@ -220,7 +223,7 @@ impl GraphDisplay for IdUse {
         ));
         *id += 1;
         self.op_in.graph_display(graph, id, indent + 2);
-        match &*self.inside_id_use {
+        match &self.inside_id_use {
             InsideIdUse::Tuple(tuple) => tuple.graph_display(graph, id, indent + 2),
             InsideIdUse::VarMod(var_mod) => var_mod.graph_display(graph, id, indent + 2),
             InsideIdUse::Empty => {}
@@ -240,7 +243,7 @@ impl IdUse {
         Self {
             identifier,
             op_in,
-            inside_id_use: Box::new(inside_id_use),
+            inside_id_use: inside_id_use,
         }
     }
 
@@ -285,9 +288,12 @@ impl IdUse {
 impl Evaluate for IdUse {
     fn evaluate(
         &self,
-        _operation_context: &mut OperationContext,
+        operation_context: &mut OperationContext,
     ) -> OperationO {
-        todo!()
+        match self.inside_id_use {
+            InsideIdUse::Empty => operation_context.get_variable(&self.identifier, 0),
+            _ => todo!(),
+        }
     }
 }
 
