@@ -169,7 +169,7 @@ impl Evaluate for ValueNode {
     fn evaluate(&self, operation_context: &mut OperationContext) -> OperationO {
         match self {
             ValueNode::ValueBase(base) => base.evaluate(operation_context),
-            ValueNode::ExpBase(_) => todo!(),
+            ValueNode::ExpBase(exp_base) => exp_base.evaluate(operation_context),
         }
     }
 }
@@ -690,7 +690,7 @@ impl GraphDisplay for TakePriorityN {
 
 impl GraphDisplay for TakePriorityLast {
     fn graph_display(&self, graph: &mut String, id: &mut usize, indent: usize) {
-        graph.push_str(&format!("\n{:indent$}subgraph TakePriorityLst_{}[TP_LAST]", "", id, indent=indent));
+        graph.push_str(&format!("\n{:indent$}subgraph TakePriorityLast_{}[TP_LAST]", "", id, indent=indent));
         *id += 1;
         self.child.graph_display(graph, id, indent + 2);
         graph.push_str(&format!("\n{:indent$}end", "", indent=indent));

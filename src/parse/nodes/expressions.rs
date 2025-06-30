@@ -609,10 +609,10 @@ impl Exp {
         // <exp> ::=
         //   <exp_tp>
         //   | <tp_last>
-        if let Some(exp_tp) = ExpTp::parse(tokens)? {
-            Ok(Some(Exp::ExpTp(exp_tp)))
-        } else if let Some(tp_last) = TakePriorityLast::parse(tokens)? {
+        if let Some(tp_last) = TakePriorityLast::parse(tokens)? {
             Ok(Some(Exp::TPLast(tp_last)))
+        } else if let Some(exp_tp) = ExpTp::parse(tokens)? {
+            Ok(Some(Exp::ExpTp(exp_tp)))
         } else {
             Ok(None)
         }

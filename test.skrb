@@ -1,6 +1,6 @@
 // fu = global, pu = private, ju = constant
 // skr my_skr "Hello, World!"
-int my_int (4 * 2) + 10
+int my_int 4 * 2 + 10
 skr_app println my_int
 // skr_app println my_skr
 // fu int global 1
