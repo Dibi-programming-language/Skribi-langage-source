@@ -60,14 +60,14 @@ struct NatCallIn {
 }
 
 impl GraphDisplay for NatCallIn {
-    fn graph_display(&self, graph: &mut String, id: &mut usize) {
+    fn graph_display(&self, graph: &mut String, id: &mut usize, indent: usize) {
         graph.push_str(&format!(
             "\nsubgraph NatCallIn_{}[NatCallIn {}]",
             id, self.identifier
         ));
         *id += 1;
         if let Some(nat_call_in) = &self.nat_call_in {
-            nat_call_in.graph_display(graph, id);
+            nat_call_in.graph_display(graph, id, indent);
         }
         graph.push_str("\nend");
     }
@@ -122,10 +122,10 @@ pub struct NatCall {
 }
 
 impl GraphDisplay for NatCall {
-    fn graph_display(&self, graph: &mut String, id: &mut usize) {
+    fn graph_display(&self, graph: &mut String, id: &mut usize, indent: usize) {
         graph.push_str(&format!("\nsubgraph NatCall_{}[NatCall]", id));
         *id += 1;
-        self.nat_call_in.graph_display(graph, id);
+        self.nat_call_in.graph_display(graph, id, indent);
         graph.push_str("\nend");
     }
 }
@@ -213,16 +213,16 @@ pub struct IdUse {
 }
 
 impl GraphDisplay for IdUse {
-    fn graph_display(&self, graph: &mut String, id: &mut usize) {
+    fn graph_display(&self, graph: &mut String, id: &mut usize, indent: usize) {
         graph.push_str(&format!(
             "\nsubgraph IdUse_{}[IdUse {}]",
             id, self.identifier
         ));
         *id += 1;
-        self.op_in.graph_display(graph, id);
+        self.op_in.graph_display(graph, id, indent);
         match &*self.inside_id_use {
-            InsideIdUse::Tuple(tuple) => tuple.graph_display(graph, id),
-            InsideIdUse::VarMod(var_mod) => var_mod.graph_display(graph, id),
+            InsideIdUse::Tuple(tuple) => tuple.graph_display(graph, id, indent),
+            InsideIdUse::VarMod(var_mod) => var_mod.graph_display(graph, id, indent),
             InsideIdUse::Empty => {}
         }
         graph.push_str("\nend");
@@ -341,22 +341,22 @@ pub struct IdUseV {
 }
 
 impl GraphDisplay for IdUseV {
-    fn graph_display(&self, graph: &mut String, id: &mut usize) {
+    fn graph_display(&self, graph: &mut String, id: &mut usize, indent: usize) {
         graph.push_str(&format!(
             "\nsubgraph IdUseV_{}[IdUseV {}]",
             id, self.identifier
         ));
         *id += 1;
-        self.op_in.graph_display(graph, id);
+        self.op_in.graph_display(graph, id, indent);
         match &*self.inside_id_use_v {
             InsideIdUseV::Tuple { tuple, no_value } => {
-                tuple.graph_display(graph, id);
+                tuple.graph_display(graph, id, indent);
                 if let Some(no_value) = no_value {
-                    no_value.graph_display(graph, id);
+                    no_value.graph_display(graph, id, indent);
                 }
             }
-            InsideIdUseV::NoValue(no_value) => no_value.graph_display(graph, id),
-            InsideIdUseV::VarMod(var_mod) => var_mod.graph_display(graph, id),
+            InsideIdUseV::NoValue(no_value) => no_value.graph_display(graph, id, indent),
+            InsideIdUseV::VarMod(var_mod) => var_mod.graph_display(graph, id, indent),
             InsideIdUseV::Empty => {}
         }
         graph.push_str("\nend");
@@ -443,16 +443,16 @@ pub enum ExpBase {
 }
 
 impl GraphDisplay for ExpBase {
-    fn graph_display(&self, graph: &mut String, id: &mut usize) {
+    fn graph_display(&self, graph: &mut String, id: &mut usize, indent: usize) {
         graph.push_str(&format!("\nsubgraph ExpBase_{}[ExpBase]", id));
         *id += 1;
         match self {
-            ExpBase::IdUse(id_use) => id_use.graph_display(graph, id),
-            ExpBase::VarDec(var_dec) => var_dec.graph_display(graph, id),
-            ExpBase::Cond(cond) => cond.graph_display(graph, id),
-            ExpBase::ScopeBase(scope_base) => scope_base.graph_display(graph, id),
-            ExpBase::FctDec(fct_dec) => fct_dec.graph_display(graph, id),
-            ExpBase::RightP(exp) => exp.graph_display(graph, id),
+            ExpBase::IdUse(id_use) => id_use.graph_display(graph, id, indent),
+            ExpBase::VarDec(var_dec) => var_dec.graph_display(graph, id, indent),
+            ExpBase::Cond(cond) => cond.graph_display(graph, id, indent),
+            ExpBase::ScopeBase(scope_base) => scope_base.graph_display(graph, id, indent),
+            ExpBase::FctDec(fct_dec) => fct_dec.graph_display(graph, id, indent),
+            ExpBase::RightP(exp) => exp.graph_display(graph, id, indent),
         }
         graph.push_str("\nend");
     }
@@ -531,12 +531,12 @@ pub enum ExpTp {
 }
 
 impl GraphDisplay for ExpTp {
-    fn graph_display(&self, graph: &mut String, id: &mut usize) {
+    fn graph_display(&self, graph: &mut String, id: &mut usize, indent: usize) {
         graph.push_str(&format!("\nsubgraph ExpTp_{}[ExpTp]", id));
         *id += 1;
         match self {
-            ExpTp::ExpBase(exp_base) => exp_base.graph_display(graph, id),
-            ExpTp::IdUseV(id_use_v) => id_use_v.graph_display(graph, id),
+            ExpTp::ExpBase(exp_base) => exp_base.graph_display(graph, id, indent),
+            ExpTp::IdUseV(id_use_v) => id_use_v.graph_display(graph, id, indent),
         }
         graph.push_str("\nend");
     }
@@ -588,12 +588,12 @@ pub enum Exp {
 }
 
 impl GraphDisplay for Exp {
-    fn graph_display(&self, graph: &mut String, id: &mut usize) {
+    fn graph_display(&self, graph: &mut String, id: &mut usize, indent: usize) {
         graph.push_str(&format!("\nsubgraph Exp_{}[Exp]", id));
         *id += 1;
         match self {
-            Exp::ExpTp(exp_tp) => exp_tp.graph_display(graph, id),
-            Exp::TPLast(tp_last) => tp_last.graph_display(graph, id),
+            Exp::ExpTp(exp_tp) => exp_tp.graph_display(graph, id, indent),
+            Exp::TPLast(tp_last) => tp_last.graph_display(graph, id, indent),
         }
         graph.push_str("\nend");
     }
@@ -637,10 +637,10 @@ pub struct Return {
 }
 
 impl GraphDisplay for Return {
-    fn graph_display(&self, graph: &mut String, id: &mut usize) {
+    fn graph_display(&self, graph: &mut String, id: &mut usize, indent: usize) {
         graph.push_str(&format!("\nsubgraph Return_{}[Return]", id));
         *id += 1;
-        self.exp.graph_display(graph, id);
+        self.exp.graph_display(graph, id, indent);
         graph.push_str("\nend");
     }
 }
@@ -678,13 +678,13 @@ pub enum Sta {
 }
 
 impl GraphDisplay for Sta {
-    fn graph_display(&self, graph: &mut String, id: &mut usize) {
+    fn graph_display(&self, graph: &mut String, id: &mut usize, indent: usize) {
         graph.push_str(&format!("\nsubgraph Sta_{}[Sta]", id));
         *id += 1;
         match self {
-            Sta::Return(return_node) => return_node.graph_display(graph, id),
-            Sta::Exp(exp) => exp.graph_display(graph, id),
-            Sta::NatCall(nat_call) => nat_call.graph_display(graph, id),
+            Sta::Return(return_node) => return_node.graph_display(graph, id, indent),
+            Sta::Exp(exp) => exp.graph_display(graph, id, indent),
+            Sta::NatCall(nat_call) => nat_call.graph_display(graph, id, indent),
         }
         graph.push_str("\nend");
     }
@@ -736,14 +736,14 @@ pub struct StaL {
 }
 
 impl GraphDisplay for StaL {
-    fn graph_display(&self, graph: &mut String, id: &mut usize) {
+    fn graph_display(&self, graph: &mut String, id: &mut usize, indent: usize) {
         graph.push_str(&format!("\nsubgraph StaL_{}[StaL]", id));
         *id += 1;
         for sta in &self.sta_l {
             match sta {
-                Sta::Return(return_node) => return_node.graph_display(graph, id),
-                Sta::NatCall(nat_call) => nat_call.graph_display(graph, id),
-                Sta::Exp(exp) => exp.graph_display(graph, id),
+                Sta::Return(return_node) => return_node.graph_display(graph, id, indent),
+                Sta::NatCall(nat_call) => nat_call.graph_display(graph, id, indent),
+                Sta::Exp(exp) => exp.graph_display(graph, id, indent),
             }
         }
         graph.push_str("\nend");

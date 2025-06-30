@@ -36,18 +36,18 @@ pub enum Sula {
 }
 
 impl GraphDisplay for Sula {
-    fn graph_display(&self, graph: &mut String, id: &mut usize) {
+    fn graph_display(&self, graph: &mut String, id: &mut usize, indent: usize) {
         graph.push_str(&format!("\nsubgraph Sula_{}[Sula]", id));
         *id += 1;
         match self {
             Sula::Ij { ij, sula } => {
-                ij.graph_display(graph, id);
+                ij.graph_display(graph, id, indent);
                 if let Some(sula) = sula {
-                    sula.graph_display(graph, id);
+                    sula.graph_display(graph, id, indent);
                 }
             }
             Sula::Scope(scope) => {
-                scope.graph_display(graph, id);
+                scope.graph_display(graph, id, indent);
             }
         }
         graph.push_str("\nend");
@@ -110,11 +110,11 @@ pub struct Ij {
 }
 
 impl GraphDisplay for Ij {
-    fn graph_display(&self, graph: &mut String, id: &mut usize) {
+    fn graph_display(&self, graph: &mut String, id: &mut usize, indent: usize) {
         graph.push_str(&format!("\nsubgraph Ij_{}[Ij]", id));
         *id += 1;
-        self.exp.graph_display(graph, id);
-        self.scope.graph_display(graph, id);
+        self.exp.graph_display(graph, id, indent);
+        self.scope.graph_display(graph, id, indent);
         graph.push_str("\nend");
     }
 }
@@ -165,12 +165,12 @@ pub struct Cond {
 }
 
 impl GraphDisplay for Cond {
-    fn graph_display(&self, graph: &mut String, id: &mut usize) {
+    fn graph_display(&self, graph: &mut String, id: &mut usize, indent: usize) {
         graph.push_str(&format!("\nsubgraph Cond_{}[Cond]", id));
         *id += 1;
-        self.ij.graph_display(graph, id);
+        self.ij.graph_display(graph, id, indent);
         if let Some(sula) = &self.sula {
-            sula.graph_display(graph, id);
+            sula.graph_display(graph, id, indent);
         }
         graph.push_str("\nend");
     }

@@ -30,14 +30,14 @@ pub struct FctDec {
 }
 
 impl GraphDisplay for FctDec {
-    fn graph_display(&self, graph: &mut String, id: &mut usize) {
+    fn graph_display(&self, graph: &mut String, id: &mut usize, indent: usize) {
         graph.push_str(&format!(
             "\nsubgraph FctDec_{}[FctDec {}]",
             id, self.identifier
         ));
         *id += 1;
-        self.tuple.graph_display(graph, id);
-        self.scope.graph_display(graph, id);
+        self.tuple.graph_display(graph, id, indent);
+        self.scope.graph_display(graph, id, indent);
         graph.push_str("\nend");
     }
 }

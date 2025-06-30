@@ -24,7 +24,7 @@ pub struct TupleNode {
 }
 
 impl GraphDisplay for TupleNode {
-    fn graph_display(&self, graph: &mut String, id: &mut usize) {
+    fn graph_display(&self, graph: &mut String, id: &mut usize, indent: usize) {
         graph.push_str(&format!("\nsubgraph TupleNode_{}[TupleNode]\nend", id));
         *id += 1;
     }
@@ -73,7 +73,7 @@ pub struct CGet {
 }
 
 impl GraphDisplay for CGet {
-    fn graph_display(&self, graph: &mut String, id: &mut usize) {
+    fn graph_display(&self, graph: &mut String, id: &mut usize, indent: usize) {
         graph.push_str(&format!("\nsubgraph CGet_{}[CGet {}]\nend", id, self.name));
         *id += 1;
     }
@@ -147,16 +147,16 @@ pub struct IdGet {
 }
 
 impl GraphDisplay for IdGet {
-    fn graph_display(&self, graph: &mut String, id: &mut usize) {
+    fn graph_display(&self, graph: &mut String, id: &mut usize, indent: usize) {
         graph.push_str(&format!(
             "\nsubgraph IdGet_{}[IdGet {}]",
             id, self.identifier
         ));
         *id += 1;
         if let Some(tuple) = &self.tuple {
-            tuple.graph_display(graph, id);
+            tuple.graph_display(graph, id, indent);
         }
-        self.op_in.graph_display(graph, id);
+        self.op_in.graph_display(graph, id, indent);
         graph.push_str("\nend");
     }
 }
@@ -212,12 +212,12 @@ pub enum OpIn {
 }
 
 impl GraphDisplay for OpIn {
-    fn graph_display(&self, graph: &mut String, id: &mut usize) {
+    fn graph_display(&self, graph: &mut String, id: &mut usize, indent: usize) {
         graph.push_str(&format!("\nsubgraph OpIn_{}[OpIn]", id));
         *id += 1;
         match self {
-            OpIn::IdGet(id_get) => id_get.graph_display(graph, id),
-            OpIn::CGet(c_get) => c_get.graph_display(graph, id),
+            OpIn::IdGet(id_get) => id_get.graph_display(graph, id, indent),
+            OpIn::CGet(c_get) => c_get.graph_display(graph, id, indent),
             OpIn::Empty => {}
         }
         graph.push_str("\nend");

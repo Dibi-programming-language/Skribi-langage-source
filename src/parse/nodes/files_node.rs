@@ -18,11 +18,11 @@ pub struct FileNode {
 }
 
 impl GraphDisplay for FileNode {
-    fn graph_display(&self, graph: &mut String, id: &mut usize) {
+    fn graph_display(&self, graph: &mut String, id: &mut usize, indent: usize) {
         graph.push_str(&format!("\nsubgraph File_{}[File]", id));
         *id += 1;
         for exp in &self.exps {
-            exp.graph_display(graph, id);
+            exp.graph_display(graph, id, indent);
         }
         graph.push_str("\nend");
     }

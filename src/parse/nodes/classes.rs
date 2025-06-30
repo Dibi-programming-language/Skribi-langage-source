@@ -16,7 +16,7 @@ pub struct ClassDec {
 }
 
 impl GraphDisplay for ClassDec {
-    fn graph_display(&self, graph: &mut String, id: &mut usize) {
+    fn graph_display(&self, graph: &mut String, id: &mut usize, indent: usize) {
         graph.push_str(&format!(
             "\nsubgraph ClassDec_{}[ClassDec {}]\nend",
             id, self.identifier

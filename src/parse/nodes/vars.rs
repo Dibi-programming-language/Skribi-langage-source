@@ -48,7 +48,7 @@ impl Type {
 }
 
 impl GraphDisplay for Type {
-    fn graph_display(&self, graph: &mut String, id: &mut usize) {
+    fn graph_display(&self, graph: &mut String, id: &mut usize, indent: usize) {
         graph.push_str(&format!("\nsubgraph CGet_{}[CGet {}]\nend", id, self.name));
         *id += 1;
     }
@@ -71,10 +71,10 @@ pub struct Vd {
 }
 
 impl GraphDisplay for Vd {
-    fn graph_display(&self, graph: &mut String, id: &mut usize) {
+    fn graph_display(&self, graph: &mut String, id: &mut usize, indent: usize) {
         graph.push_str(&format!("\nsubgraph Vd_{}[Vd {}]", id, self.identifier));
         *id += 1;
-        self.type_.graph_display(graph, id);
+        self.type_.graph_display(graph, id, indent);
         graph.push_str("\nend")
     }
 }
@@ -143,10 +143,10 @@ pub struct PrivateVar {
 }
 
 impl GraphDisplay for GlobalVar {
-    fn graph_display(&self, graph: &mut String, id: &mut usize) {
+    fn graph_display(&self, graph: &mut String, id: &mut usize, indent: usize) {
         graph.push_str(&format!("\nsubgraph GlobalVar_{}[GlobalVar]", id));
         *id += 1;
-        self.vd.graph_display(graph, id);
+        self.vd.graph_display(graph, id, indent);
         graph.push_str("\nend")
     }
 }
@@ -154,10 +154,10 @@ impl GraphDisplay for GlobalVar {
 impl_debug!(GlobalVar);
 
 impl GraphDisplay for PrivateVar {
-    fn graph_display(&self, graph: &mut String, id: &mut usize) {
+    fn graph_display(&self, graph: &mut String, id: &mut usize, indent: usize) {
         graph.push_str(&format!("\nsubgraph PrivateVar_{}[PrivateVar]", id));
         *id += 1;
-        self.vd.graph_display(graph, id);
+        self.vd.graph_display(graph, id, indent);
         graph.push_str("\nend")
     }
 }
@@ -227,13 +227,13 @@ pub enum ConstVar {
 }
 
 impl GraphDisplay for ConstVar {
-    fn graph_display(&self, graph: &mut String, id: &mut usize) {
+    fn graph_display(&self, graph: &mut String, id: &mut usize, indent: usize) {
         graph.push_str(&format!("\nsubgraph ConstVar_{}[ConstVar]", id));
         *id += 1;
         match self {
-            ConstVar::PrivateVar(private_var) => private_var.graph_display(graph, id),
-            ConstVar::GlobalVar(global_var) => global_var.graph_display(graph, id),
-            ConstVar::Vd(vd) => vd.graph_display(graph, id),
+            ConstVar::PrivateVar(private_var) => private_var.graph_display(graph, id, indent),
+            ConstVar::GlobalVar(global_var) => global_var.graph_display(graph, id, indent),
+            ConstVar::Vd(vd) => vd.graph_display(graph, id, indent),
         }
         graph.push_str("\nend")
     }
@@ -289,14 +289,14 @@ pub enum VarDec {
 }
 
 impl GraphDisplay for VarDec {
-    fn graph_display(&self, graph: &mut String, id: &mut usize) {
+    fn graph_display(&self, graph: &mut String, id: &mut usize, indent: usize) {
         graph.push_str(&format!("\nsubgraph VarDec_{}[VarDec]", id));
         *id += 1;
         match self {
-            VarDec::ConstVar(const_var) => const_var.graph_display(graph, id),
-            VarDec::PrivateVar(private_var) => private_var.graph_display(graph, id),
-            VarDec::GlobalVar(global_var) => global_var.graph_display(graph, id),
-            VarDec::Vd(vd) => vd.graph_display(graph, id),
+            VarDec::ConstVar(const_var) => const_var.graph_display(graph, id, indent),
+            VarDec::PrivateVar(private_var) => private_var.graph_display(graph, id, indent),
+            VarDec::GlobalVar(global_var) => global_var.graph_display(graph, id, indent),
+            VarDec::Vd(vd) => vd.graph_display(graph, id, indent),
         }
         graph.push_str("\nend")
     }
@@ -352,9 +352,9 @@ pub struct VarMod {
 }
 
 impl GraphDisplay for VarMod {
-    fn graph_display(&self, graph: &mut String, id: &mut usize) {
+    fn graph_display(&self, graph: &mut String, id: &mut usize, indent: usize) {
         graph.push_str(&format!("\nsubgraph VarMod_{}[VarMod]", id));
-        self.exp.graph_display(graph, id);
+        self.exp.graph_display(graph, id, indent);
         graph.push_str("\nend")
     }
 }

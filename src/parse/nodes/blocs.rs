@@ -31,7 +31,7 @@ pub struct KName {
 }
 
 impl GraphDisplay for KName {
-    fn graph_display(&self, graph: &mut String, id: &mut usize) {
+    fn graph_display(&self, graph: &mut String, id: &mut usize, indent: usize) {
         graph.push_str(&format!(
             "\nsubgraph KName_{}[KName {}]\nend",
             id, self.name
@@ -82,13 +82,13 @@ pub struct KStart {
 }
 
 impl GraphDisplay for KStart {
-    fn graph_display(&self, graph: &mut String, id: &mut usize) {
+    fn graph_display(&self, graph: &mut String, id: &mut usize, indent: usize) {
         graph.push_str(&format!("\nsubgraph KStart_{}[KStart]", id));
         *id += 1;
         if let Some(name) = &self.name {
-            name.graph_display(graph, id);
+            name.graph_display(graph, id, indent);
         }
-        self.sta_l.graph_display(graph, id);
+        self.sta_l.graph_display(graph, id, indent);
         graph.push_str("\nend");
     }
 }
@@ -128,10 +128,10 @@ pub struct Kodi {
 }
 
 impl GraphDisplay for Kodi {
-    fn graph_display(&self, graph: &mut String, id: &mut usize) {
+    fn graph_display(&self, graph: &mut String, id: &mut usize, indent: usize) {
         graph.push_str(&format!("\nsubgraph Kodi_{}[Kodi]", id));
         *id += 1;
-        self.start.graph_display(graph, id);
+        self.start.graph_display(graph, id, indent);
         graph.push_str("\nend");
     }
 }
@@ -166,10 +166,10 @@ pub struct Biuli {
 }
 
 impl GraphDisplay for Biuli {
-    fn graph_display(&self, graph: &mut String, id: &mut usize) {
+    fn graph_display(&self, graph: &mut String, id: &mut usize, indent: usize) {
         graph.push_str(&format!("\nsubgraph Biuli_{}[Biuli]", id));
         *id += 1;
-        self.start.graph_display(graph, id);
+        self.start.graph_display(graph, id, indent);
         graph.push_str("\nend");
     }
 }
@@ -204,10 +204,10 @@ pub struct Spoki {
 }
 
 impl GraphDisplay for Spoki {
-    fn graph_display(&self, graph: &mut String, id: &mut usize) {
+    fn graph_display(&self, graph: &mut String, id: &mut usize, indent: usize) {
         graph.push_str(&format!("\nsubgraph Spoki_{}[Spoki]", id));
         *id += 1;
-        self.start.graph_display(graph, id);
+        self.start.graph_display(graph, id, indent);
         graph.push_str("\nend");
     }
 }
@@ -245,14 +245,14 @@ pub enum ScopeBase {
 }
 
 impl GraphDisplay for ScopeBase {
-    fn graph_display(&self, graph: &mut String, id: &mut usize) {
+    fn graph_display(&self, graph: &mut String, id: &mut usize, indent: usize) {
         graph.push_str(&format!("\nsubgraph ScopeBase_{}[ScopeBase]", id));
         *id += 1;
         match self {
-            ScopeBase::StaL(sta_l) => sta_l.graph_display(graph, id),
-            ScopeBase::Kodi(kodi) => kodi.graph_display(graph, id),
-            ScopeBase::Spoki(spoki) => spoki.graph_display(graph, id),
-            ScopeBase::Biuli(biuli) => biuli.graph_display(graph, id),
+            ScopeBase::StaL(sta_l) => sta_l.graph_display(graph, id, indent),
+            ScopeBase::Kodi(kodi) => kodi.graph_display(graph, id, indent),
+            ScopeBase::Spoki(spoki) => spoki.graph_display(graph, id, indent),
+            ScopeBase::Biuli(biuli) => biuli.graph_display(graph, id, indent),
         }
         graph.push_str("\nend");
     }
@@ -288,12 +288,12 @@ pub(crate) enum Scope {
 }
 
 impl GraphDisplay for Scope {
-    fn graph_display(&self, graph: &mut String, id: &mut usize) {
+    fn graph_display(&self, graph: &mut String, id: &mut usize, indent: usize) {
         graph.push_str(&format!("\nsubgraph Scope_{}[Scope]", id));
         *id += 1;
         match self {
-            Scope::ScopeBase(scope_base) => scope_base.graph_display(graph, id),
-            Scope::Sta(sta_l) => sta_l.graph_display(graph, id),
+            Scope::ScopeBase(scope_base) => scope_base.graph_display(graph, id, indent),
+            Scope::Sta(sta_l) => sta_l.graph_display(graph, id, indent),
         }
         graph.push_str("\nend");
     }
