@@ -1,6 +1,6 @@
 use std::collections::VecDeque;
 
-use crate::execute::{Evaluate, Execute, ExecutionError, GeneralOutput};
+use crate::execute::{Evaluate, EvaluateFromInput, Execute, ExecutionError, GeneralOutput};
 use crate::parse::nodes::blocs::ScopeBase;
 use crate::parse::nodes::functions::FctDec;
 use crate::parse::nodes::id_nodes::{parse_op_in, OpIn, TupleNode};
@@ -187,8 +187,12 @@ impl Execute for NatCall {
 // --- IdUse ---
 // -------------
 
-/// `InsideIdUse` represents the possible values that can be inside an [IdUse].
-/// It can be a [TupleNode], a [VarMod], or nothing.
+/// `InsideIdUse` represents the possible values that
+/// can be inside an [IdUse].
+/// It can be:
+/// - a [TupleNode],
+/// - a [VarMod],
+/// - or nothing.
 #[derive(PartialEq)]
 pub(crate) enum InsideIdUse {
     /// Function call
@@ -290,8 +294,13 @@ impl Evaluate for IdUse {
         &self,
         operation_context: &mut OperationContext,
     ) -> OperationO {
-        match self.inside_id_use {
+        match &self.inside_id_use {
             InsideIdUse::Empty => operation_context.get_variable(&self.identifier, 0),
+            InsideIdUse::VarMod(modification) => {
+                let value = modification.evaluate(operation_context)?;
+                operation_context.change_value(&self.identifier, value, 0)?;
+                Ok(value)
+            },
             _ => todo!(),
         }
     }
@@ -311,7 +320,7 @@ pub(crate) enum InsideIdUseV {
         no_value: Option<NoValueN>,
     },
     NoValue(NoValueN),
-    VarMod(VarMod),
+    VarMod(Box<VarMod>),
     Empty,
 }
 
@@ -343,7 +352,7 @@ pub(crate) enum InsideIdUseV {
 pub struct IdUseV {
     identifier: String,
     op_in: OpIn,
-    inside_id_use_v: Box<InsideIdUseV>,
+    inside_id_use_v: InsideIdUseV,
 }
 
 impl GraphDisplay for IdUseV {
@@ -354,7 +363,7 @@ impl GraphDisplay for IdUseV {
         ));
         *id += 1;
         self.op_in.graph_display(graph, id, indent + 2);
-        match &*self.inside_id_use_v {
+        match &self.inside_id_use_v {
             InsideIdUseV::Tuple { tuple, no_value } => {
                 tuple.graph_display(graph, id, indent + 2);
                 if let Some(no_value) = no_value {
@@ -376,7 +385,7 @@ impl IdUseV {
         Self {
             identifier,
             op_in,
-            inside_id_use_v: Box::new(inside_id_use_v),
+            inside_id_use_v: inside_id_use_v,
         }
     }
 
@@ -409,7 +418,7 @@ impl IdUseV {
                         Ok(Some(IdUseV::new(
                             identifier,
                             op_in,
-                            InsideIdUseV::VarMod(var_mod),
+                            InsideIdUseV::VarMod(Box::new(var_mod)),
                         )))
                     } else {
                         Ok(Some(IdUseV::new(identifier, op_in, InsideIdUseV::Empty)))
@@ -427,8 +436,20 @@ impl IdUseV {
 }
 
 impl Evaluate for IdUseV {
-    fn evaluate(&self, _operation_context: &mut OperationContext) -> OperationO {
-        todo!()
+    fn evaluate(&self, operation_context: &mut OperationContext) -> OperationO {
+        match &self.inside_id_use_v {
+            InsideIdUseV::Empty => operation_context.get_variable(&self.identifier, 0),
+            InsideIdUseV::VarMod(modification) => {
+                let value = modification.evaluate(operation_context)?;
+                operation_context.change_value(&self.identifier, value, 0)?;
+                Ok(value)
+            },
+            InsideIdUseV::NoValue(nv) => {
+                let left = operation_context.get_variable(&self.identifier, 0)?;
+                nv.evaluate_from_input(operation_context, left)
+            },
+            _ => todo!(),
+        }
     }
 }
 
@@ -562,10 +583,10 @@ impl ExpTp {
         // <exp_tp> ::=
         //   <exp_base>
         //   | <id_use_v>
-        if let Some(exp_base) = ExpBase::parse(tokens)? {
-            Ok(Some(ExpTp::new(exp_base)))
-        } else if let Some(id_use_v) = IdUseV::parse(tokens)? {
+        if let Some(id_use_v) = IdUseV::parse(tokens)? {
             Ok(Some(ExpTp::IdUseV(id_use_v)))
+        } else if let Some(exp_base) = ExpBase::parse(tokens)? {
+            Ok(Some(ExpTp::new(exp_base)))
         } else {
             Ok(None)
         }

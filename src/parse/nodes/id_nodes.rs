@@ -65,8 +65,8 @@ impl TupleNode {
 /// > `Variable of type A and name D`
 /// > `Variable of type int and name E`
 ///
-/// A, E and D can be accessed with a `CGet` node while B, B0 of D and C cannot. See the [IdGet]
-/// for further information.
+/// A, E and D can be accessed with a `CGet` node while B, B0 of D and C cannot.
+/// See the [IdGet] for further information.
 #[derive(PartialEq)]
 pub struct CGet {
     pub(crate) name: String,

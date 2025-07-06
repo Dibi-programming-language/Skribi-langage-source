@@ -9,6 +9,8 @@ use crate::tokens::{ModifierKeyword, Token, TokenContainer};
 use crate::{impl_debug, some_token};
 use crate::execute::{OperationO, OperationContext};
 
+use super::expressions::ExpTp;
+
 // Grammar of this file :
 /*
 <type> ::= T_TYPE_DEF
@@ -348,14 +350,19 @@ impl Evaluate for VarDec {
 ///
 /// See [Exp]
 #[derive(PartialEq)]
-pub struct VarMod {
-    exp: Exp,
+pub enum VarMod {
+    Exp(Exp),
+    ExpTp(ExpTp),
 }
 
 impl GraphDisplay for VarMod {
     fn graph_display(&self, graph: &mut String, id: &mut usize, indent: usize) {
         graph.push_str(&format!("\n{:indent$}subgraph VarMod_{}[VarMod]", "", id, indent=indent));
-        self.exp.graph_display(graph, id, indent + 2);
+        *id += 1;
+        match &self {
+            Self::Exp(exp) => exp.graph_display(graph, id, indent + 2),
+            Self::ExpTp(tp) => tp.graph_display(graph, id, indent + 2),
+        }
         graph.push_str(&format!("\n{:indent$}end", "", indent=indent))
     }
 }
@@ -363,14 +370,22 @@ impl GraphDisplay for VarMod {
 impl_debug!(VarMod);
 
 impl VarMod {
-    fn new(exp: Exp) -> Self {
-        Self { exp }
-    }
-
     pub(crate) fn parse(tokens: &mut VecDeque<TokenContainer>) -> ResultOption<Self> {
-        match Exp::parse(tokens)? {
-            Some(exp) => Ok(Some(VarMod::new(exp))),
-            None => Ok(None),
+        if let Some(exp_tp) = ExpTp::parse(tokens)? {
+            Ok(Some(Self::ExpTp(exp_tp)))
+        } else if let Some(exp) = Exp::parse(tokens)? {
+            Ok(Some(Self::Exp(exp)))
+        } else {
+            Ok(None)
+        }
+    }
+}
+
+impl Evaluate for VarMod {
+    fn evaluate(&self, operation_context: &mut OperationContext) -> OperationO {
+        match self {
+            Self::ExpTp(exp_tp) => exp_tp.evaluate(operation_context),
+            Self::Exp(exp) => exp.evaluate(operation_context),
         }
     }
 }
