@@ -10,9 +10,9 @@ pub fn clear() {
         // In case of error, tries another possible command (ex on Windows)
         if Command::new("cls").status().is_err() {
             // Just print to simulate a clear
-            for _ in 0..100 {
-                println!()
-            }
+            // Use ANSI escape codes to clear the screen and reset the cursor position
+            print!("\x1B[2J\x1B[H");
+            stdout().flush().unwrap();
         }
     }
 }
