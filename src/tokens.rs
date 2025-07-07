@@ -185,7 +185,10 @@ fn tokenize_number(
     ))
 }
 
-fn tokenize_word(file: &mut CharsIterator, first_char: char) -> Result<(Token, Option<char>), CustomError> {
+fn tokenize_word(
+    file: &mut CharsIterator,
+    first_char: char,
+) -> Result<(Token, Option<char>), CustomError> {
     let mut res = String::new();
     res.push(first_char);
 

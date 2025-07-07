@@ -33,12 +33,15 @@ impl GraphDisplay for FctDec {
     fn graph_display(&self, graph: &mut String, id: &mut usize, indent: usize) {
         graph.push_str(&format!(
             "{:indent$}\nsubgraph FctDec_{}[FctDec {}]",
-            "", id, self.identifier, indent=indent
+            "",
+            id,
+            self.identifier,
+            indent = indent
         ));
         *id += 1;
         self.tuple.graph_display(graph, id, indent + 2);
         self.scope.graph_display(graph, id, indent + 2);
-        graph.push_str(&format!("\n{:indent$}end", "", indent=indent));
+        graph.push_str(&format!("\n{:indent$}end", "", indent = indent));
     }
 }
 

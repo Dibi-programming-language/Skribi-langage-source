@@ -25,7 +25,12 @@ pub struct TupleNode {
 
 impl GraphDisplay for TupleNode {
     fn graph_display(&self, graph: &mut String, id: &mut usize, indent: usize) {
-        graph.push_str(&format!("\n{:indent$}subgraph TupleNode_{}[TupleNode]\nend", "", id, indent=indent));
+        graph.push_str(&format!(
+            "\n{:indent$}subgraph TupleNode_{}[TupleNode]\nend",
+            "",
+            id,
+            indent = indent
+        ));
         *id += 1;
     }
 }
@@ -74,7 +79,13 @@ pub struct CGet {
 
 impl GraphDisplay for CGet {
     fn graph_display(&self, graph: &mut String, id: &mut usize, indent: usize) {
-        graph.push_str(&format!("\n{:indent$}subgraph CGet_{}[CGet {}]\nend", "", id, self.name, indent=indent));
+        graph.push_str(&format!(
+            "\n{:indent$}subgraph CGet_{}[CGet {}]\nend",
+            "",
+            id,
+            self.name,
+            indent = indent
+        ));
         *id += 1;
     }
 }
@@ -150,14 +161,17 @@ impl GraphDisplay for IdGet {
     fn graph_display(&self, graph: &mut String, id: &mut usize, indent: usize) {
         graph.push_str(&format!(
             "\n{:indent$}subgraph IdGet_{}[IdGet {}]",
-            "", id, self.identifier, indent=indent
+            "",
+            id,
+            self.identifier,
+            indent = indent
         ));
         *id += 1;
         if let Some(tuple) = &self.tuple {
             tuple.graph_display(graph, id, indent + 2);
         }
         self.op_in.graph_display(graph, id, indent + 2);
-        graph.push_str(&format!("\n{:indent$}end", "", indent=indent));
+        graph.push_str(&format!("\n{:indent$}end", "", indent = indent));
     }
 }
 
@@ -213,14 +227,19 @@ pub enum OpIn {
 
 impl GraphDisplay for OpIn {
     fn graph_display(&self, graph: &mut String, id: &mut usize, indent: usize) {
-        graph.push_str(&format!("\n{:indent$}subgraph OpIn_{}[OpIn]", "", id, indent=indent));
+        graph.push_str(&format!(
+            "\n{:indent$}subgraph OpIn_{}[OpIn]",
+            "",
+            id,
+            indent = indent
+        ));
         *id += 1;
         match self {
             OpIn::IdGet(id_get) => id_get.graph_display(graph, id, indent + 2),
             OpIn::CGet(c_get) => c_get.graph_display(graph, id, indent + 2),
             OpIn::Empty => {}
         }
-        graph.push_str(&format!("\n{:indent$}end", "", indent=indent));
+        graph.push_str(&format!("\n{:indent$}end", "", indent = indent));
     }
 }
 

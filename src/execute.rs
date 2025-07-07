@@ -1,4 +1,4 @@
-use std::collections::{HashMap};
+use std::collections::HashMap;
 
 use colored::Colorize;
 
@@ -10,22 +10,20 @@ struct Variable {
 
 impl Variable {
     fn new(value: OperationI) -> Self {
-        Self {
-            content: value
-        }
+        Self { content: value }
     }
 }
 
 struct ExecutionScope {
     variables: HashMap<String, Variable>,
-    outer_scope: Option<Box<ExecutionScope>>
+    outer_scope: Option<Box<ExecutionScope>>,
 }
 
 impl ExecutionScope {
     fn new(outer_scope: Option<Box<ExecutionScope>>) -> Self {
         Self {
             variables: HashMap::new(),
-            outer_scope
+            outer_scope,
         }
     }
 
@@ -37,7 +35,7 @@ impl ExecutionScope {
         &mut self,
         name: &String,
         new_value: OperationI,
-        line: usize
+        line: usize,
     ) -> Result<(), ExecutionError> {
         if let Some(variable) = self.variables.get_mut(name) {
             variable.content = new_value;
@@ -49,11 +47,7 @@ impl ExecutionScope {
         }
     }
 
-    fn get_variable(
-        &mut self,
-        name: &String,
-        line: usize
-    ) -> Result<OperationI, ExecutionError> {
+    fn get_variable(&mut self, name: &String, line: usize) -> Result<OperationI, ExecutionError> {
         if let Some(variable) = self.variables.get_mut(name) {
             Ok(variable.content)
         } else if let Some(ref mut outer) = self.outer_scope {
@@ -70,9 +64,7 @@ pub struct ExecutionContext {
 
 impl ExecutionContext {
     pub fn new() -> Self {
-        Self {
-            scope: None
-        }
+        Self { scope: None }
     }
 
     pub fn associate_new(&mut self, name: String, value: OperationI) {
@@ -129,10 +121,7 @@ pub trait Evaluate {
 }
 
 pub trait Execute {
-    fn execute(
-        &self,
-        operation_context: &mut OperationContext
-    ) -> GeneralOutput;
+    fn execute(&self, operation_context: &mut OperationContext) -> GeneralOutput;
 }
 
 #[allow(dead_code)]
@@ -144,7 +133,7 @@ pub struct ExecutionHint {
 impl ExecutionHint {
     fn new(message: &str) -> Self {
         ExecutionHint {
-            message: message.to_string()
+            message: message.to_string(),
         }
     }
 
@@ -169,21 +158,21 @@ impl ExecutionHint {
 #[derive(PartialEq, Debug)]
 pub struct ExecutionError {
     message: String,
-    hints: Vec<ExecutionHint>
+    hints: Vec<ExecutionHint>,
 }
 
 impl ExecutionError {
     fn new(message: &str) -> Self {
         ExecutionError {
             message: message.to_string(),
-            hints: Vec::new()
+            hints: Vec::new(),
         }
     }
 
     fn new_str(message: String) -> Self {
         ExecutionError {
             message: message,
-            hints: Vec::new()
+            hints: Vec::new(),
         }
     }
 
@@ -194,15 +183,15 @@ impl ExecutionError {
 
     pub fn variable_not_exists(name: &String, line: usize) -> Self {
         Self::new_str(format!(
-                "The variable {} does not exists at line {}",
-                name, line
+            "The variable {} does not exists at line {}",
+            name, line
         ))
     }
 
     pub fn native_call_invalid(name: &str) -> Self {
         Self::new_str(format!(
-                "Cannot process the native call named {}.",
-                name.italic()
+            "Cannot process the native call named {}.",
+            name.italic()
         ))
     }
 
@@ -220,24 +209,20 @@ impl ExecutionError {
 
     pub fn wrong_input_type(expected: &str, received: &str) -> Self {
         Self::new_str(format!(
-                "The input type is wrong. Fail to parse {} to type {}.",
-                received,
-                expected
-        )).add_hint(ExecutionHint::try_another_input())
+            "The input type is wrong. Fail to parse {} to type {}.",
+            received, expected
+        ))
+        .add_hint(ExecutionHint::try_another_input())
     }
 
     pub fn wrong_number_of_inputs() -> Self {
         Self::new("More inputs were expected.")
     }
 
-    pub fn assertion_error(
-        expected: OperationI,
-        received: OperationI
-    ) -> Self {
+    pub fn assertion_error(expected: OperationI, received: OperationI) -> Self {
         Self::new_str(format!(
-                "Assertion Error: expected {} got {}",
-                expected,
-                received,
+            "Assertion Error: expected {} got {}",
+            expected, received,
         ))
     }
 
@@ -258,4 +243,3 @@ impl ExecutionError {
         }
     }
 }
-

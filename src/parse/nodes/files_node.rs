@@ -1,12 +1,12 @@
 use std::collections::VecDeque;
 
+use crate::execute::OperationContext;
 use crate::execute::{Execute, ExecutionError, GeneralOutput};
 use crate::impl_debug;
-use crate::parse::nodes::expressions::{Sta};
+use crate::parse::nodes::expressions::Sta;
 use crate::parse::nodes::GraphDisplay;
 use crate::skr_errors::ResultOption;
 use crate::tokens::TokenContainer;
-use crate::execute::OperationContext;
 
 type BaseContent = Sta;
 
@@ -19,12 +19,17 @@ pub struct FileNode {
 
 impl GraphDisplay for FileNode {
     fn graph_display(&self, graph: &mut String, id: &mut usize, indent: usize) {
-        graph.push_str(&format!("\n{:indent$}subgraph File_{}[File]", "", id, indent=indent));
+        graph.push_str(&format!(
+            "\n{:indent$}subgraph File_{}[File]",
+            "",
+            id,
+            indent = indent
+        ));
         *id += 1;
         for exp in &self.exps {
             exp.graph_display(graph, id, indent + 2);
         }
-        graph.push_str(&format!("\n{:indent$}end", "", indent=indent));
+        graph.push_str(&format!("\n{:indent$}end", "", indent = indent));
     }
 }
 
@@ -61,4 +66,3 @@ impl Execute for FileNode {
         Ok(())
     }
 }
-

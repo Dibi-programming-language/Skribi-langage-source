@@ -50,7 +50,7 @@ impl GraphDisplay for Sula {
                 scope.graph_display(graph, id, indent + 2);
             }
         }
-        graph.push_str(&format!("\n{:indent$}end", "", indent=indent));
+        graph.push_str(&format!("\n{:indent$}end", "", indent = indent));
     }
 }
 
@@ -115,7 +115,7 @@ impl GraphDisplay for Ij {
         *id += 1;
         self.exp.graph_display(graph, id, indent + 2);
         self.scope.graph_display(graph, id, indent + 2);
-        graph.push_str(&format!("\n{:indent$}end", "", indent=indent));
+        graph.push_str(&format!("\n{:indent$}end", "", indent = indent));
     }
 }
 
@@ -166,13 +166,18 @@ pub struct Cond {
 
 impl GraphDisplay for Cond {
     fn graph_display(&self, graph: &mut String, id: &mut usize, indent: usize) {
-        graph.push_str(&format!("{:indent$}\nsubgraph Cond_{}[Cond]", "", id, indent=indent));
+        graph.push_str(&format!(
+            "{:indent$}\nsubgraph Cond_{}[Cond]",
+            "",
+            id,
+            indent = indent
+        ));
         *id += 1;
         self.ij.graph_display(graph, id, indent + 2);
         if let Some(sula) = &self.sula {
             sula.graph_display(graph, id, indent + 2);
         }
-        graph.push_str(&format!("\n{:indent$}end", "", indent=indent));
+        graph.push_str(&format!("\n{:indent$}end", "", indent = indent));
     }
 }
 

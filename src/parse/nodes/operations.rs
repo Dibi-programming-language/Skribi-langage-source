@@ -1,4 +1,6 @@
-use crate::execute::{Evaluate, EvaluateFromInput, IntType, OperationContext, OperationO, OperationI};
+use crate::execute::{
+    Evaluate, EvaluateFromInput, IntType, OperationContext, OperationI, OperationO,
+};
 use crate::parse::nodes::expressions::{Exp, ExpBase};
 use crate::parse::nodes::operations::Operations::{Add, Div, Equal, Mul, NotEqual, Sub};
 use crate::parse::nodes::{GraphDisplay, Parsable, ParsableWithLevel};
@@ -40,25 +42,41 @@ impl GraphDisplay for ValueBase {
             ValueBase::Bool(value) => {
                 graph.push_str(&format!(
                     "\n{:indent$}subgraph ValueBase_{}[ValueBase Bool {}]\n{:indent$}end",
-                    "", id, value, "", indent=indent
+                    "",
+                    id,
+                    value,
+                    "",
+                    indent = indent
                 ));
             }
             ValueBase::Int(value) => {
                 graph.push_str(&format!(
                     "\n{:indent$}subgraph ValueBase_{}[ValueBase Int {}]\n{:indent$}end",
-                    "", id, value, "", indent=indent
+                    "",
+                    id,
+                    value,
+                    "",
+                    indent = indent
                 ));
             }
             ValueBase::Float(value) => {
                 graph.push_str(&format!(
                     "\n{:indent$}subgraph ValueBase_{}[ValueBase Float {}]\n{:indent$}end",
-                    "", id, value, "", indent=indent
+                    "",
+                    id,
+                    value,
+                    "",
+                    indent = indent
                 ));
             }
             ValueBase::String(value) => {
                 graph.push_str(&format!(
                     "\n{:indent$}subgraph ValueBase_{}[ValueBase String {}]\n{:indent$}end",
-                    "", id, value, "", indent=indent
+                    "",
+                    id,
+                    value,
+                    "",
+                    indent = indent
                 ));
             }
         }
@@ -133,7 +151,12 @@ pub enum ValueNode {
 
 impl GraphDisplay for ValueNode {
     fn graph_display(&self, graph: &mut String, id: &mut usize, indent: usize) {
-        graph.push_str(&format!("\n{:indent$}subgraph ValueNode_{}[ValueNode]", "", id, indent=indent));
+        graph.push_str(&format!(
+            "\n{:indent$}subgraph ValueNode_{}[ValueNode]",
+            "",
+            id,
+            indent = indent
+        ));
         *id += 1;
         match self {
             ValueNode::ValueBase(value) => {
@@ -143,7 +166,7 @@ impl GraphDisplay for ValueNode {
                 value.graph_display(graph, id, indent + 2);
             }
         }
-        graph.push_str(&format!("\n{:indent$}end", "", indent=indent));
+        graph.push_str(&format!("\n{:indent$}end", "", indent = indent));
     }
 }
 
@@ -188,7 +211,12 @@ pub enum TakePriority {
 
 impl GraphDisplay for TakePriority {
     fn graph_display(&self, graph: &mut String, id: &mut usize, indent: usize) {
-        graph.push_str(&format!("\n{:indent$}subgraph TakePriority_{}[TakePriority]", "", id, indent=indent));
+        graph.push_str(&format!(
+            "\n{:indent$}subgraph TakePriority_{}[TakePriority]",
+            "",
+            id,
+            indent = indent
+        ));
         *id += 1;
         match self {
             TakePriority::Exp(value) => {
@@ -198,7 +226,7 @@ impl GraphDisplay for TakePriority {
                 value.graph_display(graph, id, indent + 2);
             }
         }
-        graph.push_str(&format!("\n{:indent$}end", "", indent=indent));
+        graph.push_str(&format!("\n{:indent$}end", "", indent = indent));
     }
 }
 
@@ -258,7 +286,12 @@ pub enum UnaryTP {
 
 impl GraphDisplay for UnaryTP {
     fn graph_display(&self, graph: &mut String, id: &mut usize, indent: usize) {
-        graph.push_str(&format!("\n{:indent$}subgraph UnaryTP_{}[unary_tp]", "", id, indent=indent));
+        graph.push_str(&format!(
+            "\n{:indent$}subgraph UnaryTP_{}[unary_tp]",
+            "",
+            id,
+            indent = indent
+        ));
         *id += 1;
         match self {
             UnaryTP::Plus(unary_tp) | UnaryTP::Minus(unary_tp) | UnaryTP::Not(unary_tp) => {
@@ -268,7 +301,7 @@ impl GraphDisplay for UnaryTP {
                 take_priority.graph_display(graph, id, indent + 2);
             }
         }
-        graph.push_str(&format!("\n{:indent$}end", "", indent=indent));
+        graph.push_str(&format!("\n{:indent$}end", "", indent = indent));
     }
 }
 
@@ -602,10 +635,7 @@ impl EvaluateFromInput for NoValueN {
                 no_value_before: Some(value_before),
             } => {
                 let res = operation.evaluate_from_input(operation_context, input)?;
-                value_before.evaluate_from_input(
-                    operation_context,
-                    res,
-                )
+                value_before.evaluate_from_input(operation_context, res)
             }
             NoValueN::ElementOperationN {
                 level: _,
@@ -626,7 +656,8 @@ impl GraphDisplay for Operations {
     fn graph_display(&self, graph: &mut String, id: &mut usize, indent: usize) {
         graph.push_str(&format!(
             "\n{:indent$}subgraph Operation_{}[Op {}]",
-            "", id,
+            "",
+            id,
             match self {
                 Mul => "OP *",
                 Div => "OP /",
@@ -636,10 +667,11 @@ impl GraphDisplay for Operations {
                 NotEqual => "CO !=",
                 Operations::And => "LG &&",
                 Operations::Or => "LG ||",
-            }, indent=indent
+            },
+            indent = indent
         ));
         *id += 1;
-        graph.push_str(&format!("\n{:indent$}end", "", indent=indent));
+        graph.push_str(&format!("\n{:indent$}end", "", indent = indent));
     }
 }
 
@@ -647,12 +679,15 @@ impl GraphDisplay for OperationN {
     fn graph_display(&self, graph: &mut String, id: &mut usize, indent: usize) {
         graph.push_str(&format!(
             "\n{:indent$}subgraph OperationN_{}[OP N={}]",
-            "", id, self.level, indent=indent
+            "",
+            id,
+            self.level,
+            indent = indent
         ));
         *id += 1;
         self.operation.graph_display(graph, id, indent + 2);
         self.tp_nm1.graph_display(graph, id, indent + 2);
-        graph.push_str(&format!("\n{:indent$}end", "", indent=indent));
+        graph.push_str(&format!("\n{:indent$}end", "", indent = indent));
     }
 }
 
@@ -660,29 +695,45 @@ impl GraphDisplay for TakePriorityN {
     fn graph_display(&self, graph: &mut String, id: &mut usize, indent: usize) {
         match self {
             TakePriorityN::ElementUnary0(unary) => {
-                graph.push_str(&format!("\n{:indent$}subgraph TakePriorityN_{}[TP0 UNARY]", "", id, indent=indent));
+                graph.push_str(&format!(
+                    "\n{:indent$}subgraph TakePriorityN_{}[TP0 UNARY]",
+                    "",
+                    id,
+                    indent = indent
+                ));
                 *id += 1;
                 unary.graph_display(graph, id, indent + 2);
-                graph.push_str(&format!("\n{:indent$}end", "", indent=indent));
+                graph.push_str(&format!("\n{:indent$}end", "", indent = indent));
             }
             TakePriorityN::ElementSimple0(simple) => {
-                graph.push_str(&format!("\n{:indent$}subgraph TakePriorityN_{}[TP0 SIMPLE]", "", id, indent=indent));
+                graph.push_str(&format!(
+                    "\n{:indent$}subgraph TakePriorityN_{}[TP0 SIMPLE]",
+                    "",
+                    id,
+                    indent = indent
+                ));
                 *id += 1;
                 simple.graph_display(graph, id, indent + 2);
-                graph.push_str(&format!("\n{:indent$}end", "", indent=indent));
+                graph.push_str(&format!("\n{:indent$}end", "", indent = indent));
             }
             TakePriorityN::ElementN {
                 level,
                 tp_nm1: tp_n1,
                 op_n,
             } => {
-                graph.push_str(&format!("\n{:indent$}subgraph TakePriorityN_{}[TP N={}]", "", id, level, indent=indent));
+                graph.push_str(&format!(
+                    "\n{:indent$}subgraph TakePriorityN_{}[TP N={}]",
+                    "",
+                    id,
+                    level,
+                    indent = indent
+                ));
                 *id += 1;
                 tp_n1.graph_display(graph, id, indent + 2);
                 if let Some(op_n) = op_n {
                     op_n.graph_display(graph, id, indent + 2);
                 }
-                graph.push_str(&format!("\n{:indent$}end", "", indent=indent));
+                graph.push_str(&format!("\n{:indent$}end", "", indent = indent));
             }
         }
     }
@@ -690,10 +741,15 @@ impl GraphDisplay for TakePriorityN {
 
 impl GraphDisplay for TakePriorityLast {
     fn graph_display(&self, graph: &mut String, id: &mut usize, indent: usize) {
-        graph.push_str(&format!("\n{:indent$}subgraph TakePriorityLast_{}[TP_LAST]", "", id, indent=indent));
+        graph.push_str(&format!(
+            "\n{:indent$}subgraph TakePriorityLast_{}[TP_LAST]",
+            "",
+            id,
+            indent = indent
+        ));
         *id += 1;
         self.child.graph_display(graph, id, indent + 2);
-        graph.push_str(&format!("\n{:indent$}end", "", indent=indent));
+        graph.push_str(&format!("\n{:indent$}end", "", indent = indent));
     }
 }
 
@@ -701,10 +757,15 @@ impl GraphDisplay for NoValueN {
     fn graph_display(&self, graph: &mut String, id: &mut usize, indent: usize) {
         match self {
             NoValueN::Element0(op) => {
-                graph.push_str(&format!("\n{:indent$}subgraph NoValueN_{}[NoValue0]", "", id, indent=indent));
+                graph.push_str(&format!(
+                    "\n{:indent$}subgraph NoValueN_{}[NoValue0]",
+                    "",
+                    id,
+                    indent = indent
+                ));
                 *id += 1;
                 op.graph_display(graph, id, indent + 2);
-                graph.push_str(&format!("\n{:indent$}end", "", indent=indent));
+                graph.push_str(&format!("\n{:indent$}end", "", indent = indent));
             }
             NoValueN::ElementOperationN {
                 level,
@@ -713,14 +774,17 @@ impl GraphDisplay for NoValueN {
             } => {
                 graph.push_str(&format!(
                     "\n{:indent$}subgraph NoValueN_{}[NoValueOp N={}]",
-                    "", id, level, indent=indent
+                    "",
+                    id,
+                    level,
+                    indent = indent
                 ));
                 *id += 1;
                 operation.graph_display(graph, id, indent + 2);
                 if let Some(no_value_before) = no_value_before {
                     no_value_before.graph_display(graph, id, indent + 2);
                 }
-                graph.push_str(&format!("\n{:indent$}end", "", indent=indent));
+                graph.push_str(&format!("\n{:indent$}end", "", indent = indent));
             }
             NoValueN::ElementSimpleN {
                 level,
@@ -728,11 +792,14 @@ impl GraphDisplay for NoValueN {
             } => {
                 graph.push_str(&format!(
                     "\n{:indent$}subgraph NoValueN_{}[NoValueSimple N={}]",
-                    "", id, level, indent=indent
+                    "",
+                    id,
+                    level,
+                    indent = indent
                 ));
                 *id += 1;
                 no_value_before.graph_display(graph, id, indent + 2);
-                graph.push_str(&format!("\n{:indent$}end", "", indent=indent));
+                graph.push_str(&format!("\n{:indent$}end", "", indent = indent));
             }
         }
     }
