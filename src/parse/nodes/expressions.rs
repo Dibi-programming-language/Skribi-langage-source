@@ -174,7 +174,7 @@ impl NatCall {
 
     fn input(&self, operation_context: &mut OperationContext) -> GeneralOutput {
         let mut buffer = String::new();
-        if let Err(_) = stdin().read_line(&mut buffer) {
+        if stdin().read_line(&mut buffer).is_err() {
             Err(ExecutionError::cannot_read_input())
         } else {
             let mut iter = buffer.trim().split(" ");
@@ -184,7 +184,7 @@ impl NatCall {
                 if let Ok(number) = result {
                     operation_context.change_value(&content.identifier, number, 0)?;
                 } else {
-                    return Err(ExecutionError::wrong_input_type("int", &buffer.trim()));
+                    return Err(ExecutionError::wrong_input_type("int", str));
                 }
                 current = &content.nat_call_in;
             }
@@ -293,7 +293,7 @@ impl IdUse {
         Self {
             identifier,
             op_in,
-            inside_id_use: inside_id_use,
+            inside_id_use,
         }
     }
 
@@ -431,7 +431,7 @@ impl IdUseV {
         Self {
             identifier,
             op_in,
-            inside_id_use_v: inside_id_use_v,
+            inside_id_use_v,
         }
     }
 

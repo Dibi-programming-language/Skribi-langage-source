@@ -33,7 +33,7 @@ impl ExecutionScope {
 
     fn edit_variable(
         &mut self,
-        name: &String,
+        name: &str,
         new_value: OperationI,
         line: usize,
     ) -> Result<(), ExecutionError> {
@@ -78,7 +78,7 @@ impl ExecutionContext {
 
     pub fn change_value(
         &mut self,
-        name: &String,
+        name: &str,
         value: OperationI,
         line: usize,
     ) -> Result<(), ExecutionError> {
@@ -99,6 +99,12 @@ impl ExecutionContext {
         } else {
             Err(ExecutionError::variable_not_exists(name, line))
         }
+    }
+}
+
+impl Default for ExecutionContext {
+    fn default() -> Self {
+        Self::new()
     }
 }
 
@@ -171,7 +177,7 @@ impl ExecutionError {
 
     fn new_str(message: String) -> Self {
         ExecutionError {
-            message: message,
+            message,
             hints: Vec::new(),
         }
     }
@@ -181,7 +187,7 @@ impl ExecutionError {
         self
     }
 
-    pub fn variable_not_exists(name: &String, line: usize) -> Self {
+    pub fn variable_not_exists(name: &str, line: usize) -> Self {
         Self::new_str(format!(
             "The variable {} does not exists at line {}",
             name, line

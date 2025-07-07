@@ -6,9 +6,9 @@ use std::process::Command;
 /// This function clears the shell
 pub fn clear() {
     // Tries the classic command
-    if let Err(_) = Command::new("clear").status() {
+    if Command::new("clear").status().is_err() {
         // In case of error, tries another possible command (ex on Windows)
-        if let Err(_) = Command::new("cls").status() {
+        if Command::new("cls").status().is_err() {
             // Just print to simulate a clear
             for _ in 0..100 {
                 println!()
