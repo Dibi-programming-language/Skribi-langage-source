@@ -1,4 +1,5 @@
 use std::collections::VecDeque;
+use std::io::stdin;
 
 use crate::execute::{Evaluate, EvaluateFromInput, Execute, ExecutionError, GeneralOutput};
 use crate::parse::nodes::blocs::ScopeBase;
@@ -177,6 +178,21 @@ impl Execute for NatCall {
                 self.print(operation_context)?;
                 println!();
                 Ok(())
+            },
+            "read_int" => {
+                // Currently only supports 1 input per line
+                let mut buffer = String::new();
+                if let Err(_) = stdin().read_line(&mut buffer) {
+                    Err(ExecutionError::cannot_read_input())
+                } else {
+                    let result = buffer.trim().parse::<u32>();
+                    if let Ok(number) = result {
+                        operation_context.change_value(&self.nat_call_in.identifier, number, 0)?;
+                        Ok(())
+                    } else {
+                        Err(ExecutionError::wrong_input_type("int", &buffer.trim()))
+                    }
+                }
             },
             name => Err(ExecutionError::native_call_invalid(name)),
         }
