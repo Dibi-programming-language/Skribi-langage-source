@@ -199,6 +199,31 @@ impl NatCall {
             }
         }
     }
+
+    fn assert_equal(
+        &self,
+        operation_context: &mut OperationContext,
+    ) -> GeneralOutput {
+        let mut current = &self.nat_call_in.nat_call_in;
+        if let Some(content) = current {
+            let first_value = operation_context.get_variable(
+                &content.identifier,
+                0
+            )?;
+            current = &content.nat_call_in;
+            while let Some(content) = current {
+                let value = operation_context.get_variable(
+                    &content.identifier,
+                    0
+                )?;
+                if value != first_value {
+                    return Err(ExecutionError::assertion_error(first_value, value));
+                }
+                current = &content.nat_call_in;
+            }
+        }
+        Ok(())
+    }
 }
 
 impl Execute for NatCall {
@@ -214,6 +239,7 @@ impl Execute for NatCall {
                 Ok(())
             },
             "read_int" => self.input(operation_context),
+            "assert_eq" => self.assert_equal(operation_context),
             name => Err(ExecutionError::native_call_invalid(name)),
         }
     }

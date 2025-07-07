@@ -230,6 +230,17 @@ impl ExecutionError {
         Self::new("More inputs were expected.")
     }
 
+    pub fn assertion_error(
+        expected: OperationI,
+        received: OperationI
+    ) -> Self {
+        Self::new_str(format!(
+                "Assertion Error: expected {} got {}",
+                expected,
+                received,
+        ))
+    }
+
     pub fn show(&self) {
         println!("Error: {}", self.message.red().bold());
 
