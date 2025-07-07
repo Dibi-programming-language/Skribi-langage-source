@@ -165,6 +165,40 @@ impl NatCall {
         }
         Ok(())
     }
+
+    fn input(
+        &self,
+        operation_context: &mut OperationContext,
+    ) -> GeneralOutput {
+        let mut buffer = String::new();
+        if let Err(_) = stdin().read_line(&mut buffer) {
+            Err(ExecutionError::cannot_read_input())
+        } else {
+            let mut iter = buffer.trim().split(" ");
+            let mut current = &self.nat_call_in.nat_call_in;
+            while let (Some(content), Some(str)) = (current, iter.next()) {
+                let result = str.parse::<u32>();
+                if let Ok(number) = result {
+                    operation_context.change_value(
+                        &content.identifier,
+                        number,
+                        0
+                    )?;
+                } else {
+                    return Err(ExecutionError::wrong_input_type(
+                            "int",
+                            &buffer.trim()
+                    ));
+                }
+                current = &content.nat_call_in;
+            }
+            if current.is_some() {
+                Err(ExecutionError::wrong_number_of_inputs())
+            } else {
+                Ok(())
+            }
+        }
+    }
 }
 
 impl Execute for NatCall {
@@ -179,21 +213,7 @@ impl Execute for NatCall {
                 println!();
                 Ok(())
             },
-            "read_int" => {
-                // Currently only supports 1 input per line
-                let mut buffer = String::new();
-                if let Err(_) = stdin().read_line(&mut buffer) {
-                    Err(ExecutionError::cannot_read_input())
-                } else {
-                    let result = buffer.trim().parse::<u32>();
-                    if let Ok(number) = result {
-                        operation_context.change_value(&self.nat_call_in.identifier, number, 0)?;
-                        Ok(())
-                    } else {
-                        Err(ExecutionError::wrong_input_type("int", &buffer.trim()))
-                    }
-                }
-            },
+            "read_int" => self.input(operation_context),
             name => Err(ExecutionError::native_call_invalid(name)),
         }
     }

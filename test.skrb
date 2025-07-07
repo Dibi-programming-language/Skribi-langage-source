@@ -4,8 +4,6 @@ int input 0
 skr_app read_int input
 int my_int input * 2 + 10
 skr_app println my_int
-my_int 3
-skr_app println my_int
 my_int my_int + 2
 skr_app println my_int
 // skr_app println my_skr

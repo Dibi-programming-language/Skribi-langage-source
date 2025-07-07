@@ -219,8 +219,15 @@ impl ExecutionError {
     }
 
     pub fn wrong_input_type(expected: &str, received: &str) -> Self {
-        Self::new_str(format!("The input type is wrong. Fail to parse {} to type {}.", received, expected))
-            .add_hint(ExecutionHint::try_another_input())
+        Self::new_str(format!(
+                "The input type is wrong. Fail to parse {} to type {}.",
+                received,
+                expected
+        )).add_hint(ExecutionHint::try_another_input())
+    }
+
+    pub fn wrong_number_of_inputs() -> Self {
+        Self::new("More inputs were expected.")
     }
 
     pub fn show(&self) {
