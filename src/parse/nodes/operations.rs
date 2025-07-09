@@ -1,4 +1,6 @@
-use crate::execute::{Evaluate, EvaluateFromInput, IntType, OperationContext, OperationO, OperationI};
+use crate::execute::{
+    Evaluate, EvaluateFromInput, IntType, OperationContext, OperationI, OperationO,
+};
 use crate::parse::nodes::expressions::{Exp, ExpBase};
 use crate::parse::nodes::operations::Operations::{Add, Div, Equal, Mul, NotEqual, Sub};
 use crate::parse::nodes::{GraphDisplay, Parsable, ParsableWithLevel};
@@ -602,10 +604,7 @@ impl EvaluateFromInput for NoValueN {
                 no_value_before: Some(value_before),
             } => {
                 let res = operation.evaluate_from_input(operation_context, input)?;
-                value_before.evaluate_from_input(
-                    operation_context,
-                    res,
-                )
+                value_before.evaluate_from_input(operation_context, res)
             }
             NoValueN::ElementOperationN {
                 level: _,

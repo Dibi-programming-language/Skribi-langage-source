@@ -1,12 +1,12 @@
 use std::collections::VecDeque;
 
+use crate::execute::OperationContext;
 use crate::execute::{Execute, ExecutionError, GeneralOutput};
 use crate::impl_debug;
-use crate::parse::nodes::expressions::{Sta};
+use crate::parse::nodes::expressions::Sta;
 use crate::parse::nodes::GraphDisplay;
 use crate::skr_errors::ResultOption;
 use crate::tokens::TokenContainer;
-use crate::execute::OperationContext;
 
 type BaseContent = Sta;
 
@@ -61,4 +61,3 @@ impl Execute for FileNode {
         Ok(())
     }
 }
-

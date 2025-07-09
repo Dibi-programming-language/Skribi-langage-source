@@ -1,13 +1,13 @@
 use std::collections::VecDeque;
 
 use crate::execute::Evaluate;
+use crate::execute::{OperationContext, OperationO};
 use crate::parse::nodes::classes::is_type_def;
 use crate::parse::nodes::expressions::Exp;
 use crate::parse::nodes::GraphDisplay;
 use crate::skr_errors::{CustomError, ResultOption};
 use crate::tokens::{ModifierKeyword, Token, TokenContainer};
 use crate::{impl_debug, some_token};
-use crate::execute::{OperationO, OperationContext};
 
 // Grammar of this file :
 /*
@@ -36,9 +36,8 @@ impl Type {
     pub(crate) fn parse(tokens: &mut VecDeque<TokenContainer>) -> Option<Type> {
         if let some_token!(Token::Identifier(identifier)) = tokens.front() {
             if is_type_def(identifier) {
-                if let some_token!(Token::Identifier(identifier)) =
-                    tokens.pop_front() {
-                        return Some(Type { name: identifier });
+                if let some_token!(Token::Identifier(identifier)) = tokens.pop_front() {
+                    return Some(Type { name: identifier });
                 }
             }
         }
@@ -114,10 +113,7 @@ impl Vd {
 }
 
 impl Evaluate for Vd {
-    fn evaluate(
-        &self,
-        operation_context: &mut OperationContext
-    ) -> OperationO {
+    fn evaluate(&self, operation_context: &mut OperationContext) -> OperationO {
         let content = self.exp.evaluate(operation_context)?;
         operation_context.associate_new(self.identifier.clone(), content);
         operation_context.get_variable(&self.identifier, 0)
@@ -325,7 +321,7 @@ impl Evaluate for VarDec {
     fn evaluate(&self, operation_context: &mut OperationContext) -> OperationO {
         match self {
             Self::Vd(vd) => vd.evaluate(operation_context),
-            _ => todo!()
+            _ => todo!(),
         }
     }
 }
