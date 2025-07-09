@@ -31,10 +31,13 @@ pub struct KName {
 }
 
 impl GraphDisplay for KName {
-    fn graph_display(&self, graph: &mut String, id: &mut usize) {
+    fn graph_display(&self, graph: &mut String, id: &mut usize, indent: usize) {
         graph.push_str(&format!(
-            "\nsubgraph KName_{}[KName {}]\nend",
-            id, self.name
+            "\n{:indent$}subgraph KName_{}[KName {}]\nend",
+            "",
+            id,
+            self.name,
+            indent = indent
         ));
         *id += 1;
     }
@@ -82,14 +85,19 @@ pub struct KStart {
 }
 
 impl GraphDisplay for KStart {
-    fn graph_display(&self, graph: &mut String, id: &mut usize) {
-        graph.push_str(&format!("\nsubgraph KStart_{}[KStart]", id));
+    fn graph_display(&self, graph: &mut String, id: &mut usize, indent: usize) {
+        graph.push_str(&format!(
+            "\n{:indent$}subgraph KStart_{}[KStart]",
+            "",
+            id,
+            indent = indent
+        ));
         *id += 1;
         if let Some(name) = &self.name {
-            name.graph_display(graph, id);
+            name.graph_display(graph, id, indent + 2);
         }
-        self.sta_l.graph_display(graph, id);
-        graph.push_str("\nend");
+        self.sta_l.graph_display(graph, id, indent + 2);
+        graph.push_str(&format!("\n{:indent$}end", "", indent = indent));
     }
 }
 
@@ -128,11 +136,16 @@ pub struct Kodi {
 }
 
 impl GraphDisplay for Kodi {
-    fn graph_display(&self, graph: &mut String, id: &mut usize) {
-        graph.push_str(&format!("\nsubgraph Kodi_{}[Kodi]", id));
+    fn graph_display(&self, graph: &mut String, id: &mut usize, indent: usize) {
+        graph.push_str(&format!(
+            "\n{:indent$}subgraph Kodi_{}[Kodi]",
+            "",
+            id,
+            indent = indent
+        ));
         *id += 1;
-        self.start.graph_display(graph, id);
-        graph.push_str("\nend");
+        self.start.graph_display(graph, id, indent + 2);
+        graph.push_str(&format!("\n{:indent$}end", "", indent = indent));
     }
 }
 
@@ -166,11 +179,16 @@ pub struct Biuli {
 }
 
 impl GraphDisplay for Biuli {
-    fn graph_display(&self, graph: &mut String, id: &mut usize) {
-        graph.push_str(&format!("\nsubgraph Biuli_{}[Biuli]", id));
+    fn graph_display(&self, graph: &mut String, id: &mut usize, indent: usize) {
+        graph.push_str(&format!(
+            "\n{:indent$}subgraph Biuli_{}[Biuli]",
+            "",
+            id,
+            indent = indent
+        ));
         *id += 1;
-        self.start.graph_display(graph, id);
-        graph.push_str("\nend");
+        self.start.graph_display(graph, id, indent + 2);
+        graph.push_str(&format!("\n{:indent$}end", "", indent = indent));
     }
 }
 
@@ -204,11 +222,16 @@ pub struct Spoki {
 }
 
 impl GraphDisplay for Spoki {
-    fn graph_display(&self, graph: &mut String, id: &mut usize) {
-        graph.push_str(&format!("\nsubgraph Spoki_{}[Spoki]", id));
+    fn graph_display(&self, graph: &mut String, id: &mut usize, indent: usize) {
+        graph.push_str(&format!(
+            "\n{:indent$}subgraph Spoki_{}[Spoki]",
+            "",
+            id,
+            indent = indent
+        ));
         *id += 1;
-        self.start.graph_display(graph, id);
-        graph.push_str("\nend");
+        self.start.graph_display(graph, id, indent + 2);
+        graph.push_str(&format!("\n{:indent$}end", "", indent = indent));
     }
 }
 
@@ -245,16 +268,21 @@ pub enum ScopeBase {
 }
 
 impl GraphDisplay for ScopeBase {
-    fn graph_display(&self, graph: &mut String, id: &mut usize) {
-        graph.push_str(&format!("\nsubgraph ScopeBase_{}[ScopeBase]", id));
+    fn graph_display(&self, graph: &mut String, id: &mut usize, indent: usize) {
+        graph.push_str(&format!(
+            "\n{:indent$}subgraph ScopeBase_{}[ScopeBase]",
+            "",
+            id,
+            indent = indent
+        ));
         *id += 1;
         match self {
-            ScopeBase::StaL(sta_l) => sta_l.graph_display(graph, id),
-            ScopeBase::Kodi(kodi) => kodi.graph_display(graph, id),
-            ScopeBase::Spoki(spoki) => spoki.graph_display(graph, id),
-            ScopeBase::Biuli(biuli) => biuli.graph_display(graph, id),
+            ScopeBase::StaL(sta_l) => sta_l.graph_display(graph, id, indent + 2),
+            ScopeBase::Kodi(kodi) => kodi.graph_display(graph, id, indent + 2),
+            ScopeBase::Spoki(spoki) => spoki.graph_display(graph, id, indent + 2),
+            ScopeBase::Biuli(biuli) => biuli.graph_display(graph, id, indent + 2),
         }
-        graph.push_str("\nend");
+        graph.push_str(&format!("\n{:indent$}end", "", indent = indent));
     }
 }
 
@@ -288,14 +316,19 @@ pub(crate) enum Scope {
 }
 
 impl GraphDisplay for Scope {
-    fn graph_display(&self, graph: &mut String, id: &mut usize) {
-        graph.push_str(&format!("\nsubgraph Scope_{}[Scope]", id));
+    fn graph_display(&self, graph: &mut String, id: &mut usize, indent: usize) {
+        graph.push_str(&format!(
+            "\n{:indent$}subgraph Scope_{}[Scope]",
+            "",
+            id,
+            indent = indent
+        ));
         *id += 1;
         match self {
-            Scope::ScopeBase(scope_base) => scope_base.graph_display(graph, id),
-            Scope::Sta(sta_l) => sta_l.graph_display(graph, id),
+            Scope::ScopeBase(scope_base) => scope_base.graph_display(graph, id, indent + 2),
+            Scope::Sta(sta_l) => sta_l.graph_display(graph, id, indent + 2),
         }
-        graph.push_str("\nend");
+        graph.push_str(&format!("\n{:indent$}end", "", indent = indent));
     }
 }
 

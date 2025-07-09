@@ -6,8 +6,10 @@
 
 use std::env;
 
+use colored::Colorize;
 use get_file_content::get_content;
 
+use crate::execute::{Execute, ExecutionContext};
 // Import
 use crate::tokens::tokenize;
 use crate::utils::clear;
@@ -36,16 +38,42 @@ fn main() {
         clear();
     }
 
+    let show_ast = args.contains(&format!("{FLAG_CHAR}show-ast"));
+
+    // Read the file
     match get_content(args, extension.clone()) {
         Ok(content) => {
-            // Read the file
-            let lines = content;
-
+            println!("{}", "Reading...".italic());
             // Remove the comments and split the code into instructions
-            match tokenize(lines) {
+            match tokenize(content) {
                 Ok(tokens) => {
-                    let _nodes = parse::parse(tokens);
-                    // TODO
+                    println!("{}", "Analysing...".italic());
+                    let nodes = parse::parse(tokens);
+                    if let Ok(Some(ast)) = nodes {
+                        println!("{}", "Executing...".italic());
+                        if show_ast {
+                            println!("{:?}", ast);
+                        }
+                        let result = ast.execute(&mut ExecutionContext::new());
+                        if let Err(err) = result {
+                            println!();
+                            err.show();
+                            panic!(
+                                "{}",
+                                "--- Your program stopped in a unexpected way ---".red()
+                            );
+                        } else {
+                            println!();
+                            println!("{}", "Program's end with no error".bold());
+                        }
+                    } else if let Err(err) = nodes {
+                        panic!("{} {:?}", "--- The code is wrong ---\n".red(), err)
+                    } else {
+                        panic!(
+                            "{}",
+                            "--- This file does not have any executable content ---".red()
+                        );
+                    }
                 }
                 Err(err) => {
                     panic!("{:?}", err);
