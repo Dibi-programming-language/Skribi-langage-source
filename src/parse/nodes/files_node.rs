@@ -1,40 +1,68 @@
 use std::collections::VecDeque;
 
+use crate::execute::OperationContext;
+use crate::execute::{Execute, ExecutionError, GeneralOutput};
 use crate::impl_debug;
-use crate::parse::nodes::expressions::Exp;
+use crate::parse::nodes::expressions::Sta;
 use crate::parse::nodes::GraphDisplay;
 use crate::skr_errors::ResultOption;
 use crate::tokens::TokenContainer;
 
-/// Node representing a file. This is the root node of the AST.
+type BaseContent = Sta;
+
+/// Node representing a file.
+/// This is the root node of the AST.
 #[derive(PartialEq)]
 pub struct FileNode {
-    exps: Vec<Exp>,
+    exps: Vec<BaseContent>,
 }
 
 impl GraphDisplay for FileNode {
-    fn graph_display(&self, graph: &mut String, id: &mut usize) {
-        graph.push_str(&format!("\nsubgraph File_{}[File]", id));
+    fn graph_display(&self, graph: &mut String, id: &mut usize, indent: usize) {
+        graph.push_str(&format!(
+            "\n{:indent$}subgraph File_{}[File]",
+            "",
+            id,
+            indent = indent
+        ));
         *id += 1;
         for exp in &self.exps {
-            exp.graph_display(graph, id);
+            exp.graph_display(graph, id, indent + 2);
         }
-        graph.push_str("\nend");
+        graph.push_str(&format!("\n{:indent$}end", "", indent = indent));
     }
 }
 
 impl_debug!(FileNode);
 
 impl FileNode {
-    pub fn new(exps: Vec<Exp>) -> Self {
+    pub fn new(exps: Vec<BaseContent>) -> Self {
         Self { exps }
     }
 
     pub fn parse(tokens: &mut VecDeque<TokenContainer>) -> ResultOption<Self> {
         let mut exps = Vec::new();
-        while let Some(exp) = Exp::parse(tokens)? {
-            exps.push(exp);
+        while !tokens.is_empty() {
+            if let Some(exp) = BaseContent::parse(tokens)? {
+                exps.push(exp);
+            } else {
+                tokens.pop_front();
+            }
         }
         Ok(Some(FileNode { exps }))
+    }
+}
+
+impl Execute for FileNode {
+    fn execute(&self, operation_context: &mut OperationContext) -> GeneralOutput {
+        println!("Executing {} lines\n", self.exps.len());
+        for exp in &self.exps {
+            if let Sta::Return(_) = exp {
+                return Err(ExecutionError::no_return_at_root());
+            } else {
+                exp.execute(operation_context)?;
+            }
+        }
+        Ok(())
     }
 }
