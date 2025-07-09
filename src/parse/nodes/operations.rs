@@ -346,6 +346,7 @@ impl Evaluate for UnaryTP {
         match self {
             UnaryTP::Plus(unary_tp) => unary_tp.evaluate(operation_context),
             UnaryTP::TakePriority(take_priority) => take_priority.evaluate(operation_context),
+            UnaryTP::Minus(minus) => minus.evaluate(operation_context).map(| x | - x),
             _ => todo!(),
         }
     }

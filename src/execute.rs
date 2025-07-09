@@ -2,10 +2,11 @@ use std::collections::HashMap;
 
 use colored::Colorize;
 
-pub type OperationI = u32;
+pub type IntType = i32;
+pub type OperationI = IntType;
 
 struct Variable {
-    pub content: u32,
+    pub content: OperationI,
 }
 
 impl Variable {
@@ -108,8 +109,7 @@ impl Default for ExecutionContext {
     }
 }
 
-pub type IntType = u32;
-pub type OperationCleanOutput = u32;
+pub type OperationCleanOutput = OperationI;
 pub type OperationO = Result<OperationCleanOutput, ExecutionError>;
 pub type GeneralOutput = Result<(), ExecutionError>;
 pub type OperationContext = ExecutionContext;

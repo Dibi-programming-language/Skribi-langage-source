@@ -1,6 +1,7 @@
 use std::collections::VecDeque;
 use std::io::stdin;
 
+use crate::execute::IntType;
 use crate::execute::OperationContext;
 use crate::execute::OperationO;
 use crate::execute::{Evaluate, EvaluateFromInput, Execute, ExecutionError, GeneralOutput};
@@ -180,7 +181,7 @@ impl NatCall {
             let mut iter = buffer.trim().split(" ");
             let mut current = &self.nat_call_in.nat_call_in;
             while let (Some(content), Some(str)) = (current, iter.next()) {
-                let result = str.parse::<u32>();
+                let result = str.parse::<IntType>();
                 if let Ok(number) = result {
                     operation_context.change_value(&content.identifier, number, 0)?;
                 } else {
