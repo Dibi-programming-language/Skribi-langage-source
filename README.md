@@ -13,13 +13,14 @@ Links :
 
 You can use ``cargo run -- <file to run>`` to run the project.
 
-WARNING : please use this directory as the working directory, not `src`.
+> [!warning]
+> Please use this directory as the working directory, not 'src'.
 
 ## Contribute
 
 ### Mermaid
 
-The debug output for the AST is in the mermaid format :
+The debug output for the AST is in the Mermaid format :
 
 > Sveidqvist, K., & Contributors to Mermaid. (2014). Mermaid: Generate diagrams from markdown-like
 > text [Computer software]. https://github.com/mermaid-js/mermaid
