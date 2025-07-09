@@ -1,5 +1,7 @@
 use std::collections::VecDeque;
 
+use crate::execute::OperationContext;
+use crate::execute::OperationO;
 use crate::execute::{Evaluate, Execute, ExecutionError, GeneralOutput};
 use crate::parse::nodes::blocs::ScopeBase;
 use crate::parse::nodes::functions::FctDec;
@@ -11,8 +13,6 @@ use crate::parse::nodes::{GraphDisplay, Parsable};
 use crate::skr_errors::{CustomError, ResultOption};
 use crate::tokens::{SpaceTypes, Token, TokenContainer};
 use crate::{impl_debug, some_token};
-use crate::execute::OperationContext;
-use crate::execute::OperationO;
 
 // Grammar of this file :
 // <nat_call_in> ::= T_IDENTIFIER ("\n" | <nat_call_in>)
@@ -95,12 +95,11 @@ impl NatCallIn {
             } else {
                 let nat_call_in = NatCallIn::parse(tokens)?;
                 match nat_call_in {
-                    Some(nat_call_in) => {
-                        Ok(Some(NatCallIn::new(identifier, Some(nat_call_in))))
-                    }
-                    None => Err(CustomError::UnexpectedToken(
-                            format!("Expected a new line or a nat_call_in (l{}:{})", token_container.line, token_container.column)
-                    )),
+                    Some(nat_call_in) => Ok(Some(NatCallIn::new(identifier, Some(nat_call_in)))),
+                    None => Err(CustomError::UnexpectedToken(format!(
+                        "Expected a new line or a nat_call_in (l{}:{})",
+                        token_container.line, token_container.column
+                    ))),
                 }
             }
         } else {
@@ -152,10 +151,7 @@ impl NatCall {
         }
     }
 
-    fn print(
-        &self,
-        _operation_context: &mut OperationContext,
-    ) -> GeneralOutput {
+    fn print(&self, _operation_context: &mut OperationContext) -> GeneralOutput {
         let mut current = &self.nat_call_in.nat_call_in;
         while let Some(content) = current {
             print!("{}", content.identifier);
@@ -166,17 +162,14 @@ impl NatCall {
 }
 
 impl Execute for NatCall {
-    fn execute(
-            &self,
-            operation_context: &mut OperationContext
-        ) -> GeneralOutput {
+    fn execute(&self, operation_context: &mut OperationContext) -> GeneralOutput {
         match &self.nat_call_in.identifier[..] {
             "print" => self.print(operation_context),
             "println" => {
                 self.print(operation_context)?;
                 println!();
                 Ok(())
-            },
+            }
             name => Err(ExecutionError::native_call_invalid(name)),
         }
     }
@@ -658,14 +651,17 @@ impl Sta {
 }
 
 impl Execute for Sta {
-    fn execute(
-        &self,
-        operation_context: &mut OperationContext
-    ) -> GeneralOutput {
+    fn execute(&self, operation_context: &mut OperationContext) -> GeneralOutput {
         match self {
-            Sta::Return(_return_node) => { todo!() }
-            Sta::NatCall(nat_call) => { nat_call.execute(operation_context)?; }
-            Sta::Exp(exp) => { exp.evaluate(operation_context)?; }
+            Sta::Return(_return_node) => {
+                todo!()
+            }
+            Sta::NatCall(nat_call) => {
+                nat_call.execute(operation_context)?;
+            }
+            Sta::Exp(exp) => {
+                exp.evaluate(operation_context)?;
+            }
         }
         Ok(())
     }

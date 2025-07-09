@@ -20,10 +20,7 @@ pub trait Evaluate {
 }
 
 pub trait Execute {
-    fn execute(
-        &self,
-        operation_context: &mut OperationContext
-    ) -> GeneralOutput;
+    fn execute(&self, operation_context: &mut OperationContext) -> GeneralOutput;
 }
 
 #[allow(dead_code)]
@@ -35,7 +32,7 @@ pub struct ExecutionHint {
 impl ExecutionHint {
     fn new(message: &str) -> Self {
         ExecutionHint {
-            message: message.to_string()
+            message: message.to_string(),
         }
     }
 
@@ -52,21 +49,21 @@ impl ExecutionHint {
 #[derive(PartialEq, Debug)]
 pub struct ExecutionError {
     message: String,
-    hints: Vec<ExecutionHint>
+    hints: Vec<ExecutionHint>,
 }
 
 impl ExecutionError {
     fn new(message: &str) -> Self {
         ExecutionError {
             message: message.to_string(),
-            hints: Vec::new()
+            hints: Vec::new(),
         }
     }
 
     fn new_str(message: String) -> Self {
         ExecutionError {
-            message: message,
-            hints: Vec::new()
+            message,
+            hints: Vec::new(),
         }
     }
 
@@ -80,7 +77,10 @@ impl ExecutionError {
     }
 
     pub fn native_call_invalid(name: &str) -> Self {
-        Self::new_str(format!("Cannot process the native call named {}.", name.italic()))
+        Self::new_str(format!(
+            "Cannot process the native call named {}.",
+            name.italic()
+        ))
     }
 
     pub fn no_return_at_root() -> Self {
@@ -93,7 +93,11 @@ impl ExecutionError {
         println!("Error: {}", self.message.red().bold());
 
         if self.hints.len() == 1 {
-            println!("{} {}", "Hint:".bold().green(), self.hints[0].message.green())
+            println!(
+                "{} {}",
+                "Hint:".bold().green(),
+                self.hints[0].message.green()
+            )
         } else if self.hints.len() > 1 {
             println!("{}", "Hints:".bold().green());
             for hint in &self.hints {
@@ -102,4 +106,3 @@ impl ExecutionError {
         }
     }
 }
-

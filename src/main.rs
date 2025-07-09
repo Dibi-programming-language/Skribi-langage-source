@@ -53,7 +53,10 @@ fn main() {
                         if let Err(err) = result {
                             println!();
                             err.show();
-                            panic!("{}", "--- Your program stopped in a unexpected way ---".red());
+                            panic!(
+                                "{}",
+                                "--- Your program stopped in a unexpected way ---".red()
+                            );
                         } else {
                             println!();
                             println!("{}", "Program's end with no error".bold());
@@ -61,7 +64,10 @@ fn main() {
                     } else if let Err(err) = nodes {
                         panic!("{} {:?}", "--- The code is wrong ---\n".red(), err)
                     } else {
-                        panic!("{}", "--- This file does not have any executable content ---".red());
+                        panic!(
+                            "{}",
+                            "--- This file does not have any executable content ---".red()
+                        );
                     }
                 }
                 Err(err) => {
