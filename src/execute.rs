@@ -1,4 +1,3 @@
-
 use std::{collections::HashMap, fmt::Display};
 
 use colored::Colorize;
@@ -12,11 +11,31 @@ pub trait BasicValue: Display {
     /// Used to avoid useless allocations of VariableValue
     fn clone(&self) -> VariableValue;
 
-    fn add(self, other: VariableValue, context: &OperationContext) -> Result<VariableValue, ExecutionError>;
-    fn sub(self, other: VariableValue, context: &OperationContext) -> Result<VariableValue, ExecutionError>;
-    fn div(self, other: VariableValue, context: &OperationContext) -> Result<VariableValue, ExecutionError>;
-    fn mul(self, other: VariableValue, context: &OperationContext) -> Result<VariableValue, ExecutionError>;
-    fn minus(self, other: VariableValue, context: &OperationContext) -> Result<VariableValue, ExecutionError>;
+    fn add(
+        self,
+        other: VariableValue,
+        context: &OperationContext,
+    ) -> Result<VariableValue, ExecutionError>;
+    fn sub(
+        self,
+        other: VariableValue,
+        context: &OperationContext,
+    ) -> Result<VariableValue, ExecutionError>;
+    fn div(
+        self,
+        other: VariableValue,
+        context: &OperationContext,
+    ) -> Result<VariableValue, ExecutionError>;
+    fn mul(
+        self,
+        other: VariableValue,
+        context: &OperationContext,
+    ) -> Result<VariableValue, ExecutionError>;
+    fn minus(
+        self,
+        other: VariableValue,
+        context: &OperationContext,
+    ) -> Result<VariableValue, ExecutionError>;
 
     fn as_int(self, context: &OperationContext) -> Result<IntType, ExecutionError>;
     fn as_ioi(self, context: &OperationContext) -> Result<bool, ExecutionError>;
@@ -68,7 +87,11 @@ impl ExecutionScope {
         }
     }
 
-    fn get_variable(&mut self, name: &String, line: usize) -> Result<VariableValue, ExecutionError> {
+    fn get_variable(
+        &mut self,
+        name: &String,
+        line: usize,
+    ) -> Result<VariableValue, ExecutionError> {
         if let Some(variable) = self.variables.get_mut(name) {
             Ok(variable.content.clone())
         } else if let Some(ref mut outer) = self.outer_scope {

@@ -9,27 +9,47 @@ struct InternalInt {
 impl BasicValue for InternalInt {
     fn clone(&self) -> super::VariableValue {
         Box::new(InternalInt {
-            content: self.content
+            content: self.content,
         })
     }
 
-    fn add(self, other: super::VariableValue, context: &super::OperationContext) -> Result<super::VariableValue, super::ExecutionError> {
+    fn add(
+        self,
+        other: super::VariableValue,
+        context: &super::OperationContext,
+    ) -> Result<super::VariableValue, super::ExecutionError> {
         todo!()
     }
 
-    fn sub(self, other: super::VariableValue, context: &super::OperationContext) -> Result<super::VariableValue, super::ExecutionError> {
+    fn sub(
+        self,
+        other: super::VariableValue,
+        context: &super::OperationContext,
+    ) -> Result<super::VariableValue, super::ExecutionError> {
         todo!()
     }
 
-    fn div(self, other: super::VariableValue, context: &super::OperationContext) -> Result<super::VariableValue, super::ExecutionError> {
+    fn div(
+        self,
+        other: super::VariableValue,
+        context: &super::OperationContext,
+    ) -> Result<super::VariableValue, super::ExecutionError> {
         todo!()
     }
 
-    fn mul(self, other: super::VariableValue, context: &super::OperationContext) -> Result<super::VariableValue, super::ExecutionError> {
+    fn mul(
+        self,
+        other: super::VariableValue,
+        context: &super::OperationContext,
+    ) -> Result<super::VariableValue, super::ExecutionError> {
         todo!()
     }
 
-    fn minus(self, other: super::VariableValue, context: &super::OperationContext) -> Result<super::VariableValue, super::ExecutionError> {
+    fn minus(
+        self,
+        other: super::VariableValue,
+        context: &super::OperationContext,
+    ) -> Result<super::VariableValue, super::ExecutionError> {
         todo!()
     }
 
@@ -47,4 +67,3 @@ impl Display for InternalInt {
         self.content.fmt(f)
     }
 }
-
