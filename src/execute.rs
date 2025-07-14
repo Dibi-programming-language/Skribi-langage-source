@@ -1,12 +1,32 @@
-use std::collections::HashMap;
+
+use std::{collections::HashMap, fmt::Display};
 
 use colored::Colorize;
 
+mod int;
+
 pub type IntType = i32;
-pub type OperationI = IntType;
+
+pub trait BasicValue: Display {
+    /// A clone function that does not require Sized.
+    /// Used to avoid useless allocations of VariableValue
+    fn clone(&self) -> VariableValue;
+
+    fn add(self, other: VariableValue, context: &OperationContext) -> Result<VariableValue, ExecutionError>;
+    fn sub(self, other: VariableValue, context: &OperationContext) -> Result<VariableValue, ExecutionError>;
+    fn div(self, other: VariableValue, context: &OperationContext) -> Result<VariableValue, ExecutionError>;
+    fn mul(self, other: VariableValue, context: &OperationContext) -> Result<VariableValue, ExecutionError>;
+    fn minus(self, other: VariableValue, context: &OperationContext) -> Result<VariableValue, ExecutionError>;
+
+    fn as_int(self, context: &OperationContext) -> Result<IntType, ExecutionError>;
+    fn as_ioi(self, context: &OperationContext) -> Result<bool, ExecutionError>;
+}
+
+pub type VariableValue = Box<dyn BasicValue>;
+pub type OperationI = VariableValue;
 
 struct Variable {
-    pub content: OperationI,
+    pub content: VariableValue,
 }
 
 impl Variable {
@@ -48,9 +68,9 @@ impl ExecutionScope {
         }
     }
 
-    fn get_variable(&mut self, name: &String, line: usize) -> Result<OperationI, ExecutionError> {
+    fn get_variable(&mut self, name: &String, line: usize) -> Result<VariableValue, ExecutionError> {
         if let Some(variable) = self.variables.get_mut(name) {
-            Ok(variable.content)
+            Ok(variable.content.clone())
         } else if let Some(ref mut outer) = self.outer_scope {
             outer.get_variable(name, line)
         } else {
@@ -80,7 +100,7 @@ impl ExecutionContext {
     pub fn change_value(
         &mut self,
         name: &str,
-        value: OperationI,
+        value: VariableValue,
         line: usize,
     ) -> Result<(), ExecutionError> {
         if let Some(ref mut scope) = self.scope {
@@ -109,7 +129,7 @@ impl Default for ExecutionContext {
     }
 }
 
-pub type OperationCleanOutput = OperationI;
+pub type OperationCleanOutput = VariableValue;
 pub type OperationO = Result<OperationCleanOutput, ExecutionError>;
 pub type GeneralOutput = Result<(), ExecutionError>;
 pub type OperationContext = ExecutionContext;
