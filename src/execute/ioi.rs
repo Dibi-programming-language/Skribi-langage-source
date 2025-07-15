@@ -7,7 +7,7 @@ pub struct InternalIoi {
 }
 
 impl InternalIoi {
-    pub fn new(content: bool) -> VariableValue {
+    pub fn new_boxed(content: bool) -> VariableValue {
         Box::new(InternalIoi { content })
     }
 }
@@ -83,7 +83,7 @@ impl BasicValue for InternalIoi {
         other: &VariableValue,
         context: &super::OperationContext,
     ) -> Result<VariableValue, ExecutionError> {
-        self.basic_equal(other, context).map(|x| Self::new(x))
+        self.basic_equal(other, context).map(|x| Self::new_boxed(x))
     }
 
     fn basic_equal(

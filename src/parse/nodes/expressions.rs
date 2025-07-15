@@ -186,7 +186,7 @@ impl NatCall {
                 if let Ok(number) = result {
                     operation_context.change_value(
                         &content.identifier,
-                        InternalInt::new(number),
+                        InternalInt::new_boxed(number),
                         0,
                     )?;
                 } else {
@@ -209,7 +209,7 @@ impl NatCall {
             current = &content.nat_call_in;
             while let Some(content) = current {
                 let value = operation_context.get_variable(&content.identifier, 0)?;
-                if !value.basic_equal(&first_value, &operation_context)? {
+                if !value.basic_equal(&first_value, operation_context)? {
                     return Err(ExecutionError::assertion_error(first_value, value));
                 }
                 current = &content.nat_call_in;

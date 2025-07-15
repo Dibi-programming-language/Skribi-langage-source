@@ -8,7 +8,7 @@ pub struct InternalInt {
 }
 
 impl InternalInt {
-    pub fn new(content: IntType) -> VariableValue {
+    pub fn new_boxed(content: IntType) -> VariableValue {
         Box::new(InternalInt { content })
     }
 }
@@ -82,7 +82,7 @@ impl BasicValue for InternalInt {
         context: &OperationContext,
     ) -> Result<VariableValue, ExecutionError> {
         self.basic_equal(other, context)
-            .map(|x| InternalIoi::new(x))
+            .map(|x| InternalIoi::new_boxed(x))
     }
 
     fn basic_equal(
