@@ -23,7 +23,6 @@ pub trait Execute {
     fn execute(&self, operation_context: &mut OperationContext) -> GeneralOutput;
 }
 
-#[allow(dead_code)]
 #[derive(PartialEq, Debug)]
 pub struct ExecutionHint {
     message: String,
@@ -45,7 +44,6 @@ impl ExecutionHint {
     }
 }
 
-#[allow(dead_code)]
 #[derive(PartialEq, Debug)]
 pub struct ExecutionError {
     message: String,

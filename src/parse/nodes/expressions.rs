@@ -82,17 +82,29 @@ impl NatCallIn {
             nat_call_in: nat_call_in.map(Box::new),
         }
     }
+}
 
-    pub fn parse(tokens: &mut VecDeque<TokenContainer>) -> ResultOption<NatCallIn> {
-        // <nat_call_in> ::= T_IDENTIFIER ("\n" | <nat_call_in>)
+impl Parsable for NatCallIn {
+    /// Parse a chain of identifiers that finishes by a new line.
+    /// Grammar:
+    /// <nat_call_in> ::= T_IDENTIFIER ("\n" | <nat_call_in>).
+    /// Used by [NatCall] to get the arguments of a skr_app.
+    fn parse(tokens: &mut VecDeque<TokenContainer>) -> ResultOption<NatCallIn> {
+        // As usual, verify that this is a NatCallIn by checking that there
+        // is an identifier at the front of the VecDeque.
         if let some_token!(Token::Identifier(identifier)) = tokens.front() {
             let identifier = identifier.to_string();
+            // We know that unwrap will not fail as tokens.front returned
+            // something. Note that we do not get the type (identifier) but
+            // only the container of the enum from the Option.
             let token_container = tokens.pop_front().unwrap();
 
             if let some_token!(Token::Space(SpaceTypes::NewLine)) = tokens.front() {
+                // End of line and of arguments
                 tokens.pop_front();
                 Ok(Some(NatCallIn::new(identifier, None)))
             } else {
+                // Rec call of this function to get following identifiers.
                 let nat_call_in = NatCallIn::parse(tokens)?;
                 match nat_call_in {
                     Some(nat_call_in) => Ok(Some(NatCallIn::new(identifier, Some(nat_call_in)))),
