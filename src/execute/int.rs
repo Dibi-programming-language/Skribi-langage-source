@@ -1,6 +1,7 @@
 use std::fmt::Display;
 
-use super::{BasicValue, IntType};
+use super::ioi::InternalIoi;
+use super::{BasicValue, ExecutionError, IntType, VariableValue};
 
 struct InternalInt {
     content: IntType,
@@ -14,51 +15,68 @@ impl BasicValue for InternalInt {
     }
 
     fn add(
-        self,
-        other: super::VariableValue,
+        mut self: Box<Self>,
+        other: &VariableValue,
         context: &super::OperationContext,
     ) -> Result<super::VariableValue, super::ExecutionError> {
-        todo!()
+        let other = other.as_int(context)?;
+        self.content += other;
+        Ok(self)
     }
 
     fn sub(
-        self,
-        other: super::VariableValue,
+        mut self: Box<Self>,
+        other: &super::VariableValue,
         context: &super::OperationContext,
     ) -> Result<super::VariableValue, super::ExecutionError> {
-        todo!()
+        let other = other.as_int(context)?;
+        self.content -= other;
+        Ok(self)
     }
 
     fn div(
-        self,
-        other: super::VariableValue,
+        mut self: Box<Self>,
+        other: &super::VariableValue,
         context: &super::OperationContext,
     ) -> Result<super::VariableValue, super::ExecutionError> {
-        todo!()
+        let other = other.as_int(context)?;
+        self.content /= other;
+        Ok(self)
     }
 
     fn mul(
-        self,
-        other: super::VariableValue,
+        mut self: Box<Self>,
+        other: &super::VariableValue,
         context: &super::OperationContext,
     ) -> Result<super::VariableValue, super::ExecutionError> {
-        todo!()
+        let other = other.as_int(context)?;
+        self.content *= other;
+        Ok(self)
     }
 
     fn minus(
-        self,
-        other: super::VariableValue,
-        context: &super::OperationContext,
+        mut self: Box<Self>,
+        _context: &super::OperationContext,
     ) -> Result<super::VariableValue, super::ExecutionError> {
-        todo!()
+        self.content = -self.content;
+        Ok(self)
     }
 
-    fn as_int(self, context: &super::OperationContext) -> Result<IntType, super::ExecutionError> {
-        todo!()
+    fn as_int(&self, _context: &super::OperationContext) -> Result<IntType, super::ExecutionError> {
+        Ok(self.content)
     }
 
-    fn as_ioi(self, context: &super::OperationContext) -> Result<bool, super::ExecutionError> {
-        todo!()
+    fn as_ioi(&self, _context: &super::OperationContext) -> Result<bool, super::ExecutionError> {
+        Err(ExecutionError::wrong_type("ioi", "int"))
+    }
+
+    fn equal(&self, other: &VariableValue, context: &super::OperationContext) -> Result<VariableValue, ExecutionError> {
+        self.basic_equal(other, context).map(|x| InternalIoi::new(x))
+    }
+
+    fn basic_equal(&self, other: &VariableValue, context: &super::OperationContext) -> Result<bool, ExecutionError> {
+        let other = other.as_int(context)?;
+        Ok(self.content == other)
     }
 }
 

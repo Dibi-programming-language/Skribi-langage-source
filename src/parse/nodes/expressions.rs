@@ -342,7 +342,7 @@ impl Evaluate for IdUse {
             InsideIdUse::Empty => operation_context.get_variable(&self.identifier, 0),
             InsideIdUse::VarMod(modification) => {
                 let value = modification.evaluate(operation_context)?;
-                operation_context.change_value(&self.identifier, value, 0)?;
+                operation_context.change_value(&self.identifier, value.clone(), 0)?;
                 Ok(value)
             }
             _ => todo!(),
@@ -488,7 +488,7 @@ impl Evaluate for IdUseV {
             InsideIdUseV::Empty => operation_context.get_variable(&self.identifier, 0),
             InsideIdUseV::VarMod(modification) => {
                 let value = modification.evaluate(operation_context)?;
-                operation_context.change_value(&self.identifier, value, 0)?;
+                operation_context.change_value(&self.identifier, value.clone(), 0)?;
                 Ok(value)
             }
             InsideIdUseV::NoValue(nv) => {
