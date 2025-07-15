@@ -27,11 +27,16 @@ const FLAG_CHAR: &str = "--";
 
 /// Launch the interpreter
 fn main() {
-    // parameters
-    let extension: Vec<String> = vec!["skrb".to_string(), "skribi".to_string()];
 
     // generic parameters
     let args = env::args().collect::<Vec<_>>(); // get the command line arguments
+
+    execute(args);
+}
+
+pub fn execute(args: Vec<String>) {
+    // parameters
+    let extension: Vec<String> = vec!["skrb".to_string(), "skribi".to_string()];
 
     // clear the shell for the user
     if !args.contains(&format!("{FLAG_CHAR}compiler-debug")) {
@@ -85,3 +90,4 @@ fn main() {
         }
     }
 }
+

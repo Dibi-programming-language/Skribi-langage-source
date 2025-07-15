@@ -233,7 +233,7 @@ fn tokenize_comment_classic(file: &mut CharsIterator) {
 }
 
 macro_rules! add_token {
-    ($tokens:expr, $file: expr, $token:expr) => {
+    ($tokens: expr, $file: expr, $token: expr) => {
         $tokens.push_back(TokenContainer {
             token: $token,
             line: $file.line,
