@@ -27,7 +27,6 @@ const FLAG_CHAR: &str = "--";
 
 /// Launch the interpreter
 fn main() {
-
     // generic parameters
     let args = env::args().collect::<Vec<_>>(); // get the command line arguments
 
@@ -90,4 +89,3 @@ pub fn execute(args: Vec<String>) {
         }
     }
 }
-

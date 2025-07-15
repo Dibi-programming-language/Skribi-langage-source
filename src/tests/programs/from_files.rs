@@ -7,7 +7,12 @@ macro_rules! file {
 }
 
 fn execute_from_name(name: &str) {
-    execute(vec!["".to_owned(), name.to_owned(), "--compiler-debug".to_owned(), "--show-ast".to_owned()]);
+    execute(vec![
+        "".to_owned(),
+        name.to_owned(),
+        "--compiler-debug".to_owned(),
+        "--show-ast".to_owned(),
+    ]);
 }
 
 #[test]
