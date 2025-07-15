@@ -2,8 +2,8 @@ use std::{collections::HashMap, fmt::Display};
 
 use colored::Colorize;
 
-mod int;
-mod ioi;
+pub mod int;
+pub mod ioi;
 
 pub type IntType = i32;
 
@@ -36,16 +36,21 @@ pub trait BasicValue: Display {
         context: &OperationContext,
     ) -> Result<VariableValue, ExecutionError>;
 
-    fn minus(
-        self: Box<Self>,
-        context: &OperationContext,
-    ) -> Result<VariableValue, ExecutionError>;
+    fn minus(self: Box<Self>, context: &OperationContext) -> Result<VariableValue, ExecutionError>;
 
     fn as_int(&self, context: &OperationContext) -> Result<IntType, ExecutionError>;
     fn as_ioi(&self, context: &OperationContext) -> Result<bool, ExecutionError>;
 
-    fn basic_equal(&self, other: &VariableValue, context: &OperationContext) -> Result<bool, ExecutionError>;
-    fn equal(&self, other: &VariableValue, context: &OperationContext) -> Result<VariableValue, ExecutionError>;
+    fn basic_equal(
+        &self,
+        other: &VariableValue,
+        context: &OperationContext,
+    ) -> Result<bool, ExecutionError>;
+    fn equal(
+        &self,
+        other: &VariableValue,
+        context: &OperationContext,
+    ) -> Result<VariableValue, ExecutionError>;
 }
 
 pub type VariableValue = Box<dyn BasicValue>;
@@ -287,17 +292,14 @@ impl ExecutionError {
     }
 
     pub fn wrong_type(expected: &str, got: &str) -> Self {
-        Self::new_str(format!(
-                "Type Error: expected {} got {}.",
-                expected, got
-        ))
+        Self::new_str(format!("Type Error: expected {} got {}.", expected, got))
             .add_hint(ExecutionHint::check_types())
     }
 
     pub fn not_implemented_for(operation: &str, got: &str) -> Self {
         Self::new_str(format!(
-                "Type Error: operation {} does not have any meaning for {}.",
-                operation, got
+            "Type Error: operation {} does not have any meaning for {}.",
+            operation, got
         ))
     }
 

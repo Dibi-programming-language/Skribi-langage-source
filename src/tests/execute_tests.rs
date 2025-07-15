@@ -11,10 +11,15 @@ fn add_test() {
         .map(|x| x.into())
         .collect();
 
+    let mut context = ExecutionContext::new();
+
     let res = TakePriorityLast::parse(&mut vec)
         .unwrap()
         .unwrap()
-        .evaluate(&mut ExecutionContext::new())
-        .unwrap();
+        .evaluate(&mut context)
+        .unwrap()
+        .as_int(&context)
+        .expect("Should be an integi.");
+
     assert_eq!(res, 3);
 }

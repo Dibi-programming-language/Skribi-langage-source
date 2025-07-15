@@ -1,6 +1,6 @@
 use std::fmt::Display;
 
-use super::{BasicValue, ExecutionError, IntType, VariableValue, OperationContext};
+use super::{BasicValue, ExecutionError, IntType, OperationContext, VariableValue};
 
 pub struct InternalIoi {
     content: bool,
@@ -8,9 +8,7 @@ pub struct InternalIoi {
 
 impl InternalIoi {
     pub fn new(content: bool) -> VariableValue {
-        Box::new(InternalIoi {
-            content,
-        })
+        Box::new(InternalIoi { content })
     }
 }
 
@@ -80,11 +78,19 @@ impl BasicValue for InternalIoi {
         Ok(self.content)
     }
 
-    fn equal(&self, other: &VariableValue, context: &super::OperationContext) -> Result<VariableValue, ExecutionError> {
+    fn equal(
+        &self,
+        other: &VariableValue,
+        context: &super::OperationContext,
+    ) -> Result<VariableValue, ExecutionError> {
         self.basic_equal(other, context).map(|x| Self::new(x))
     }
 
-    fn basic_equal(&self, other: &VariableValue, context: &super::OperationContext) -> Result<bool, ExecutionError> {
+    fn basic_equal(
+        &self,
+        other: &VariableValue,
+        context: &super::OperationContext,
+    ) -> Result<bool, ExecutionError> {
         let other = other.as_ioi(context)?;
         Ok(self.content == other)
     }
