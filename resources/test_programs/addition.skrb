@@ -1,0 +1,9 @@
+// my_int should be 14
+int my_int 4 + 10
+skr_app println my_int
+// my_int should be 16
+my_int my_int + 2
+skr_app println my_int
+// Verify that this is true
+int result 16
+skr_app assert_eq result my_int
