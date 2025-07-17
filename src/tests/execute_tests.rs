@@ -1,4 +1,4 @@
-use crate::execute::Evaluate;
+use crate::execute::{Evaluate, ExecutionContext};
 use crate::parse::nodes::operations::TakePriorityLast;
 use crate::parse::nodes::Parsable;
 use crate::tokens::{Token, TokenContainer};
@@ -11,9 +11,15 @@ fn add_test() {
         .map(|x| x.into())
         .collect();
 
+    let mut context = ExecutionContext::new();
+
     let res = TakePriorityLast::parse(&mut vec)
         .unwrap()
         .unwrap()
-        .evaluate(&());
+        .evaluate(&mut context)
+        .unwrap()
+        .as_int(&context)
+        .expect("Should be an integi.");
+
     assert_eq!(res, 3);
 }

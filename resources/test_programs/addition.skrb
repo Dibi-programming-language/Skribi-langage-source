@@ -1,0 +1,9 @@
+int my_int 4 + 10  // my_int = 14
+int rmy_int 14
+
+skr_app assert_eq rmy_int my_int
+
+my_int my_int + 2  // my_int = 16
+int result 16
+
+skr_app assert_eq result my_int

@@ -1,5 +1,7 @@
 use std::collections::VecDeque;
 
+use crate::execute::Evaluate;
+use crate::execute::{OperationContext, OperationO};
 use crate::parse::nodes::classes::is_type_def;
 use crate::parse::nodes::expressions::Exp;
 use crate::parse::nodes::GraphDisplay;
@@ -30,33 +32,43 @@ pub struct Type {
     pub(crate) name: String,
 }
 
+impl Type {
+    pub(crate) fn parse(tokens: &mut VecDeque<TokenContainer>) -> Option<Type> {
+        if let some_token!(Token::Identifier(identifier)) = tokens.front() {
+            if is_type_def(identifier) {
+                if let some_token!(Token::Identifier(identifier)) = tokens.pop_front() {
+                    return Some(Type { name: identifier });
+                }
+            }
+        }
+
+        None
+    }
+}
+
 impl GraphDisplay for Type {
-    fn graph_display(&self, graph: &mut String, id: &mut usize) {
-        graph.push_str(&format!("\nsubgraph CGet_{}[CGet {}]\nend", id, self.name));
+    fn graph_display(&self, graph: &mut String, id: &mut usize, indent: usize) {
+        graph.push_str(&format!(
+            "\n{:indent$}subgraph CGet_{}[CGet {}]\n{:indent$}end",
+            "",
+            id,
+            self.name,
+            "",
+            indent = indent
+        ));
         *id += 1;
     }
 }
 
 impl_debug!(Type);
 
-pub(crate) fn parse_type(tokens: &mut VecDeque<TokenContainer>) -> Option<Type> {
-    if let some_token!(Token::Identifier(identifier)) = tokens.front() {
-        if is_type_def(identifier) {
-            if let some_token!(Token::Identifier(identifier)) = tokens.pop_front() {
-                return Some(Type { name: identifier });
-            }
-        }
-    }
-
-    None
-}
-
 // ----------
 // --- Vd ---
 // ----------
 
-/// `Vd` represents a variable declaration in the AST. It contains a type, an identifier and an
-/// expression. The expression is not yet implemented.
+/// `Vd` represents a variable declaration in the AST.
+/// It contains a type, an identifier and an expression.
+/// The expression is not yet implemented.
 #[derive(PartialEq)]
 pub struct Vd {
     type_: Type,
@@ -65,11 +77,18 @@ pub struct Vd {
 }
 
 impl GraphDisplay for Vd {
-    fn graph_display(&self, graph: &mut String, id: &mut usize) {
-        graph.push_str(&format!("\nsubgraph Vd_{}[Vd {}]", id, self.identifier));
+    fn graph_display(&self, graph: &mut String, id: &mut usize, indent: usize) {
+        graph.push_str(&format!(
+            "\n{:indent$}subgraph Vd_{}[Vd {}]",
+            "",
+            id,
+            self.identifier,
+            indent = indent
+        ));
         *id += 1;
-        self.type_.graph_display(graph, id);
-        graph.push_str("\nend")
+        self.type_.graph_display(graph, id, indent + 2);
+        self.exp.graph_display(graph, id, indent + 2);
+        graph.push_str(&format!("\n{:indent$}end", "", indent = indent))
     }
 }
 
@@ -86,7 +105,7 @@ impl Vd {
 
     fn parse(tokens: &mut VecDeque<TokenContainer>) -> ResultOption<Self> {
         // <vd> ::= <type> T_IDENTIFIER <exp>
-        let type_ = match parse_type(tokens) {
+        let type_ = match Type::parse(tokens) {
             Some(type_) => type_,
             None => return Ok(None),
         };
@@ -104,6 +123,14 @@ impl Vd {
                 "Expected an identifier".to_string(),
             ))
         }
+    }
+}
+
+impl Evaluate for Vd {
+    fn evaluate(&self, operation_context: &mut OperationContext) -> OperationO {
+        let content = self.exp.evaluate(operation_context)?;
+        operation_context.associate_new(self.identifier.clone(), content);
+        operation_context.get_variable(&self.identifier, 0)
     }
 }
 
@@ -126,22 +153,32 @@ pub struct PrivateVar {
 }
 
 impl GraphDisplay for GlobalVar {
-    fn graph_display(&self, graph: &mut String, id: &mut usize) {
-        graph.push_str(&format!("\nsubgraph GlobalVar_{}[GlobalVar]", id));
+    fn graph_display(&self, graph: &mut String, id: &mut usize, indent: usize) {
+        graph.push_str(&format!(
+            "\n{:indent$}subgraph GlobalVar_{}[GlobalVar]",
+            "",
+            id,
+            indent = indent
+        ));
         *id += 1;
-        self.vd.graph_display(graph, id);
-        graph.push_str("\nend")
+        self.vd.graph_display(graph, id, indent + 2);
+        graph.push_str(&format!("\n{:indent$}end", "", indent = indent))
     }
 }
 
 impl_debug!(GlobalVar);
 
 impl GraphDisplay for PrivateVar {
-    fn graph_display(&self, graph: &mut String, id: &mut usize) {
-        graph.push_str(&format!("\nsubgraph PrivateVar_{}[PrivateVar]", id));
+    fn graph_display(&self, graph: &mut String, id: &mut usize, indent: usize) {
+        graph.push_str(&format!(
+            "\n{:indent$}subgraph PrivateVar_{}[PrivateVar]",
+            "",
+            id,
+            indent = indent
+        ));
         *id += 1;
-        self.vd.graph_display(graph, id);
-        graph.push_str("\nend")
+        self.vd.graph_display(graph, id, indent + 2);
+        graph.push_str(&format!("\n{:indent$}end", "", indent = indent))
     }
 }
 
@@ -210,15 +247,20 @@ pub enum ConstVar {
 }
 
 impl GraphDisplay for ConstVar {
-    fn graph_display(&self, graph: &mut String, id: &mut usize) {
-        graph.push_str(&format!("\nsubgraph ConstVar_{}[ConstVar]", id));
+    fn graph_display(&self, graph: &mut String, id: &mut usize, indent: usize) {
+        graph.push_str(&format!(
+            "\n{:indent$}subgraph ConstVar_{}[ConstVar]",
+            "",
+            id,
+            indent = indent
+        ));
         *id += 1;
         match self {
-            ConstVar::PrivateVar(private_var) => private_var.graph_display(graph, id),
-            ConstVar::GlobalVar(global_var) => global_var.graph_display(graph, id),
-            ConstVar::Vd(vd) => vd.graph_display(graph, id),
+            ConstVar::PrivateVar(private_var) => private_var.graph_display(graph, id, indent + 2),
+            ConstVar::GlobalVar(global_var) => global_var.graph_display(graph, id, indent + 2),
+            ConstVar::Vd(vd) => vd.graph_display(graph, id, indent + 2),
         }
-        graph.push_str("\nend")
+        graph.push_str(&format!("\n{:indent$}end", "", indent = indent))
     }
 }
 
@@ -272,16 +314,21 @@ pub enum VarDec {
 }
 
 impl GraphDisplay for VarDec {
-    fn graph_display(&self, graph: &mut String, id: &mut usize) {
-        graph.push_str(&format!("\nsubgraph VarDec_{}[VarDec]", id));
+    fn graph_display(&self, graph: &mut String, id: &mut usize, indent: usize) {
+        graph.push_str(&format!(
+            "\n{:indent$}subgraph VarDec_{}[VarDec]",
+            "",
+            id,
+            indent = indent
+        ));
         *id += 1;
         match self {
-            VarDec::ConstVar(const_var) => const_var.graph_display(graph, id),
-            VarDec::PrivateVar(private_var) => private_var.graph_display(graph, id),
-            VarDec::GlobalVar(global_var) => global_var.graph_display(graph, id),
-            VarDec::Vd(vd) => vd.graph_display(graph, id),
+            VarDec::ConstVar(const_var) => const_var.graph_display(graph, id, indent + 2),
+            VarDec::PrivateVar(private_var) => private_var.graph_display(graph, id, indent + 2),
+            VarDec::GlobalVar(global_var) => global_var.graph_display(graph, id, indent + 2),
+            VarDec::Vd(vd) => vd.graph_display(graph, id, indent + 2),
         }
-        graph.push_str("\nend")
+        graph.push_str(&format!("\n{:indent$}end", "", indent = indent))
     }
 }
 
@@ -304,6 +351,15 @@ impl VarDec {
     }
 }
 
+impl Evaluate for VarDec {
+    fn evaluate(&self, operation_context: &mut OperationContext) -> OperationO {
+        match self {
+            Self::Vd(vd) => vd.evaluate(operation_context),
+            _ => todo!(),
+        }
+    }
+}
+
 // ---------------
 // --- VarMod ----
 // ---------------
@@ -321,29 +377,42 @@ impl VarDec {
 ///
 /// See [Exp]
 #[derive(PartialEq)]
-pub struct VarMod {
-    exp: Exp,
+pub enum VarMod {
+    Exp(Exp),
 }
 
 impl GraphDisplay for VarMod {
-    fn graph_display(&self, graph: &mut String, id: &mut usize) {
-        graph.push_str(&format!("\nsubgraph VarMod_{}[VarMod]", id));
-        self.exp.graph_display(graph, id);
-        graph.push_str("\nend")
+    fn graph_display(&self, graph: &mut String, id: &mut usize, indent: usize) {
+        graph.push_str(&format!(
+            "\n{:indent$}subgraph VarMod_{}[VarMod]",
+            "",
+            id,
+            indent = indent
+        ));
+        *id += 1;
+        match &self {
+            Self::Exp(exp) => exp.graph_display(graph, id, indent + 2),
+        }
+        graph.push_str(&format!("\n{:indent$}end", "", indent = indent))
     }
 }
 
 impl_debug!(VarMod);
 
 impl VarMod {
-    fn new(exp: Exp) -> Self {
-        Self { exp }
-    }
-
     pub(crate) fn parse(tokens: &mut VecDeque<TokenContainer>) -> ResultOption<Self> {
-        match Exp::parse(tokens)? {
-            Some(exp) => Ok(Some(VarMod::new(exp))),
-            None => Ok(None),
+        if let Some(exp) = Exp::parse(tokens)? {
+            Ok(Some(Self::Exp(exp)))
+        } else {
+            Ok(None)
+        }
+    }
+}
+
+impl Evaluate for VarMod {
+    fn evaluate(&self, operation_context: &mut OperationContext) -> OperationO {
+        match self {
+            Self::Exp(exp) => exp.evaluate(operation_context),
         }
     }
 }
