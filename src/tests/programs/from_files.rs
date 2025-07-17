@@ -29,3 +29,13 @@ fn test_complex_substraction() {
 fn test_switch() {
     execute_from_name(file!("switch"));
 }
+
+#[test]
+fn test_division() {
+    execute_from_name(file!("division"));
+}
+
+#[test]
+fn test_multiplication() {
+    execute_from_name(file!("multiplication"));
+}
