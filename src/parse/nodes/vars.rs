@@ -9,8 +9,6 @@ use crate::skr_errors::{CustomError, ResultOption};
 use crate::tokens::{ModifierKeyword, Token, TokenContainer};
 use crate::{impl_debug, some_token};
 
-use super::expressions::ExpTp;
-
 // Grammar of this file :
 /*
 <type> ::= T_TYPE_DEF
@@ -381,7 +379,6 @@ impl Evaluate for VarDec {
 #[derive(PartialEq)]
 pub enum VarMod {
     Exp(Exp),
-    ExpTp(ExpTp),
 }
 
 impl GraphDisplay for VarMod {
@@ -395,7 +392,6 @@ impl GraphDisplay for VarMod {
         *id += 1;
         match &self {
             Self::Exp(exp) => exp.graph_display(graph, id, indent + 2),
-            Self::ExpTp(tp) => tp.graph_display(graph, id, indent + 2),
         }
         graph.push_str(&format!("\n{:indent$}end", "", indent = indent))
     }
@@ -405,9 +401,7 @@ impl_debug!(VarMod);
 
 impl VarMod {
     pub(crate) fn parse(tokens: &mut VecDeque<TokenContainer>) -> ResultOption<Self> {
-        if let Some(exp_tp) = ExpTp::parse(tokens)? {
-            Ok(Some(Self::ExpTp(exp_tp)))
-        } else if let Some(exp) = Exp::parse(tokens)? {
+        if let Some(exp) = Exp::parse(tokens)? {
             Ok(Some(Self::Exp(exp)))
         } else {
             Ok(None)
@@ -418,7 +412,6 @@ impl VarMod {
 impl Evaluate for VarMod {
     fn evaluate(&self, operation_context: &mut OperationContext) -> OperationO {
         match self {
-            Self::ExpTp(exp_tp) => exp_tp.evaluate(operation_context),
             Self::Exp(exp) => exp.evaluate(operation_context),
         }
     }

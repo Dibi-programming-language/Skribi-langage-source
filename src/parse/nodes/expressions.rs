@@ -613,8 +613,10 @@ impl Evaluate for ExpBase {
 /// For now, it is only used to represent the [IdUseV].
 #[derive(PartialEq)]
 pub enum ExpTp {
-    ExpBase(ExpBase),
+    /// IdUseV needs to have a higher priority than ExpBase,
+    /// otherwise IdUse will match before it
     IdUseV(IdUseV),
+    ExpBase(ExpBase),
 }
 
 impl GraphDisplay for ExpTp {
@@ -627,8 +629,8 @@ impl GraphDisplay for ExpTp {
         ));
         *id += 1;
         match self {
-            ExpTp::ExpBase(exp_base) => exp_base.graph_display(graph, id, indent + 2),
             ExpTp::IdUseV(id_use_v) => id_use_v.graph_display(graph, id, indent + 2),
+            ExpTp::ExpBase(exp_base) => exp_base.graph_display(graph, id, indent + 2),
         }
         graph.push_str(&format!("\n{:indent$}end", "", indent = indent));
     }
@@ -675,7 +677,12 @@ impl Evaluate for ExpTp {
 /// and [ExpTp] a high priority expression.
 #[derive(PartialEq)]
 pub enum Exp {
-    ExpTp(ExpTp),
+    /// As TPLast will match all VarDec, VarDec should be before
+    VarDec(VarDec),
+    /// As TPLast is going trought ExpBase, it will match IdUse instead of
+    /// IdUseV causing a bad parsing.
+    IdUseV(IdUseV),
+    /// ExpTp is not needed anymore as ExpBase is inside TpLast.
     TPLast(TakePriorityLast),
 }
 
@@ -689,8 +696,9 @@ impl GraphDisplay for Exp {
         ));
         *id += 1;
         match self {
-            Exp::ExpTp(exp_tp) => exp_tp.graph_display(graph, id, indent + 2),
+            Exp::VarDec(var_dec) => var_dec.graph_display(graph, id, indent + 2),
             Exp::TPLast(tp_last) => tp_last.graph_display(graph, id, indent + 2),
+            Exp::IdUseV(id_use_v) => id_use_v.graph_display(graph, id, indent + 2),
         }
         graph.push_str(&format!("\n{:indent$}end", "", indent = indent));
     }
@@ -700,13 +708,12 @@ impl_debug!(Exp);
 
 impl Exp {
     pub fn parse(tokens: &mut VecDeque<TokenContainer>) -> ResultOption<Exp> {
-        // <exp> ::=
-        //   <exp_tp>
-        //   | <tp_last>
-        if let Some(tp_last) = TakePriorityLast::parse(tokens)? {
+        if let Some(var_dec) = VarDec::parse(tokens)? {
+            Ok(Some(Exp::VarDec(var_dec)))
+        } else if let Some(id_use_v) = IdUseV::parse(tokens)? {
+            Ok(Some(Exp::IdUseV(id_use_v)))
+        } else if let Some(tp_last) = TakePriorityLast::parse(tokens)? {
             Ok(Some(Exp::TPLast(tp_last)))
-        } else if let Some(exp_tp) = ExpTp::parse(tokens)? {
-            Ok(Some(Exp::ExpTp(exp_tp)))
         } else {
             Ok(None)
         }
@@ -716,8 +723,9 @@ impl Exp {
 impl Evaluate for Exp {
     fn evaluate(&self, operation_context: &mut OperationContext) -> OperationO {
         match self {
-            Exp::ExpTp(exp_tp) => exp_tp.evaluate(operation_context),
             Exp::TPLast(tp_last) => tp_last.evaluate(operation_context),
+            Exp::IdUseV(id_use_v) => id_use_v.evaluate(operation_context),
+            Exp::VarDec(var_dec) => var_dec.evaluate(operation_context),
         }
     }
 }

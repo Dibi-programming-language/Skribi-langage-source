@@ -1,11 +1,9 @@
-// my_int should be 6
-int my_int (4 + 10) - 8
-skr_app println my_int
-// my_int should be -20
-// putting () around my_int makes the test fail
-// need to work on this later
-my_int my_int + (- 26)
-skr_app println my_int
-// Verify that this is true
+int my_int (4 + 10) - 8   // = 6
+int rmy_int 6
+
+skr_app assert_eq rmy_int my_int
+
+my_int (my_int) + (- 26)  // -20
 int result -20
+
 skr_app assert_eq result my_int

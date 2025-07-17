@@ -24,3 +24,8 @@ fn test_addition() {
 fn test_complex_substraction() {
     execute_from_name(file!("complex"));
 }
+
+#[test]
+fn test_switch() {
+    execute_from_name(file!("switch"));
+}
