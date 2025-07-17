@@ -1,0 +1,51 @@
+// Purpose of this test:
+// () should not change anything
+// variable declaration and modification should work
+// / and * should give good results
+
+// Division
+
+int a 25 / 5
+int b (25) / (5)
+int c ((25) / (5))
+
+int r 5
+
+skrb assert_eq r a
+skrb assert_eq r b
+skrb assert_eq r c
+
+a a / r
+b (a) / (r)
+c ((a) / (r))
+
+int r 1
+
+skrb assert_eq r a
+skrb assert_eq r b
+skrb assert_eq r c
+
+// Multiplication
+
+int a 7 * 6
+int b (7) * (5)
+int c ((7) * (5))
+
+// 42 is not in every test, sorry
+int r 42
+
+skrb assert_eq r a
+skrb assert_eq r b
+skrb assert_eq r c
+
+int r 2
+
+a a * r
+b (a) * (r)
+c ((a) * (r))
+
+int r 84
+
+skrb assert_eq r a
+skrb assert_eq r b
+skrb assert_eq r c
