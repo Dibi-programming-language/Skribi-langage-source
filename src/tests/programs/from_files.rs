@@ -39,3 +39,8 @@ fn test_division() {
 fn test_multiplication() {
     execute_from_name(file!("multiplication"));
 }
+
+#[test]
+fn test_ij_sula() {
+    execute_from_name(file!("ij"));
+}

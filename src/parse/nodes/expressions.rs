@@ -2,6 +2,7 @@ use std::collections::VecDeque;
 use std::io::stdin;
 
 use crate::execute::int::InternalInt;
+use crate::execute::unit::InternalUnit;
 use crate::execute::IntType;
 use crate::execute::OperationContext;
 use crate::execute::OperationO;
@@ -595,11 +596,11 @@ impl Evaluate for ExpBase {
     fn evaluate(&self, operation_context: &mut OperationContext) -> OperationO {
         match self {
             Self::IdUse(id_use) => id_use.evaluate(operation_context),
-            Self::Cond(_cond) => todo!(),
+            Self::Cond(cond) => cond.evaluate(operation_context),
             Self::VarDec(var_dec) => var_dec.evaluate(operation_context),
             Self::RightP(rightp) => rightp.evaluate(operation_context),
             Self::FctDec(_fct_dec) => todo!(),
-            Self::ScopeBase(_scope_base) => todo!(),
+            Self::ScopeBase(scope_base) => scope_base.evaluate(operation_context),
         }
     }
 }
@@ -886,15 +887,15 @@ impl StaL {
             tokens.pop_front();
             let mut sta_l = Vec::new();
 
-            while let Some(sta) = Sta::parse(tokens)? {
-                sta_l.push(sta);
+            while !matches!(tokens.front(), some_token!(Token::RightBrace)) {
+                if let Some(sta) = Sta::parse(tokens)? {
+                    sta_l.push(sta);
+                } else {
+                    tokens.pop_front();
+                }
             }
 
-            if let Some(TokenContainer {
-                token: Token::RightBrace,
-                ..
-            }) = tokens.pop_front()
-            {
+            if let some_token!(Token::RightBrace) = tokens.pop_front() {
                 Ok(Some(StaL::new(sta_l)))
             } else {
                 Err(CustomError::UnexpectedToken(
@@ -904,5 +905,14 @@ impl StaL {
         } else {
             Ok(None)
         }
+    }
+}
+
+impl Evaluate for StaL {
+    fn evaluate(&self, operation_context: &mut OperationContext) -> OperationO {
+        for sta in &self.sta_l {
+            sta.execute(operation_context)?
+        }
+        Ok(InternalUnit::new())
     }
 }

@@ -1,3 +1,5 @@
+use crate::execute::unit::InternalUnit;
+use crate::execute::{Evaluate, ExecutionError, OperationContext, OperationO};
 use crate::parse::nodes::blocs::Scope;
 use crate::parse::nodes::expressions::Exp;
 use crate::parse::nodes::GraphDisplay;
@@ -90,6 +92,23 @@ impl Sula {
     }
 }
 
+impl Evaluate for Sula {
+    fn evaluate(&self, operation_context: &mut OperationContext) -> OperationO {
+        match self {
+            Self::Ij { ij, sula } => {
+                if ij.can_execute(operation_context)? {
+                    ij.evaluate(operation_context)
+                } else if let Some(sula) = sula {
+                    sula.evaluate(operation_context)
+                } else {
+                    Ok(InternalUnit::new())
+                }
+            }
+            Self::Scope(scope) => scope.evaluate(operation_context),
+        }
+    }
+}
+
 // ----------
 // --- Ij ---
 // ----------
@@ -142,6 +161,23 @@ impl Ij {
         } else {
             Ok(None)
         }
+    }
+
+    pub fn can_execute(
+        &self,
+        operation_context: &mut OperationContext,
+    ) -> Result<bool, ExecutionError> {
+        self.exp
+            .evaluate(operation_context)?
+            .as_ioi(operation_context)
+    }
+}
+
+impl Evaluate for Ij {
+    /// For optimisation purposes, this function is not testing the condition.
+    /// The function [Ij::can_execute] should be called before.
+    fn evaluate(&self, operation_context: &mut OperationContext) -> OperationO {
+        self.scope.evaluate(operation_context)
     }
 }
 
@@ -201,6 +237,18 @@ impl Cond {
             }
         } else {
             Ok(None)
+        }
+    }
+}
+
+impl Evaluate for Cond {
+    fn evaluate(&self, operation_context: &mut OperationContext) -> OperationO {
+        if self.ij.can_execute(operation_context)? {
+            self.ij.evaluate(operation_context)
+        } else if let Some(sula) = &self.sula {
+            sula.evaluate(operation_context)
+        } else {
+            Ok(InternalUnit::new())
         }
     }
 }

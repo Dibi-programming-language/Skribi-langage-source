@@ -4,6 +4,7 @@ use colored::Colorize;
 
 pub mod int;
 pub mod ioi;
+pub mod unit;
 
 pub type IntType = i32;
 
@@ -217,6 +218,10 @@ impl ExecutionHint {
     pub fn check_types() -> Self {
         Self::new("Check operations around this value to verify the type.")
     }
+
+    pub fn return_scope() -> Self {
+        Self::new("Scopes (ij / sula / ...) that return a value are not yet implmented.")
+    }
 }
 
 #[allow(dead_code)]
@@ -301,6 +306,13 @@ impl ExecutionError {
             "Type Error: operation {} does not have any meaning for {}.",
             operation, got
         ))
+    }
+
+    pub fn unit_used() -> Self {
+        Self::new(
+            "A unit element was used in any operation. Unit values should not be used in any case.",
+        )
+        .add_hint(ExecutionHint::return_scope())
     }
 
     pub fn show(&self) {
