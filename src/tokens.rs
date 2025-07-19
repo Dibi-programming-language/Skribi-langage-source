@@ -11,12 +11,11 @@ pub enum ModifierKeyword {
     Private,
 }
 
-#[allow(dead_code)]
 #[derive(Debug, PartialEq)]
 pub enum SpaceTypes {
-    Space,
+    // Space, -- unused
     NewLine,
-    Tab,
+    // Tab,   -- unused
 }
 
 #[allow(dead_code)] // TODO : define symbols to remove this
@@ -53,12 +52,15 @@ pub enum Token {
     KeywordUnusedScope,
     Invalid(String), // Any character not used by other tokens, only used when parsing bloc title
     // TODO : Pow
-    // TODO : and, or, xor, not
-    // TODO : comparison operators
-    Equal,    // not tokenized for now : missing symbol
-    NotEqual, // not tokenized for now : missing symbol
-    And,      // not tokenized for now : missing symbol
-    Or,       // not tokenized for now : missing symbol
+    // TODO : xor
+    Equal,
+    NotEqual,
+    LessThan,
+    GreaterThan,
+    LessOrEqual,
+    GreaterOrEqual,
+    And,
+    Or,
 }
 
 impl Display for Token {
@@ -242,6 +244,19 @@ macro_rules! add_token {
     };
 }
 
+macro_rules! expect_char {
+    ($tokens: expr, $file: expr, $expected: expr, $ok: expr, $err: expr) => {
+        let next = $file.next();
+        if let Some($expected) = next {
+            add_token!($tokens, $file, $ok);
+            $file.current = $file.next();
+        } else {
+            add_token!($tokens, $file, $err);
+            $file.current = next;
+        }
+    };
+}
+
 pub(crate) fn tokenize(file: String) -> Result<VecDeque<TokenContainer>, CustomError> {
     let mut tokens: VecDeque<TokenContainer> = VecDeque::new();
 
@@ -276,6 +291,16 @@ pub(crate) fn tokenize(file: String) -> Result<VecDeque<TokenContainer>, CustomE
             let token = tokenize_number(&mut file_ch, ch)?;
             add_token!(tokens, file_ch, token.0);
             file_ch.current = token.1;
+        } else if ch == '!' {
+            expect_char!(tokens, file_ch, '=', Token::NotEqual, Token::Not);
+        } else if ch == '<' {
+            expect_char!(tokens, file_ch, '=', Token::LessOrEqual, Token::LessThan);
+        } else if ch == '>' {
+            expect_char!(tokens, file_ch, '=', Token::GreaterOrEqual, Token::GreaterThan);
+        } else if ch == '|' {
+            expect_char!(tokens, file_ch, '|', Token::Or, Token::Invalid('|'.to_string()));
+        } else if ch == '&' {
+            expect_char!(tokens, file_ch, '&', Token::And, Token::Invalid('&'.to_string()));
         } else {
             if ch == ' ' {
                 // unused - tokens.push(Token::Space(Space::Space));
@@ -295,6 +320,7 @@ pub(crate) fn tokenize(file: String) -> Result<VecDeque<TokenContainer>, CustomE
                         ')' => Token::RightParenthesis,
                         '{' => Token::LeftBrace,
                         '}' => Token::RightBrace,
+                        '=' => Token::Equal,
                         '\n' => Token::Space(SpaceTypes::NewLine),
                         _ => Token::Invalid(ch.to_string()),
                     }
