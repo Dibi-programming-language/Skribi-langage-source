@@ -60,7 +60,9 @@ impl FctDec {
                             tuple,
                             scope,
                         })),
-                        None => Err(CustomError::UnexpectedToken("Expected a scope".to_string())),
+                        None => {
+                            Err(CustomError::UnexpectedToken("Expected a scope".to_string()))
+                        },
                     },
                     None => Err(CustomError::UnexpectedToken("Expected a tuple".to_string())),
                 }

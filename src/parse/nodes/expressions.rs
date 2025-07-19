@@ -517,7 +517,6 @@ pub enum ExpBase {
     IdUse(Box<IdUse>),
     VarDec(Box<VarDec>),
     Cond(Box<Cond>),
-    ScopeBase(Box<ScopeBase>),
     FctDec(Box<FctDec>),
     RightP(Box<Exp>),
 }
@@ -535,7 +534,6 @@ impl GraphDisplay for ExpBase {
             ExpBase::IdUse(id_use) => id_use.graph_display(graph, id, indent + 2),
             ExpBase::VarDec(var_dec) => var_dec.graph_display(graph, id, indent + 2),
             ExpBase::Cond(cond) => cond.graph_display(graph, id, indent + 2),
-            ExpBase::ScopeBase(scope_base) => scope_base.graph_display(graph, id, indent + 2),
             ExpBase::FctDec(fct_dec) => fct_dec.graph_display(graph, id, indent + 2),
             ExpBase::RightP(exp) => {
                 graph.push_str(" with ()");
@@ -567,8 +565,6 @@ impl ExpBase {
             Ok(Some(ExpBase::new(id_use)))
         } else if let Some(cond) = Cond::parse(tokens)? {
             Ok(Some(ExpBase::Cond(Box::new(cond))))
-        } else if let Some(scope_base) = ScopeBase::parse(tokens)? {
-            Ok(Some(ExpBase::ScopeBase(Box::new(scope_base))))
         } else if let Some(fct_dec) = FctDec::parse(tokens)? {
             Ok(Some(ExpBase::FctDec(Box::new(fct_dec))))
         } else if let some_token!(Token::LeftParenthesis) = tokens.front() {
@@ -600,7 +596,6 @@ impl Evaluate for ExpBase {
             Self::VarDec(var_dec) => var_dec.evaluate(operation_context),
             Self::RightP(rightp) => rightp.evaluate(operation_context),
             Self::FctDec(_fct_dec) => todo!(),
-            Self::ScopeBase(scope_base) => scope_base.evaluate(operation_context),
         }
     }
 }
@@ -618,6 +613,9 @@ pub enum ExpTp {
     /// otherwise IdUse will match before it
     IdUseV(IdUseV),
     ExpBase(ExpBase),
+    /// ScopeBase must not be inside ExpBase as it would considere ij n { ... }
+    /// as a VarMod (n <- {...}).
+    ScopeBase(ScopeBase),
 }
 
 impl GraphDisplay for ExpTp {
@@ -632,6 +630,7 @@ impl GraphDisplay for ExpTp {
         match self {
             ExpTp::IdUseV(id_use_v) => id_use_v.graph_display(graph, id, indent + 2),
             ExpTp::ExpBase(exp_base) => exp_base.graph_display(graph, id, indent + 2),
+            ExpTp::ScopeBase(scope_base) => scope_base.graph_display(graph, id, indent + 2),
         }
         graph.push_str(&format!("\n{:indent$}end", "", indent = indent));
     }
@@ -652,6 +651,8 @@ impl ExpTp {
             Ok(Some(ExpTp::IdUseV(id_use_v)))
         } else if let Some(exp_base) = ExpBase::parse(tokens)? {
             Ok(Some(ExpTp::new(exp_base)))
+        } else if let Some(scope_base) = ScopeBase::parse(tokens)? {
+            Ok(Some(ExpTp::ScopeBase(scope_base)))
         } else {
             Ok(None)
         }
@@ -663,6 +664,7 @@ impl Evaluate for ExpTp {
         match self {
             Self::IdUseV(id_use_v) => id_use_v.evaluate(operation_context),
             Self::ExpBase(exp_base) => exp_base.evaluate(operation_context),
+            Self::ScopeBase(scope_base) => scope_base.evaluate(operation_context),
         }
     }
 }

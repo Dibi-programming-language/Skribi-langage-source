@@ -148,15 +148,16 @@ impl Ij {
     pub fn parse(tokens: &mut VecDeque<TokenContainer>) -> ResultOption<Self> {
         // <ij> ::= ij <exp> <scope>
         if let some_token!(Token::KeywordIf) = tokens.front() {
-            tokens.pop_front();
+            let container = tokens.pop_front().expect("Container Some");
             match Exp::parse(tokens)? {
                 Some(exp) => match Scope::parse(tokens)? {
                     Some(scope) => Ok(Some(Ij::new(exp, scope))),
-                    None => Err(CustomError::UnexpectedToken("Expected a scope".to_string())),
+                    None => {
+                        println!("{}", exp.graph());
+                        Err(CustomError::element_expected(container, tokens, "scope"))
+                    },
                 },
-                None => Err(CustomError::UnexpectedToken(
-                    "Expected an expression".to_string(),
-                )),
+                None => Err(CustomError::element_expected(container, tokens, "expression")),
             }
         } else {
             Ok(None)
