@@ -101,7 +101,7 @@ impl Evaluate for Sula {
                 } else if let Some(sula) = sula {
                     sula.evaluate(operation_context)
                 } else {
-                    Ok(InternalUnit::new())
+                    Ok(InternalUnit::new_boxed())
                 }
             }
             Self::Scope(scope) => scope.evaluate(operation_context),
@@ -253,7 +253,7 @@ impl Evaluate for Cond {
         } else if let Some(sula) = &self.sula {
             sula.evaluate(operation_context)
         } else {
-            Ok(InternalUnit::new())
+            Ok(InternalUnit::new_boxed())
         }
     }
 }

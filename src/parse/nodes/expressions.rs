@@ -915,6 +915,6 @@ impl Evaluate for StaL {
         for sta in &self.sta_l {
             sta.execute(operation_context)?
         }
-        Ok(InternalUnit::new())
+        Ok(InternalUnit::new_boxed())
     }
 }
