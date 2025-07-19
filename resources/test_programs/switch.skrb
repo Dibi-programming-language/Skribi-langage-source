@@ -1,0 +1,22 @@
+int a (4 + 4) + (- 8)  // = 0
+int b 55 * 2           // = 110
+
+int ra 0
+int rb 110
+
+skr_app assert_eq ra a
+skr_app assert_eq rb b
+
+a a + 50     // = 50
+int c b + a  // = 160
+a b
+b c
+
+int ra 110
+int rb 160
+int rc 160
+
+skr_app assert_eq ra a
+skr_app assert_eq rb b
+skr_app assert_eq rc c
+

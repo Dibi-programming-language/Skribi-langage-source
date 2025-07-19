@@ -3,18 +3,17 @@ use std::fs;
 use std::io::{stdin, stdout, ErrorKind, Write};
 use std::process::Command;
 
-/// This function clear the shell
+/// This function clears the shell
 pub fn clear() {
-    match Command::new("clear").status() {
-        Ok(_) => {}
-        Err(_) => match Command::new("cls").status() {
-            Ok(_) => {}
-            Err(_) => {
-                for _ in 0..100 {
-                    println!()
-                }
-            }
-        },
+    // Tries the classic command
+    if Command::new("clear").status().is_err() {
+        // In case of error, tries another possible command (ex on Windows)
+        if Command::new("cls").status().is_err() {
+            // Just print to simulate a clear
+            // Use ANSI escape codes to clear the screen and reset the cursor position
+            print!("\x1B[2J\x1B[H");
+            stdout().flush().unwrap();
+        }
     }
 }
 
