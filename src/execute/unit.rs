@@ -5,14 +5,14 @@ use super::{BasicValue, ExecutionError, IntType, OperationContext, VariableValue
 pub struct InternalUnit;
 
 impl InternalUnit {
-    pub fn new() -> VariableValue {
+    pub fn new_boxed() -> VariableValue {
         Box::new(InternalUnit {})
     }
 }
 
 impl BasicValue for InternalUnit {
     fn clone(&self) -> VariableValue {
-        Self::new()
+        Self::new_boxed()
     }
 
     fn add(
