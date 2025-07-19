@@ -155,9 +155,13 @@ impl Ij {
                     None => {
                         println!("{}", exp.graph());
                         Err(CustomError::element_expected(container, tokens, "scope"))
-                    },
+                    }
                 },
-                None => Err(CustomError::element_expected(container, tokens, "expression")),
+                None => Err(CustomError::element_expected(
+                    container,
+                    tokens,
+                    "expression",
+                )),
             }
         } else {
             Ok(None)

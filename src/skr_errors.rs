@@ -36,11 +36,21 @@ pub enum CustomError {
 }
 
 impl CustomError {
-    pub fn element_expected(from: TokenContainer, at: &VecDeque<TokenContainer>, what: &str) -> Self {
+    pub fn element_expected(
+        from: TokenContainer,
+        at: &VecDeque<TokenContainer>,
+        what: &str,
+    ) -> Self {
         if let Some(token) = at.front() {
-            Self::UnexpectedToken(format!("Token at line {}:{} is expecting a {} at line {}:{}", from.line, from.column, what, token.line, token.column))
+            Self::UnexpectedToken(format!(
+                "Token at line {}:{} is expecting a {} at line {}:{}",
+                from.line, from.column, what, token.line, token.column
+            ))
         } else {
-            Self::UnexpectedToken(format!("Token at line {}:{} is expecting a(n) {} after the last line.", from.line, from.column, what))
+            Self::UnexpectedToken(format!(
+                "Token at line {}:{} is expecting a(n) {} after the last line.",
+                from.line, from.column, what
+            ))
         }
     }
 }
