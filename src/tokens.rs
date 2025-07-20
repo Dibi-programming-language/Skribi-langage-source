@@ -1,3 +1,4 @@
+use crate::execute::IntType;
 use crate::skr_errors::CustomError;
 use std::collections::VecDeque;
 use std::fmt::{Display, Formatter};
@@ -10,19 +11,18 @@ pub enum ModifierKeyword {
     Private,
 }
 
-#[allow(dead_code)]
 #[derive(Debug, PartialEq)]
 pub enum SpaceTypes {
-    Space,
+    // Space, -- unused
     NewLine,
-    Tab,
+    // Tab,   -- unused
 }
 
 #[allow(dead_code)] // TODO : define symbols to remove this
 #[derive(Debug, PartialEq)]
 pub enum Token {
     Bool(bool),
-    Int(u32),
+    Int(IntType),
     Float(f32),
     String(String),
     NatCall,
@@ -52,12 +52,15 @@ pub enum Token {
     KeywordUnusedScope,
     Invalid(String), // Any character not used by other tokens, only used when parsing bloc title
     // TODO : Pow
-    // TODO : and, or, xor, not
-    // TODO : comparison operators
-    Equal,    // not tokenized for now : missing symbol
-    NotEqual, // not tokenized for now : missing symbol
-    And,      // not tokenized for now : missing symbol
-    Or,       // not tokenized for now : missing symbol
+    // TODO : xor
+    Equal,
+    NotEqual,
+    LessThan,
+    GreaterThan,
+    LessOrEqual,
+    GreaterOrEqual,
+    And,
+    Or,
 }
 
 impl Display for Token {
@@ -91,12 +94,33 @@ impl Into<TokenContainer> for Token {
     }
 }
 
-fn tokenize_string(file: &mut Chars, line: usize) -> Result<Token, CustomError> {
-    let mut current_ch = file.next();
+/// A wrapper around the iterator to have lines and columns
+struct CharsIterator<'a> {
+    file: &'a mut Chars<'a>,
+    column: usize,
+    line: usize,
+    current: Option<char>,
+}
+
+impl CharsIterator<'_> {
+    fn next(&mut self) -> Option<char> {
+        let next = self.file.next();
+        if let Some('\n') = next {
+            self.column = 0;
+            self.line += 1;
+        } else {
+            self.column += 1;
+        }
+        self.current = next;
+        next
+    }
+}
+
+fn tokenize_string(file: &mut CharsIterator) -> Result<Token, CustomError> {
     let mut string_escape = false;
     let mut res = String::new();
 
-    while let Some(ch) = current_ch {
+    while let Some(ch) = file.next() {
         if string_escape {
             res.push(match ch {
                 'n' => '\n',
@@ -113,32 +137,28 @@ fn tokenize_string(file: &mut Chars, line: usize) -> Result<Token, CustomError> 
         } else {
             res.push(ch);
         }
-
-        current_ch = file.next();
     }
 
     Err(CustomError::InvalidString(
         "String not closed".to_string(),
-        line,
+        file.line,
     ))
 }
 
 fn tokenize_number(
-    file: &mut Chars,
-    line: usize,
+    file: &mut CharsIterator,
     first_char: char,
 ) -> Result<(Token, Option<char>), CustomError> {
-    let mut current_ch = file.next();
     let mut res = String::new();
     res.push(first_char);
     let mut is_float = false;
 
-    while let Some(ch) = current_ch {
+    while let Some(ch) = file.next() {
         if ch == '.' {
             if is_float {
                 return Err(CustomError::InvalidFloat(
                     "A float can have only one . !".to_string(),
-                    line,
+                    file.line,
                 ));
             } else {
                 is_float = true;
@@ -156,7 +176,6 @@ fn tokenize_number(
                 Some(ch),
             ));
         }
-        current_ch = file.next();
     }
 
     Ok((
@@ -169,18 +188,19 @@ fn tokenize_number(
     ))
 }
 
-fn tokenize_word(file: &mut Chars, first_char: char) -> Result<(Token, Option<char>), CustomError> {
-    let mut current_ch = file.next();
+fn tokenize_word(
+    file: &mut CharsIterator,
+    first_char: char,
+) -> Result<(Token, Option<char>), CustomError> {
     let mut res = String::new();
     res.push(first_char);
 
-    while let Some(ch) = current_ch {
+    while let Some(ch) = file.next() {
         if ch.is_alphanumeric() || ch == '_' {
             res.push(ch);
         } else {
             return Ok((word_to_token(res), Some(ch)));
         }
-        current_ch = file.next();
     }
 
     Ok((word_to_token(res), None))
@@ -206,84 +226,125 @@ fn word_to_token(res: String) -> Token {
     }
 }
 
-fn tokenize_comment_classic(file: &mut Chars) {
-    let mut current_ch = file.next();
-    while let Some(ch) = current_ch {
+fn tokenize_comment_classic(file: &mut CharsIterator) {
+    while let Some(ch) = file.next() {
         if ch == '\n' {
             return;
         }
-        current_ch = file.next();
     }
 }
 
 macro_rules! add_token {
-    ($tokens:expr, $line:expr, $column:expr, $token:expr) => {
+    ($tokens: expr, $file: expr, $token: expr) => {
         $tokens.push_back(TokenContainer {
             token: $token,
-            line: $line,
-            column: $column,
+            line: $file.line,
+            column: $file.column,
         });
+    };
+}
+
+macro_rules! expect_char {
+    ($tokens: expr, $file: expr, $expected: expr, $ok: expr, $err: expr) => {
+        let next = $file.next();
+        if let Some($expected) = next {
+            add_token!($tokens, $file, $ok);
+            $file.current = $file.next();
+        } else {
+            add_token!($tokens, $file, $err);
+            $file.current = next;
+        }
     };
 }
 
 pub(crate) fn tokenize(file: String) -> Result<VecDeque<TokenContainer>, CustomError> {
     let mut tokens: VecDeque<TokenContainer> = VecDeque::new();
-    let mut line = 1;
-    let column = 0;
 
-    let mut file_ch = file.chars();
-    let mut current_ch = file_ch.next();
-    // let mut operator2 = false;
+    let mut file_ch = CharsIterator {
+        file: &mut file.chars(),
+        column: 0,
+        line: 1,
+        current: None,
+    };
 
-    while let Some(ch) = current_ch {
+    file_ch.next();
+
+    while let Some(ch) = file_ch.current {
         if ch == '/' {
             if let Some(next_ch) = file_ch.next() {
                 if next_ch == '/' {
                     tokenize_comment_classic(&mut file_ch);
-                    add_token!(tokens, line, column, Token::Space(SpaceTypes::NewLine));
-                    current_ch = file_ch.next();
+                    add_token!(tokens, file_ch, Token::Space(SpaceTypes::NewLine));
+                    file_ch.current = file_ch.next();
                 } else {
-                    add_token!(tokens, line, column, Token::Div);
-                    current_ch = Some(next_ch);
+                    add_token!(tokens, file_ch, Token::Div);
+                    file_ch.current = Some(next_ch);
                 }
             } else {
-                add_token!(tokens, line, column, Token::Div);
+                add_token!(tokens, file_ch, Token::Div);
             }
         } else if ch.is_alphabetic() || ch == '_' {
             let token = tokenize_word(&mut file_ch, ch)?;
-            add_token!(tokens, line, column, token.0);
-            current_ch = token.1;
+            add_token!(tokens, file_ch, token.0);
+            file_ch.current = token.1;
         } else if ch.is_numeric() {
-            let token = tokenize_number(&mut file_ch, line, ch)?;
-            add_token!(tokens, line, column, token.0);
-            current_ch = token.1;
+            let token = tokenize_number(&mut file_ch, ch)?;
+            add_token!(tokens, file_ch, token.0);
+            file_ch.current = token.1;
+        } else if ch == '!' {
+            expect_char!(tokens, file_ch, '=', Token::NotEqual, Token::Not);
+        } else if ch == '<' {
+            expect_char!(tokens, file_ch, '=', Token::LessOrEqual, Token::LessThan);
+        } else if ch == '>' {
+            expect_char!(
+                tokens,
+                file_ch,
+                '=',
+                Token::GreaterOrEqual,
+                Token::GreaterThan
+            );
+        } else if ch == '|' {
+            expect_char!(
+                tokens,
+                file_ch,
+                '|',
+                Token::Or,
+                Token::Invalid('|'.to_string())
+            );
+        } else if ch == '&' {
+            expect_char!(
+                tokens,
+                file_ch,
+                '&',
+                Token::And,
+                Token::Invalid('&'.to_string())
+            );
         } else {
             if ch == ' ' {
                 // unused - tokens.push(Token::Space(Space::Space));
+            } else if ch == '"' {
+                let token = tokenize_string(&mut file_ch)?;
+                add_token!(tokens, file_ch, token);
             } else {
                 add_token!(
                     tokens,
-                    line,
-                    column,
+                    file_ch,
                     match ch {
                         '+' => Token::Add,
                         '-' => Token::Sub,
                         '*' => Token::Mul,
-                        '"' => tokenize_string(&mut file_ch, line)?,
                         ':' => Token::Inside,
                         '(' => Token::LeftParenthesis,
                         ')' => Token::RightParenthesis,
                         '{' => Token::LeftBrace,
                         '}' => Token::RightBrace,
-                        '\n' => {
-                            line += 1;
-                            Token::Space(SpaceTypes::NewLine)
-                        }
+                        '=' => Token::Equal,
+                        '\n' => Token::Space(SpaceTypes::NewLine),
                         _ => Token::Invalid(ch.to_string()),
                     }
                 );
             }
-            current_ch = file_ch.next();
+            file_ch.current = file_ch.next();
         }
     }
 
