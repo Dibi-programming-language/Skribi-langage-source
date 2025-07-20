@@ -1,3 +1,15 @@
+//! This file is pretty long
+//! Start of grammar for this file :
+//! ```
+//! <value_base> ::= T_BOOL | T_INT | T_STRING | T_FLOAT
+//! <value> ::=
+//!   <value_base>
+//!   | <exp_base>
+//! <take_prio> ::=
+//!   T_LEFT_P <exp> T_RIGHT_P
+//!   | <value>
+//! ```
+
 use crate::execute::int::InternalInt;
 use crate::execute::ioi::InternalIoi;
 use crate::execute::{
@@ -11,17 +23,7 @@ use crate::skr_errors::{CustomError, ResultOption};
 use crate::tokens::{Token, TokenContainer};
 use crate::{impl_debug, some_token};
 use std::collections::VecDeque;
-// This file is pretty long
-// Start of grammar for this file :
-// ```
-// <value_base> ::= T_BOOL | T_INT | T_STRING | T_FLOAT
-// <value> ::=
-//   <value_base>
-//   | <exp_base>
-// <take_prio> ::=
-//   T_LEFT_P <exp> T_RIGHT_P
-//   | <value>
-// ```
+use std::fmt::Display;
 
 // -----------------
 // --- ValueBase ---
@@ -367,13 +369,28 @@ pub enum Operations {
     Or,
 }
 
+impl Display for Operations {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str(match self {
+            Self::Mul => "*",
+            Self::Or => "||",
+            Self::And => "&&",
+            Self::Div => "/",
+            Self::Add => "+",
+            Self::Sub => "-",
+            Self::Equal => "=",
+            Self::NotEqual => "!=",
+        })
+    }
+}
+
 const HIGHEST_LEVEL: u8 = 5;
 const LOWEST_LEVEL: u8 = 1;
 
 /// With:
 /// 1. * and /
 /// 2. + and -
-/// 3. = and !=
+/// 3. <=, >=, <, >, = and !=
 /// 4. &&
 /// 5. ||
 ///
@@ -455,25 +472,8 @@ impl EvaluateFromInput for OperationN {
         operation_context: &mut OperationContext,
         input: OperationI,
     ) -> OperationO {
-        Ok(match self.operation {
-            Add => {
-                let other = self.tp_nm1.evaluate(operation_context)?;
-                input.add(&other, operation_context)?
-            }
-            Sub => {
-                let other = self.tp_nm1.evaluate(operation_context)?;
-                input.sub(&other, operation_context)?
-            }
-            Div => {
-                let other = self.tp_nm1.evaluate(operation_context)?;
-                input.div(&other, operation_context)?
-            }
-            Mul => {
-                let other = self.tp_nm1.evaluate(operation_context)?;
-                input.mul(&other, operation_context)?
-            }
-            _ => todo!(),
-        })
+        let other = self.tp_nm1.evaluate(operation_context)?;
+        input.apply_operation(&self.operation, &other, operation_context)
     }
 }
 

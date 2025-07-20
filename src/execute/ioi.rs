@@ -1,5 +1,7 @@
 use std::fmt::Display;
 
+use crate::parse::nodes::operations::Operations;
+
 use super::{BasicValue, ExecutionError, IntType, OperationContext, VariableValue};
 
 pub struct InternalIoi {
@@ -19,38 +21,27 @@ impl BasicValue for InternalIoi {
         })
     }
 
-    fn add(
+    fn apply_operation(
         mut self: Box<Self>,
+        operation: &crate::parse::nodes::operations::Operations,
         other: &VariableValue,
         context: &OperationContext,
     ) -> Result<VariableValue, ExecutionError> {
-        self.content |= other.as_ioi(context)?;
-        Ok(self)
-    }
-
-    fn sub(
-        self: Box<Self>,
-        _other: &VariableValue,
-        _context: &OperationContext,
-    ) -> Result<VariableValue, ExecutionError> {
-        Err(ExecutionError::not_implemented_for("-", "ioi"))
-    }
-
-    fn div(
-        self: Box<Self>,
-        _other: &VariableValue,
-        _context: &OperationContext,
-    ) -> Result<VariableValue, ExecutionError> {
-        Err(ExecutionError::not_implemented_for("/", "ioi"))
-    }
-
-    fn mul(
-        mut self: Box<Self>,
-        other: &VariableValue,
-        context: &OperationContext,
-    ) -> Result<VariableValue, ExecutionError> {
-        self.content &= other.as_ioi(context)?;
-        Ok(self)
+        match operation {
+            Operations::Add => {
+                self.content |= other.as_ioi(context)?;
+                Ok(self)
+            }
+            Operations::Mul => {
+                self.content &= other.as_ioi(context)?;
+                Ok(self)
+            }
+            Operations::Equal => self.basic_equal(other, context).map(|x| Self::new_boxed(x)),
+            Operations::NotEqual => self
+                .basic_equal(other, context)
+                .map(|x| Self::new_boxed(!x)),
+            _ => Err(ExecutionError::not_implemented_for(operation, "ioi")),
+        }
     }
 
     fn minus(
@@ -66,14 +57,6 @@ impl BasicValue for InternalIoi {
 
     fn as_ioi(&self, _context: &OperationContext) -> Result<bool, ExecutionError> {
         Ok(self.content)
-    }
-
-    fn equal(
-        &self,
-        other: &VariableValue,
-        context: &OperationContext,
-    ) -> Result<VariableValue, ExecutionError> {
-        self.basic_equal(other, context).map(|x| Self::new_boxed(x))
     }
 
     fn basic_equal(

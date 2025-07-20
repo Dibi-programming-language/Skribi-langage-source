@@ -15,32 +15,9 @@ impl BasicValue for InternalUnit {
         Self::new_boxed()
     }
 
-    fn add(
+    fn apply_operation(
         self: Box<Self>,
-        _other: &VariableValue,
-        _context: &OperationContext,
-    ) -> Result<VariableValue, ExecutionError> {
-        Err(ExecutionError::unit_used())
-    }
-
-    fn sub(
-        self: Box<Self>,
-        _other: &VariableValue,
-        _context: &OperationContext,
-    ) -> Result<VariableValue, ExecutionError> {
-        Err(ExecutionError::unit_used())
-    }
-
-    fn div(
-        self: Box<Self>,
-        _other: &VariableValue,
-        _context: &OperationContext,
-    ) -> Result<VariableValue, ExecutionError> {
-        Err(ExecutionError::unit_used())
-    }
-
-    fn mul(
-        self: Box<Self>,
+        _operation: &crate::parse::nodes::operations::Operations,
         _other: &VariableValue,
         _context: &OperationContext,
     ) -> Result<VariableValue, ExecutionError> {
@@ -49,14 +26,6 @@ impl BasicValue for InternalUnit {
 
     fn minus(
         self: Box<Self>,
-        _context: &OperationContext,
-    ) -> Result<VariableValue, ExecutionError> {
-        Err(ExecutionError::unit_used())
-    }
-
-    fn equal(
-        &self,
-        _other: &VariableValue,
         _context: &OperationContext,
     ) -> Result<VariableValue, ExecutionError> {
         Err(ExecutionError::unit_used())

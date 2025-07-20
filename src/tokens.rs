@@ -296,11 +296,29 @@ pub(crate) fn tokenize(file: String) -> Result<VecDeque<TokenContainer>, CustomE
         } else if ch == '<' {
             expect_char!(tokens, file_ch, '=', Token::LessOrEqual, Token::LessThan);
         } else if ch == '>' {
-            expect_char!(tokens, file_ch, '=', Token::GreaterOrEqual, Token::GreaterThan);
+            expect_char!(
+                tokens,
+                file_ch,
+                '=',
+                Token::GreaterOrEqual,
+                Token::GreaterThan
+            );
         } else if ch == '|' {
-            expect_char!(tokens, file_ch, '|', Token::Or, Token::Invalid('|'.to_string()));
+            expect_char!(
+                tokens,
+                file_ch,
+                '|',
+                Token::Or,
+                Token::Invalid('|'.to_string())
+            );
         } else if ch == '&' {
-            expect_char!(tokens, file_ch, '&', Token::And, Token::Invalid('&'.to_string()));
+            expect_char!(
+                tokens,
+                file_ch,
+                '&',
+                Token::And,
+                Token::Invalid('&'.to_string())
+            );
         } else {
             if ch == ' ' {
                 // unused - tokens.push(Token::Space(Space::Space));

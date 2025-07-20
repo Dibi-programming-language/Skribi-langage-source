@@ -2,6 +2,8 @@ use std::{collections::HashMap, fmt::Display};
 
 use colored::Colorize;
 
+use crate::parse::nodes::operations::Operations;
+
 pub mod int;
 pub mod ioi;
 pub mod unit;
@@ -13,26 +15,9 @@ pub trait BasicValue: Display {
     /// Used to avoid useless allocations of VariableValue
     fn clone(&self) -> VariableValue;
 
-    fn add(
+    fn apply_operation(
         self: Box<Self>,
-        other: &VariableValue,
-        context: &OperationContext,
-    ) -> Result<VariableValue, ExecutionError>;
-
-    fn sub(
-        self: Box<Self>,
-        other: &VariableValue,
-        context: &OperationContext,
-    ) -> Result<VariableValue, ExecutionError>;
-
-    fn div(
-        self: Box<Self>,
-        other: &VariableValue,
-        context: &OperationContext,
-    ) -> Result<VariableValue, ExecutionError>;
-
-    fn mul(
-        self: Box<Self>,
+        operation: &Operations,
         other: &VariableValue,
         context: &OperationContext,
     ) -> Result<VariableValue, ExecutionError>;
@@ -47,11 +32,6 @@ pub trait BasicValue: Display {
         other: &VariableValue,
         context: &OperationContext,
     ) -> Result<bool, ExecutionError>;
-    fn equal(
-        &self,
-        other: &VariableValue,
-        context: &OperationContext,
-    ) -> Result<VariableValue, ExecutionError>;
 }
 
 pub type VariableValue = Box<dyn BasicValue>;
@@ -301,7 +281,7 @@ impl ExecutionError {
             .add_hint(ExecutionHint::check_types())
     }
 
-    pub fn not_implemented_for(operation: &str, got: &str) -> Self {
+    pub fn not_implemented_for(operation: &(impl Display + ?Sized), got: &str) -> Self {
         Self::new_str(format!(
             "Type Error: operation {} does not have any meaning for {}.",
             operation, got

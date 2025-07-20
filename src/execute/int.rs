@@ -1,5 +1,7 @@
 use std::fmt::Display;
 
+use crate::parse::nodes::operations::Operations;
+
 use super::ioi::InternalIoi;
 use super::{BasicValue, ExecutionError, IntType, OperationContext, VariableValue};
 
@@ -20,44 +22,41 @@ impl BasicValue for InternalInt {
         })
     }
 
-    fn add(
+    fn apply_operation(
         mut self: Box<Self>,
+        operation: &crate::parse::nodes::operations::Operations,
         other: &VariableValue,
         context: &OperationContext,
     ) -> Result<VariableValue, ExecutionError> {
-        let other = other.as_int(context)?;
-        self.content += other;
-        Ok(self)
-    }
-
-    fn sub(
-        mut self: Box<Self>,
-        other: &VariableValue,
-        context: &OperationContext,
-    ) -> Result<VariableValue, ExecutionError> {
-        let other = other.as_int(context)?;
-        self.content -= other;
-        Ok(self)
-    }
-
-    fn div(
-        mut self: Box<Self>,
-        other: &VariableValue,
-        context: &OperationContext,
-    ) -> Result<VariableValue, ExecutionError> {
-        let other = other.as_int(context)?;
-        self.content /= other;
-        Ok(self)
-    }
-
-    fn mul(
-        mut self: Box<Self>,
-        other: &VariableValue,
-        context: &OperationContext,
-    ) -> Result<VariableValue, ExecutionError> {
-        let other = other.as_int(context)?;
-        self.content *= other;
-        Ok(self)
+        match operation {
+            Operations::Add => {
+                let other = other.as_int(context)?;
+                self.content += other;
+                Ok(self)
+            }
+            Operations::Sub => {
+                let other = other.as_int(context)?;
+                self.content -= other;
+                Ok(self)
+            }
+            Operations::Div => {
+                let other = other.as_int(context)?;
+                self.content /= other;
+                Ok(self)
+            }
+            Operations::Mul => {
+                let other = other.as_int(context)?;
+                self.content *= other;
+                Ok(self)
+            }
+            Operations::Equal => self
+                .basic_equal(other, context)
+                .map(|x| InternalIoi::new_boxed(x)),
+            Operations::NotEqual => self
+                .basic_equal(other, context)
+                .map(|x| InternalIoi::new_boxed(!x)),
+            _ => Err(ExecutionError::not_implemented_for(operation, "int")),
+        }
     }
 
     fn minus(
@@ -74,15 +73,6 @@ impl BasicValue for InternalInt {
 
     fn as_ioi(&self, _context: &OperationContext) -> Result<bool, ExecutionError> {
         Err(ExecutionError::wrong_type("ioi", "int"))
-    }
-
-    fn equal(
-        &self,
-        other: &VariableValue,
-        context: &OperationContext,
-    ) -> Result<VariableValue, ExecutionError> {
-        self.basic_equal(other, context)
-            .map(|x| InternalIoi::new_boxed(x))
     }
 
     fn basic_equal(
