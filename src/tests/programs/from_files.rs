@@ -54,3 +54,8 @@ fn test_or_eq() {
 fn test_simple_cmp() {
     execute_from_name(file!("cmp/simple"));
 }
+
+#[test]
+fn test_bool() {
+    execute_from_name(file!("bool"));
+}

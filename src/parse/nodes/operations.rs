@@ -352,7 +352,7 @@ impl Evaluate for UnaryTP {
             UnaryTP::Plus(unary_tp) => unary_tp.evaluate(operation_context),
             UnaryTP::TakePriority(take_priority) => take_priority.evaluate(operation_context),
             UnaryTP::Minus(minus) => minus.evaluate(operation_context)?.minus(operation_context),
-            _ => todo!(),
+            UnaryTP::Not(not) => not.evaluate(operation_context)?.not(operation_context),
         }
     }
 }
