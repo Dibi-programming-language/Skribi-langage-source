@@ -96,8 +96,14 @@ impl ExecutionScope {
     }
 }
 
+macro_rules! sb {
+    ($ex: expr) => {
+        Some(Box::new($ex))
+    };
+}
+
 pub struct ExecutionContext {
-    scope: Option<ExecutionScope>,
+    scope: Option<Box<ExecutionScope>>,
 }
 
 impl ExecutionContext {
@@ -109,7 +115,7 @@ impl ExecutionContext {
         if let Some(ref mut scope) = self.scope {
             scope.associate_new(name, value);
         } else {
-            self.scope = Some(ExecutionScope::new(None));
+            self.scope = sb!(ExecutionScope::new(None));
             self.associate_new(name, value);
         }
     }
@@ -136,6 +142,16 @@ impl ExecutionContext {
             scope.get_variable(name, line)
         } else {
             Err(ExecutionError::variable_not_exists(name, line))
+        }
+    }
+
+    pub fn enter_scope(&mut self) {
+        self.scope = sb!(ExecutionScope::new(self.scope.take()));
+    }
+
+    pub fn exit_scope(&mut self) {
+        if let Some(scope) = &mut self.scope {
+            self.scope = scope.outer_scope.take();
         }
     }
 }

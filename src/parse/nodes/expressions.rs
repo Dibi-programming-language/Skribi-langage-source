@@ -18,6 +18,8 @@ use crate::skr_errors::{CustomError, ResultOption};
 use crate::tokens::{SpaceTypes, Token, TokenContainer};
 use crate::{impl_debug, some_token};
 
+use super::loops::Ci;
+
 // Grammar of this file :
 // <nat_call_in> ::= T_IDENTIFIER ("\n" | <nat_call_in>)
 // <nat_call> ::= T_NAT_CALL <nat_call_in>
@@ -518,6 +520,7 @@ pub enum ExpBase {
     IdUse(Box<IdUse>),
     VarDec(Box<VarDec>),
     Cond(Box<Cond>),
+    While(Box<Ci>),
     FctDec(Box<FctDec>),
     RightP(Box<Exp>),
 }
@@ -535,6 +538,7 @@ impl GraphDisplay for ExpBase {
             ExpBase::IdUse(id_use) => id_use.graph_display(graph, id, indent + 2),
             ExpBase::VarDec(var_dec) => var_dec.graph_display(graph, id, indent + 2),
             ExpBase::Cond(cond) => cond.graph_display(graph, id, indent + 2),
+            ExpBase::While(cond) => cond.graph_display(graph, id, indent + 2),
             ExpBase::FctDec(fct_dec) => fct_dec.graph_display(graph, id, indent + 2),
             ExpBase::RightP(exp) => {
                 graph.push_str(" with ()");
@@ -566,6 +570,8 @@ impl ExpBase {
             Ok(Some(ExpBase::new(id_use)))
         } else if let Some(cond) = Cond::parse(tokens)? {
             Ok(Some(ExpBase::Cond(Box::new(cond))))
+        } else if let Some(cond) = Ci::parse(tokens)? {
+            Ok(Some(ExpBase::While(Box::new(cond))))
         } else if let Some(fct_dec) = FctDec::parse(tokens)? {
             Ok(Some(ExpBase::FctDec(Box::new(fct_dec))))
         } else if let some_token!(Token::LeftParenthesis) = tokens.front() {
@@ -594,6 +600,7 @@ impl Evaluate for ExpBase {
         match self {
             Self::IdUse(id_use) => id_use.evaluate(operation_context),
             Self::Cond(cond) => cond.evaluate(operation_context),
+            Self::While(cond) => cond.evaluate(operation_context),
             Self::VarDec(var_dec) => var_dec.evaluate(operation_context),
             Self::RightP(rightp) => rightp.evaluate(operation_context),
             Self::FctDec(_fct_dec) => todo!(),
@@ -913,9 +920,11 @@ impl StaL {
 
 impl Evaluate for StaL {
     fn evaluate(&self, operation_context: &mut OperationContext) -> OperationO {
+        operation_context.enter_scope();
         for sta in &self.sta_l {
             sta.execute(operation_context)?
         }
+        operation_context.exit_scope();
         Ok(InternalUnit::new_boxed())
     }
 }

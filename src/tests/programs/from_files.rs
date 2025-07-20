@@ -59,3 +59,8 @@ fn test_simple_cmp() {
 fn test_bool() {
     execute_from_name(file!("bool"));
 }
+
+#[test]
+fn test_fibo() {
+    execute_from_name(file!("algo/fibo"));
+}
