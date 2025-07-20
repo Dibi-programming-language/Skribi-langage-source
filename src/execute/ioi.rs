@@ -36,6 +36,14 @@ impl BasicValue for InternalIoi {
                 self.content &= other.as_ioi(context)?;
                 Ok(self)
             }
+            Operations::And => {
+                self.content &= other.as_ioi(context)?;
+                Ok(self)
+            }
+            Operations::Or => {
+                self.content |= other.as_ioi(context)?;
+                Ok(self)
+            }
             Operations::Equal => self.basic_equal(other, context).map(|x| Self::new_boxed(x)),
             Operations::NotEqual => self
                 .basic_equal(other, context)
@@ -49,6 +57,14 @@ impl BasicValue for InternalIoi {
         _context: &OperationContext,
     ) -> Result<VariableValue, ExecutionError> {
         Err(ExecutionError::not_implemented_for("-", "ioi"))
+    }
+
+    fn not(
+        mut self: Box<Self>,
+        _context: &OperationContext,
+    ) -> Result<VariableValue, ExecutionError> {
+        self.content = !self.content;
+        Ok(self)
     }
 
     fn as_int(&self, _context: &OperationContext) -> Result<IntType, ExecutionError> {

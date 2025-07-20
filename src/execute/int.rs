@@ -49,6 +49,22 @@ impl BasicValue for InternalInt {
                 self.content *= other;
                 Ok(self)
             }
+            Operations::LessThan => {
+                let other = other.as_int(context)?;
+                Ok(InternalIoi::new_boxed(self.content < other))
+            }
+            Operations::GreaterThan => {
+                let other = other.as_int(context)?;
+                Ok(InternalIoi::new_boxed(self.content > other))
+            }
+            Operations::LessOrEqual => {
+                let other = other.as_int(context)?;
+                Ok(InternalIoi::new_boxed(self.content <= other))
+            }
+            Operations::GreaterOrEqual => {
+                let other = other.as_int(context)?;
+                Ok(InternalIoi::new_boxed(self.content >= other))
+            }
             Operations::Equal => self
                 .basic_equal(other, context)
                 .map(|x| InternalIoi::new_boxed(x)),
@@ -65,6 +81,13 @@ impl BasicValue for InternalInt {
     ) -> Result<VariableValue, ExecutionError> {
         self.content = -self.content;
         Ok(self)
+    }
+
+    fn not(
+        self: Box<Self>,
+        _context: &OperationContext,
+    ) -> Result<VariableValue, ExecutionError> {
+        Err(ExecutionError::not_implemented_for("!", "int"))
     }
 
     fn as_int(&self, _context: &OperationContext) -> Result<IntType, ExecutionError> {

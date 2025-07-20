@@ -23,6 +23,7 @@ pub trait BasicValue: Display {
     ) -> Result<VariableValue, ExecutionError>;
 
     fn minus(self: Box<Self>, context: &OperationContext) -> Result<VariableValue, ExecutionError>;
+    fn not(self: Box<Self>, context: &OperationContext) -> Result<VariableValue, ExecutionError>;
 
     fn as_int(&self, context: &OperationContext) -> Result<IntType, ExecutionError>;
     fn as_ioi(&self, context: &OperationContext) -> Result<bool, ExecutionError>;

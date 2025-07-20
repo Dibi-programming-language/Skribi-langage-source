@@ -367,6 +367,10 @@ pub enum Operations {
     NotEqual,
     And,
     Or,
+    LessThan,
+    GreaterThan,
+    LessOrEqual,
+    GreaterOrEqual,
 }
 
 impl Display for Operations {
@@ -380,6 +384,10 @@ impl Display for Operations {
             Self::Sub => "-",
             Self::Equal => "=",
             Self::NotEqual => "!=",
+            Self::LessThan => "<",
+            Self::GreaterThan => ">",
+            Self::LessOrEqual => "<=",
+            Self::GreaterOrEqual => ">=",
         })
     }
 }
@@ -404,6 +412,10 @@ impl Token {
             Token::Sub => Some(2),
             Token::Equal => Some(3),
             Token::NotEqual => Some(3),
+            Token::LessThan => Some(3),
+            Token::GreaterThan => Some(3),
+            Token::LessOrEqual => Some(3),
+            Token::GreaterOrEqual => Some(3),
             Token::And => Some(4),
             Token::Or => Some(5),
             _ => None,
@@ -421,6 +433,10 @@ impl Token {
             Token::NotEqual => NotEqual,
             Token::And => Operations::And,
             Token::Or => Operations::Or,
+            Token::LessThan => Operations::LessThan,
+            Token::GreaterThan => Operations::GreaterThan,
+            Token::LessOrEqual => Operations::LessOrEqual,
+            Token::GreaterOrEqual => Operations::GreaterOrEqual,
             _ => panic!("Unexpected token found"),
         }
     }
@@ -683,6 +699,10 @@ impl GraphDisplay for Operations {
                 NotEqual => "CO !=",
                 Operations::And => "LG &&",
                 Operations::Or => "LG ||",
+                Operations::LessThan => "CO <",
+                Operations::GreaterThan => "CO >",
+                Operations::LessOrEqual => "CO <=",
+                Operations::GreaterOrEqual => "CO >=",
             },
             indent = indent
         ));
