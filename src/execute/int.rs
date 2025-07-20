@@ -83,10 +83,7 @@ impl BasicValue for InternalInt {
         Ok(self)
     }
 
-    fn not(
-        self: Box<Self>,
-        _context: &OperationContext,
-    ) -> Result<VariableValue, ExecutionError> {
+    fn not(self: Box<Self>, _context: &OperationContext) -> Result<VariableValue, ExecutionError> {
         Err(ExecutionError::not_implemented_for("!", "int"))
     }
 

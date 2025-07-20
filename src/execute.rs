@@ -296,6 +296,10 @@ impl ExecutionError {
         .add_hint(ExecutionHint::return_scope())
     }
 
+    pub fn fail() -> Self {
+        Self::new("Test failed.")
+    }
+
     pub fn show(&self) {
         println!("Error: {}", self.message.red().bold());
 

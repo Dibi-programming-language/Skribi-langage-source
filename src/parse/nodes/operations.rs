@@ -254,7 +254,7 @@ impl TakePriority {
                     }
                 }
                 None => Err(CustomError::UnexpectedToken(
-                    "Expected an expression".to_string(),
+                    "Expected an expression for TakePriority".to_string(),
                 )),
             }
         } else if let Some(value) = ValueNode::parse(tokens)? {

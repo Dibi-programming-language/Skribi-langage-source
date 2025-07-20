@@ -31,10 +31,7 @@ impl BasicValue for InternalUnit {
         Err(ExecutionError::unit_used())
     }
 
-    fn not(
-        self: Box<Self>,
-        _context: &OperationContext,
-    ) -> Result<VariableValue, ExecutionError> {
+    fn not(self: Box<Self>, _context: &OperationContext) -> Result<VariableValue, ExecutionError> {
         Err(ExecutionError::unit_used())
     }
 
