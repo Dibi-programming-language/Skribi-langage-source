@@ -1,0 +1,24 @@
+// Multiplication
+
+int a 7 * 6
+int b (7) * (6)
+int c ((7) * (6))
+
+// 42 is not in every test, sorry
+int r 42
+
+skr_app assert_eq r a
+skr_app assert_eq r b
+skr_app assert_eq r c
+
+int r 2
+
+a a * r
+b (b) * (r)
+c ((c) * (r))
+
+int r 84
+
+skr_app assert_eq r a
+skr_app assert_eq r b
+skr_app assert_eq r c

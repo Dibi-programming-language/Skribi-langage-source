@@ -1,3 +1,5 @@
+use crate::execute::unit::InternalUnit;
+use crate::execute::{Evaluate, ExecutionError, OperationContext, OperationO};
 use crate::parse::nodes::blocs::Scope;
 use crate::parse::nodes::expressions::Exp;
 use crate::parse::nodes::GraphDisplay;
@@ -36,21 +38,21 @@ pub enum Sula {
 }
 
 impl GraphDisplay for Sula {
-    fn graph_display(&self, graph: &mut String, id: &mut usize) {
+    fn graph_display(&self, graph: &mut String, id: &mut usize, indent: usize) {
         graph.push_str(&format!("\nsubgraph Sula_{}[Sula]", id));
         *id += 1;
         match self {
             Sula::Ij { ij, sula } => {
-                ij.graph_display(graph, id);
+                ij.graph_display(graph, id, indent + 2);
                 if let Some(sula) = sula {
-                    sula.graph_display(graph, id);
+                    sula.graph_display(graph, id, indent + 2);
                 }
             }
             Sula::Scope(scope) => {
-                scope.graph_display(graph, id);
+                scope.graph_display(graph, id, indent + 2);
             }
         }
-        graph.push_str("\nend");
+        graph.push_str(&format!("\n{:indent$}end", "", indent = indent));
     }
 }
 
@@ -90,6 +92,23 @@ impl Sula {
     }
 }
 
+impl Evaluate for Sula {
+    fn evaluate(&self, operation_context: &mut OperationContext) -> OperationO {
+        match self {
+            Self::Ij { ij, sula } => {
+                if ij.can_execute(operation_context)? {
+                    ij.evaluate(operation_context)
+                } else if let Some(sula) = sula {
+                    sula.evaluate(operation_context)
+                } else {
+                    Ok(InternalUnit::new_boxed())
+                }
+            }
+            Self::Scope(scope) => scope.evaluate(operation_context),
+        }
+    }
+}
+
 // ----------
 // --- Ij ---
 // ----------
@@ -110,12 +129,12 @@ pub struct Ij {
 }
 
 impl GraphDisplay for Ij {
-    fn graph_display(&self, graph: &mut String, id: &mut usize) {
+    fn graph_display(&self, graph: &mut String, id: &mut usize, indent: usize) {
         graph.push_str(&format!("\nsubgraph Ij_{}[Ij]", id));
         *id += 1;
-        self.exp.graph_display(graph, id);
-        self.scope.graph_display(graph, id);
-        graph.push_str("\nend");
+        self.exp.graph_display(graph, id, indent + 2);
+        self.scope.graph_display(graph, id, indent + 2);
+        graph.push_str(&format!("\n{:indent$}end", "", indent = indent));
     }
 }
 
@@ -129,19 +148,41 @@ impl Ij {
     pub fn parse(tokens: &mut VecDeque<TokenContainer>) -> ResultOption<Self> {
         // <ij> ::= ij <exp> <scope>
         if let some_token!(Token::KeywordIf) = tokens.front() {
-            tokens.pop_front();
+            let container = tokens.pop_front().expect("Container Some");
             match Exp::parse(tokens)? {
                 Some(exp) => match Scope::parse(tokens)? {
                     Some(scope) => Ok(Some(Ij::new(exp, scope))),
-                    None => Err(CustomError::UnexpectedToken("Expected a scope".to_string())),
+                    None => {
+                        println!("{}", exp.graph());
+                        Err(CustomError::element_expected(container, tokens, "scope"))
+                    }
                 },
-                None => Err(CustomError::UnexpectedToken(
-                    "Expected an expression".to_string(),
+                None => Err(CustomError::element_expected(
+                    container,
+                    tokens,
+                    "expression",
                 )),
             }
         } else {
             Ok(None)
         }
+    }
+
+    pub fn can_execute(
+        &self,
+        operation_context: &mut OperationContext,
+    ) -> Result<bool, ExecutionError> {
+        self.exp
+            .evaluate(operation_context)?
+            .as_ioi(operation_context)
+    }
+}
+
+impl Evaluate for Ij {
+    /// For optimisation purposes, this function is not testing the condition.
+    /// The function [Ij::can_execute] should be called before.
+    fn evaluate(&self, operation_context: &mut OperationContext) -> OperationO {
+        self.scope.evaluate(operation_context)
     }
 }
 
@@ -165,14 +206,19 @@ pub struct Cond {
 }
 
 impl GraphDisplay for Cond {
-    fn graph_display(&self, graph: &mut String, id: &mut usize) {
-        graph.push_str(&format!("\nsubgraph Cond_{}[Cond]", id));
+    fn graph_display(&self, graph: &mut String, id: &mut usize, indent: usize) {
+        graph.push_str(&format!(
+            "{:indent$}\nsubgraph Cond_{}[Cond]",
+            "",
+            id,
+            indent = indent
+        ));
         *id += 1;
-        self.ij.graph_display(graph, id);
+        self.ij.graph_display(graph, id, indent + 2);
         if let Some(sula) = &self.sula {
-            sula.graph_display(graph, id);
+            sula.graph_display(graph, id, indent + 2);
         }
-        graph.push_str("\nend");
+        graph.push_str(&format!("\n{:indent$}end", "", indent = indent));
     }
 }
 
@@ -196,6 +242,18 @@ impl Cond {
             }
         } else {
             Ok(None)
+        }
+    }
+}
+
+impl Evaluate for Cond {
+    fn evaluate(&self, operation_context: &mut OperationContext) -> OperationO {
+        if self.ij.can_execute(operation_context)? {
+            self.ij.evaluate(operation_context)
+        } else if let Some(sula) = &self.sula {
+            sula.evaluate(operation_context)
+        } else {
+            Ok(InternalUnit::new_boxed())
         }
     }
 }

@@ -1,0 +1,48 @@
+int a 5
+int b 128
+int c -7
+
+ij a >= b {
+    skr_app fail
+} sula ij a <= b {
+    // Ok
+} sula {
+    skr_app fail
+}
+
+ij a != b {
+    // Ok
+} sula {
+    skr_app fail
+}
+
+ij a != a {
+    skr_app fail
+} sula ij a = a {
+    // Ok
+} sula {
+    skr_app fail
+}
+
+ij c >= a {
+    skr_app fail
+} sula ij c >= b {
+    skr_app fail
+} sula ij c <= a {
+    // Ok
+} sula {
+    skr_app fail
+}
+
+ij a >= a {
+    // Ok
+} sula {
+    skr_app fail
+}
+
+ij a <= a {
+    // Ok
+} sula {
+    skr_app fail
+}
+
