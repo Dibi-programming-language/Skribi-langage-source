@@ -117,7 +117,9 @@ impl KStart {
             if let Some(sta_l) = StaL::parse(tokens)? {
                 Ok(Some(KStart::new(Some(name), sta_l)))
             } else {
-                Err(ParsingError::UnexpectedToken("Expected a sta_l".to_string()))
+                Err(ParsingError::UnexpectedToken(
+                    "Expected a sta_l".to_string(),
+                ))
             }
         } else {
             Err(ParsingError::UnexpectedToken(

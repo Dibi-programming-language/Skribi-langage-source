@@ -9,7 +9,7 @@ use std::process::ExitCode;
 
 use colored::Colorize;
 use get_file_content::get_content;
-use skr_errors::{RootError};
+use skr_errors::RootError;
 
 use crate::execute::{Execute, ExecutionContext};
 // Import
@@ -35,9 +35,9 @@ fn main() -> ExitCode {
     match execute(args) {
         Ok(_) => ExitCode::SUCCESS,
         Err(err) => {
-            eprintln!("{err}");
+            eprintln!("\n{err}");
             ExitCode::FAILURE
-        },
+        }
     }
 }
 
@@ -68,13 +68,11 @@ pub fn execute(args: Vec<String>) -> Result<(), RootError> {
                 }
                 ast.execute(&mut ExecutionContext::new())?;
                 eprintln!("\n{}", "Program's end with no error".bold());
-                return Ok(());
+                Ok(())
             } else {
                 Err(RootError::EmptyFile)
             }
         }
-        Err(err) => {
-            Err(RootError::FileError(extension, err))
-        }
+        Err(err) => Err(RootError::FileError(extension, err)),
     }
 }

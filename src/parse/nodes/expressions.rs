@@ -897,7 +897,9 @@ impl StaL {
             tokens.pop_front();
             let mut sta_l = Vec::new();
 
-            while !matches!(tokens.front(), some_token!(Token::RightBrace)) && tokens.front().is_some() {
+            while !matches!(tokens.front(), some_token!(Token::RightBrace))
+                && tokens.front().is_some()
+            {
                 if let Some(sta) = Sta::parse(tokens)? {
                     sta_l.push(sta);
                 } else {

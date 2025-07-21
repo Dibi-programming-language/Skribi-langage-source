@@ -60,9 +60,13 @@ impl FctDec {
                             tuple,
                             scope,
                         })),
-                        None => Err(ParsingError::UnexpectedToken("Expected a scope".to_string())),
+                        None => Err(ParsingError::UnexpectedToken(
+                            "Expected a scope".to_string(),
+                        )),
                     },
-                    None => Err(ParsingError::UnexpectedToken("Expected a tuple".to_string())),
+                    None => Err(ParsingError::UnexpectedToken(
+                        "Expected a tuple".to_string(),
+                    )),
                 }
             } else {
                 Err(ParsingError::UnexpectedToken(

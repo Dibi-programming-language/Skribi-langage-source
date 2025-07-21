@@ -1,11 +1,10 @@
-use std::{collections::VecDeque, io::ErrorKind};
+use std::{collections::VecDeque, fmt::Display, io::ErrorKind};
 
 use colored::Colorize;
 use thiserror::Error;
 
 use crate::{execute::ExecutionError, tokens::TokenContainer};
 
-#[allow(dead_code)]
 #[derive(Error, Debug, PartialEq)]
 pub enum NotYetImplementedType {
     #[error("Missing symbol, the symbol for this does not exist yet: {0}")]
@@ -23,7 +22,6 @@ pub enum NotYetImplementedType {
 }
 
 #[derive(Error, Debug, PartialEq)]
-#[allow(dead_code)]
 pub enum ParsingError {
     #[error("Invalid float: {0} at line {1}")]
     InvalidFloat(String, usize),
@@ -32,7 +30,7 @@ pub enum ParsingError {
     #[error("Unexpected token: {0}")]
     UnexpectedToken(String),
     #[error("Not yet implemented: {0}")]
-    NotYetImplemented(NotYetImplementedType),
+    NotYetImplemented(#[from] NotYetImplementedType),
     // Add other kinds of errors as needed
 }
 
@@ -42,21 +40,22 @@ impl ParsingError {
         at: &VecDeque<TokenContainer>,
         what: &str,
     ) -> Self {
-        if let Some(token) = at.front() {
-            Self::UnexpectedToken(format!(
-                "Token at line {}:{} is expecting a(n) {} at line {}:{}",
-                from.line, from.column, what, token.line, token.column
-            ))
-        } else {
-            Self::UnexpectedToken(format!(
-                "Token at line {}:{} is expecting a(n) {} after the last line.",
-                from.line, from.column, what
-            ))
-        }
-    }
-
-    pub fn show(&self) {
-        eprintln!("\n{}", format!("{self}").red());
+        Self::UnexpectedToken(format!(
+            "{}",
+            if let Some(token) = at.front() {
+                format!(
+                    "Token at line {}:{} is expecting a(n) {} at line {}:{}",
+                    from.line, from.column, what, token.line, token.column
+                )
+            } else {
+                format!(
+                    "Token at line {}:{} is expecting a(n) {} after the last line.",
+                    from.line, from.column, what
+                )
+            }
+            .bold()
+            .red()
+        ))
     }
 }
 
@@ -66,13 +65,36 @@ pub type ResultOption<T> = ShortResult<Option<T>>;
 
 #[derive(Error, Debug)]
 pub enum RootError {
-    #[error("Parsing error: the code is wrong.\n{0}")]
     ParsingError(#[from] ParsingError),
-    #[error("Execution error: your program stopped in an unexpected way.\n{0}\nEnd of error message.")]
     ExecutionError(#[from] ExecutionError),
-    #[error("Error while getting the content of the file. Check the file extension and the file path. Valid file extensions : {0:?}. Error message : {1}")]
     FileError(Vec<String>, ErrorKind),
-    #[error("This file does not have any executable content")]
     EmptyFile,
 }
 
+impl Display for RootError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::ParsingError(pe) => {
+                write!(f, "{}\n{}", "Parsing error: the code is wrong.".red(), pe)
+            }
+            Self::ExecutionError(ee) => write!(
+                f,
+                "{}\n{}\n{}",
+                "Execution error: your program stopped in an unexpected way.".red(),
+                ee,
+                "End of error message.".red()
+            ),
+            Self::FileError(vec, kind) => write!(
+                f,
+                "{}\n{}\nValid file extensions: {vec:?}.\nError message: {kind}.",
+                "Error while getting the content of the file.".red(),
+                "Check the file extension and the file path.".green()
+            ),
+            Self::EmptyFile => write!(
+                f,
+                "{}",
+                "This file does not have any executable content.".red()
+            ),
+        }
+    }
+}
