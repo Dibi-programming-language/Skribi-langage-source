@@ -152,10 +152,7 @@ impl Ij {
             match Exp::parse(tokens)? {
                 Some(exp) => match Scope::parse(tokens)? {
                     Some(scope) => Ok(Some(Ij::new(exp, scope))),
-                    None => {
-                        println!("{}", exp.graph());
-                        Err(CustomError::element_expected(container, tokens, "scope"))
-                    }
+                    None => Err(CustomError::element_expected(container, tokens, "scope")),
                 },
                 None => Err(CustomError::element_expected(
                     container,

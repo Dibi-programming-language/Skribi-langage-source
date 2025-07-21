@@ -6,61 +6,61 @@ macro_rules! file {
     };
 }
 
-fn execute_from_name(name: &str) {
+fn execute_from_name(name: &str) -> Result<(), ()> {
     execute(vec![
         "".to_owned(),
         name.to_owned(),
         "--compiler-debug".to_owned(),
         "--show-ast".to_owned(),
-    ]);
+    ])
 }
 
 #[test]
-fn test_addition() {
-    execute_from_name(file!("addition"));
+fn test_addition() -> Result<(), ()> {
+    execute_from_name(file!("addition"))
 }
 
 #[test]
-fn test_complex_substraction() {
-    execute_from_name(file!("complex"));
+fn test_complex_substraction() -> Result<(), ()> {
+    execute_from_name(file!("complex"))
 }
 
 #[test]
-fn test_switch() {
-    execute_from_name(file!("switch"));
+fn test_switch() -> Result<(), ()> {
+    execute_from_name(file!("switch"))
 }
 
 #[test]
-fn test_division() {
-    execute_from_name(file!("division"));
+fn test_division() -> Result<(), ()> {
+    execute_from_name(file!("division"))
 }
 
 #[test]
-fn test_multiplication() {
-    execute_from_name(file!("multiplication"));
+fn test_multiplication() -> Result<(), ()> {
+    execute_from_name(file!("multiplication"))
 }
 
 #[test]
-fn test_ij_sula() {
-    execute_from_name(file!("ij"));
+fn test_ij_sula() -> Result<(), ()> {
+    execute_from_name(file!("ij"))
 }
 
 #[test]
-fn test_or_eq() {
-    execute_from_name(file!("cmp/or_eq"));
+fn test_or_eq() -> Result<(), ()> {
+    execute_from_name(file!("cmp/or_eq"))
 }
 
 #[test]
-fn test_simple_cmp() {
-    execute_from_name(file!("cmp/simple"));
+fn test_simple_cmp() -> Result<(), ()> {
+    execute_from_name(file!("cmp/simple"))
 }
 
 #[test]
-fn test_bool() {
-    execute_from_name(file!("bool"));
+fn test_bool() -> Result<(), ()> {
+    execute_from_name(file!("bool"))
 }
 
 #[test]
-fn test_fibo() {
-    execute_from_name(file!("algo/fibo"));
+fn test_fibo() -> Result<(), ()> {
+    execute_from_name(file!("algo/fibo"))
 }

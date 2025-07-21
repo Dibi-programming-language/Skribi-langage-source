@@ -49,10 +49,7 @@ impl Ci {
             match Exp::parse(tokens)? {
                 Some(exp) => match Scope::parse(tokens)? {
                     Some(scope) => Ok(Some(Ci::new(exp, scope))),
-                    None => {
-                        println!("{}", exp.graph());
-                        Err(CustomError::element_expected(container, tokens, "scope"))
-                    }
+                    None => Err(CustomError::element_expected(container, tokens, "scope")),
                 },
                 None => Err(CustomError::element_expected(
                     container,

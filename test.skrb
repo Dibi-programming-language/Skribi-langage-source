@@ -1,7 +1,5 @@
-int input 0
-skr_app read_int input
-int input2 0
-skr_app read_int input2
+int input 1
+int input2 3
 
 int res input * input2
 ioi n no

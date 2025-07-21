@@ -1,5 +1,6 @@
 use std::collections::VecDeque;
 
+use colored::Colorize;
 use thiserror::Error;
 
 use crate::tokens::TokenContainer;
@@ -43,7 +44,7 @@ impl CustomError {
     ) -> Self {
         if let Some(token) = at.front() {
             Self::UnexpectedToken(format!(
-                "Token at line {}:{} is expecting a {} at line {}:{}",
+                "Token at line {}:{} is expecting a(n) {} at line {}:{}",
                 from.line, from.column, what, token.line, token.column
             ))
         } else {
@@ -52,6 +53,10 @@ impl CustomError {
                 from.line, from.column, what
             ))
         }
+    }
+
+    pub fn show(&self) {
+        eprintln!("\n{}", format!("{self}").red());
     }
 }
 

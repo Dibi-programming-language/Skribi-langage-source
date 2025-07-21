@@ -5,6 +5,7 @@
 ////////////////////
 
 use std::env;
+use std::process::ExitCode;
 
 use colored::Colorize;
 use get_file_content::get_content;
@@ -26,14 +27,17 @@ mod utils;
 const FLAG_CHAR: &str = "--";
 
 /// Launch the interpreter
-fn main() {
+fn main() -> ExitCode {
     // generic parameters
     let args = env::args().collect::<Vec<_>>(); // get the command line arguments
 
-    execute(args);
+    match execute(args) {
+        Ok(_) => ExitCode::SUCCESS,
+        Err(_) => ExitCode::FAILURE,
+    }
 }
 
-pub fn execute(args: Vec<String>) {
+pub fn execute(args: Vec<String>) -> Result<(), ()> {
     // parameters
     let extension: Vec<String> = vec!["skrb".to_string(), "skribi".to_string()];
 
@@ -47,31 +51,30 @@ pub fn execute(args: Vec<String>) {
     // Read the file
     match get_content(args, extension.clone()) {
         Ok(content) => {
-            println!("{}", "Reading...".italic());
+            eprintln!("{}", "Reading...".italic());
             // Remove the comments and split the code into instructions
             match tokenize(content) {
                 Ok(tokens) => {
-                    println!("{}", "Analysing...".italic());
+                    eprintln!("{}", "Analysing...".italic());
                     let nodes = parse::parse(tokens);
                     if let Ok(Some(ast)) = nodes {
-                        println!("{}", "Executing...".italic());
+                        eprintln!("{}", "Executing...".italic());
                         if show_ast {
                             println!("{:?}", ast);
                         }
                         let result = ast.execute(&mut ExecutionContext::new());
                         if let Err(err) = result {
-                            println!();
                             err.show();
-                            panic!(
-                                "{}",
-                                "--- Your program stopped in a unexpected way ---".red()
-                            );
+                            eprintln!("\n{}", "Your program stopped in an unexpected way.".red().bold());
+                            return Err(());
                         } else {
-                            println!();
-                            println!("{}", "Program's end with no error".bold());
+                            eprintln!("\n{}", "Program's end with no error".bold());
+                            return Ok(());
                         }
                     } else if let Err(err) = nodes {
-                        panic!("{} {:?}", "--- The code is wrong ---\n".red(), err)
+                        err.show();
+                        eprintln!("{}", "The code is wrong.".red().bold());
+                        return Err(());
                     } else {
                         panic!(
                             "{}",

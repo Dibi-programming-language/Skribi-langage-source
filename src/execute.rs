@@ -317,7 +317,7 @@ impl ExecutionError {
     }
 
     pub fn show(&self) {
-        println!("Error: {}", self.message.red().bold());
+        println!("\nError: {}", self.message.red().bold());
 
         if self.hints.len() == 1 {
             println!(
