@@ -386,7 +386,7 @@ pub(crate) enum InsideIdUseV {
 ///
 /// # Grammar
 ///
-/// ```
+/// ```ignore
 /// <id_use_v> ::= T_IDENTIFIER (
 ///     <tuple> <op_in> (<no_value> |)
 ///     | <op_in> (<no_value> | <var_mod> |)

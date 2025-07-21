@@ -37,9 +37,9 @@ macro_rules! impl_debug {
 ///
 /// # Example
 ///
-/// ```
+/// ```ignore
 /// use std::fmt;
-/// use skr::parse::nodes::GraphDisplay;
+/// // Import GraphDisplay and impl_debug
 ///
 /// struct MyNode {
 ///    name: String,

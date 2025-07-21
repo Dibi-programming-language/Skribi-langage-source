@@ -4,7 +4,7 @@ int input2 3
 int res input * input2
 ioi n no
 
-ij res > 5 
+ij res > 5 {
     skr_app println res
 } sula {
     skr_app println n

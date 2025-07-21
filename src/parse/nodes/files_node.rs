@@ -55,7 +55,6 @@ impl FileNode {
 
 impl Execute for FileNode {
     fn execute(&self, operation_context: &mut OperationContext) -> GeneralOutput {
-        println!("Executing {} lines\n", self.exps.len());
         for exp in &self.exps {
             if let Sta::Return(_) = exp {
                 return Err(ExecutionError::no_return_at_root());

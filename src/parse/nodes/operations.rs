@@ -1,6 +1,6 @@
 //! This file is pretty long
 //! Start of grammar for this file :
-//! ```
+//! ```ignore
 //! <value_base> ::= T_BOOL | T_INT | T_STRING | T_FLOAT
 //! <value> ::=
 //!   <value_base>
