@@ -1,6 +1,7 @@
 use std::{collections::HashMap, fmt::Display};
 
 use colored::Colorize;
+use thiserror::Error;
 
 use crate::parse::nodes::operations::Operations;
 
@@ -222,7 +223,7 @@ impl ExecutionHint {
 }
 
 #[allow(dead_code)]
-#[derive(PartialEq, Debug)]
+#[derive(Error, PartialEq, Debug)]
 pub struct ExecutionError {
     message: String,
     hints: Vec<ExecutionHint>,
@@ -317,19 +318,29 @@ impl ExecutionError {
     }
 
     pub fn show(&self) {
-        println!("\nError: {}", self.message.red().bold());
+        println!("{}", self);
+    }
+}
+
+impl Display for ExecutionError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "\nError: {}", self.message.red().bold())?;
 
         if self.hints.len() == 1 {
-            println!(
+            write!(
+                f,
                 "{} {}",
                 "Hint:".bold().green(),
                 self.hints[0].message.green()
-            )
+            )?;
         } else if self.hints.len() > 1 {
-            println!("{}", "Hints:".bold().green());
+            write!(f, "{}", "Hints:".bold().green())?;
             for hint in &self.hints {
-                println!("{} {}", "-".green(), hint.message.green());
+                write!(f, "{} {}", "-".green(), hint.message.green())?;
             }
         }
+
+        Ok(())
     }
 }
+

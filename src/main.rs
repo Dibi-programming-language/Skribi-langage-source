@@ -9,6 +9,7 @@ use std::process::ExitCode;
 
 use colored::Colorize;
 use get_file_content::get_content;
+use skr_errors::{RootError};
 
 use crate::execute::{Execute, ExecutionContext};
 // Import
@@ -33,16 +34,19 @@ fn main() -> ExitCode {
 
     match execute(args) {
         Ok(_) => ExitCode::SUCCESS,
-        Err(_) => ExitCode::FAILURE,
+        Err(err) => {
+            eprintln!("{err}");
+            ExitCode::FAILURE
+        },
     }
 }
 
-pub fn execute(args: Vec<String>) -> Result<(), ()> {
+pub fn execute(args: Vec<String>) -> Result<(), RootError> {
     // parameters
     let extension: Vec<String> = vec!["skrb".to_string(), "skribi".to_string()];
 
     // clear the shell for the user
-    if !args.contains(&format!("{FLAG_CHAR}compiler-debug")) {
+    if args.contains(&format!("{FLAG_CHAR}clear")) {
         clear();
     }
 
@@ -53,42 +57,24 @@ pub fn execute(args: Vec<String>) -> Result<(), ()> {
         Ok(content) => {
             eprintln!("{}", "Reading...".italic());
             // Remove the comments and split the code into instructions
-            match tokenize(content) {
-                Ok(tokens) => {
-                    eprintln!("{}", "Analysing...".italic());
-                    let nodes = parse::parse(tokens);
-                    if let Ok(Some(ast)) = nodes {
-                        eprintln!("{}", "Executing...".italic());
-                        if show_ast {
-                            println!("{:?}", ast);
-                        }
-                        let result = ast.execute(&mut ExecutionContext::new());
-                        if let Err(err) = result {
-                            err.show();
-                            eprintln!("\n{}", "Your program stopped in an unexpected way.".red().bold());
-                            return Err(());
-                        } else {
-                            eprintln!("\n{}", "Program's end with no error".bold());
-                            return Ok(());
-                        }
-                    } else if let Err(err) = nodes {
-                        err.show();
-                        eprintln!("{}", "The code is wrong.".red().bold());
-                        return Err(());
-                    } else {
-                        panic!(
-                            "{}",
-                            "--- This file does not have any executable content ---".red()
-                        );
-                    }
+            let tokens = tokenize(content)?;
+
+            eprintln!("{}", "Analysing...".italic());
+            let nodes = parse::parse(tokens)?;
+            if let Some(ast) = nodes {
+                eprintln!("{}", "Executing...".italic());
+                if show_ast {
+                    println!("{:?}", ast);
                 }
-                Err(err) => {
-                    panic!("{:?}", err);
-                }
+                ast.execute(&mut ExecutionContext::new())?;
+                eprintln!("\n{}", "Program's end with no error".bold());
+                return Ok(());
+            } else {
+                Err(RootError::EmptyFile)
             }
         }
         Err(err) => {
-            panic!("Error while getting the content of the file. Check the file extension and the file path. Valid file extensions : {:?}. Error message : {:?}", extension.clone(), err);
+            Err(RootError::FileError(extension, err))
         }
     }
 }

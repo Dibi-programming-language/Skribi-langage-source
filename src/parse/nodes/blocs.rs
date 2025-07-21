@@ -3,7 +3,7 @@ use std::collections::VecDeque;
 use crate::execute::{Evaluate, OperationContext, OperationO};
 use crate::parse::nodes::expressions::StaL;
 use crate::parse::nodes::GraphDisplay;
-use crate::skr_errors::{CustomError, ResultOption};
+use crate::skr_errors::{ParsingError, ResultOption};
 use crate::tokens::{Token, TokenContainer};
 use crate::{impl_debug, some_token};
 
@@ -57,7 +57,7 @@ impl KName {
             if let some_token!(Token::Identifier(name)) = tokens.pop_front() {
                 Ok(Some(KName::new(name)))
             } else {
-                Err(CustomError::UnexpectedToken(
+                Err(ParsingError::UnexpectedToken(
                     "Expected an identifier".to_string(),
                 ))
             }
@@ -117,10 +117,10 @@ impl KStart {
             if let Some(sta_l) = StaL::parse(tokens)? {
                 Ok(Some(KStart::new(Some(name), sta_l)))
             } else {
-                Err(CustomError::UnexpectedToken("Expected a sta_l".to_string()))
+                Err(ParsingError::UnexpectedToken("Expected a sta_l".to_string()))
             }
         } else {
-            Err(CustomError::UnexpectedToken(
+            Err(ParsingError::UnexpectedToken(
                 "Expected a sta_l or a k_name".to_string(),
             ))
         }
@@ -160,7 +160,7 @@ impl Kodi {
             if let Some(start) = KStart::parse(tokens)? {
                 Ok(Some(Kodi { start }))
             } else {
-                Err(CustomError::UnexpectedToken(
+                Err(ParsingError::UnexpectedToken(
                     "Expected a k_start".to_string(),
                 ))
             }
@@ -203,7 +203,7 @@ impl Biuli {
             if let Some(start) = KStart::parse(tokens)? {
                 Ok(Some(Biuli { start }))
             } else {
-                Err(CustomError::UnexpectedToken(
+                Err(ParsingError::UnexpectedToken(
                     "Expected a k_start".to_string(),
                 ))
             }
@@ -246,7 +246,7 @@ impl Spoki {
             if let Some(start) = KStart::parse(tokens)? {
                 Ok(Some(Spoki { start }))
             } else {
-                Err(CustomError::UnexpectedToken(
+                Err(ParsingError::UnexpectedToken(
                     "Expected a k_start".to_string(),
                 ))
             }

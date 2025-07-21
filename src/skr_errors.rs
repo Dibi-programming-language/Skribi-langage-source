@@ -1,9 +1,9 @@
-use std::collections::VecDeque;
+use std::{collections::VecDeque, io::ErrorKind};
 
 use colored::Colorize;
 use thiserror::Error;
 
-use crate::tokens::TokenContainer;
+use crate::{execute::ExecutionError, tokens::TokenContainer};
 
 #[allow(dead_code)]
 #[derive(Error, Debug, PartialEq)]
@@ -24,7 +24,7 @@ pub enum NotYetImplementedType {
 
 #[derive(Error, Debug, PartialEq)]
 #[allow(dead_code)]
-pub enum CustomError {
+pub enum ParsingError {
     #[error("Invalid float: {0} at line {1}")]
     InvalidFloat(String, usize),
     #[error("Invalid string: {0} at line {1}")]
@@ -36,7 +36,7 @@ pub enum CustomError {
     // Add other kinds of errors as needed
 }
 
-impl CustomError {
+impl ParsingError {
     pub fn element_expected(
         from: TokenContainer,
         at: &VecDeque<TokenContainer>,
@@ -60,6 +60,19 @@ impl CustomError {
     }
 }
 
-pub type ShortResult<T> = Result<T, CustomError>;
+pub type ShortResult<T> = Result<T, ParsingError>;
 
 pub type ResultOption<T> = ShortResult<Option<T>>;
+
+#[derive(Error, Debug)]
+pub enum RootError {
+    #[error("Parsing error: the code is wrong.\n{0}")]
+    ParsingError(#[from] ParsingError),
+    #[error("Execution error: your program stopped in an unexpected way.\n{0}\nEnd of error message.")]
+    ExecutionError(#[from] ExecutionError),
+    #[error("Error while getting the content of the file. Check the file extension and the file path. Valid file extensions : {0:?}. Error message : {1}")]
+    FileError(Vec<String>, ErrorKind),
+    #[error("This file does not have any executable content")]
+    EmptyFile,
+}
+

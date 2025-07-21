@@ -18,8 +18,8 @@ use crate::execute::{
 use crate::parse::nodes::expressions::{Exp, ExpBase};
 use crate::parse::nodes::operations::Operations::{Add, Div, Equal, Mul, NotEqual, Sub};
 use crate::parse::nodes::{GraphDisplay, Parsable, ParsableWithLevel};
-use crate::skr_errors::CustomError::UnexpectedToken;
-use crate::skr_errors::{CustomError, ResultOption};
+use crate::skr_errors::ParsingError::UnexpectedToken;
+use crate::skr_errors::{ParsingError, ResultOption};
 use crate::tokens::{Token, TokenContainer};
 use crate::{impl_debug, some_token};
 use std::collections::VecDeque;
@@ -253,7 +253,7 @@ impl TakePriority {
                         Err(UnexpectedToken("Expected a right parenthesis".to_string()))
                     }
                 }
-                None => Err(CustomError::UnexpectedToken(
+                None => Err(ParsingError::UnexpectedToken(
                     "Expected an expression for TakePriority".to_string(),
                 )),
             }
@@ -318,7 +318,7 @@ macro_rules! extract_unary {
         let unary_tp = UnaryTP::parse($tokens)?;
         match unary_tp {
             Some(unary_tp) => Ok(Some($ret(Box::new(unary_tp)))),
-            None => Err(CustomError::UnexpectedToken(
+            None => Err(ParsingError::UnexpectedToken(
                 "Expected an unary_tp".to_string(),
             )),
         }

@@ -3,7 +3,7 @@ use crate::execute::{Evaluate, ExecutionError, OperationContext, OperationO};
 use crate::parse::nodes::blocs::Scope;
 use crate::parse::nodes::expressions::Exp;
 use crate::parse::nodes::GraphDisplay;
-use crate::skr_errors::{CustomError, ResultOption};
+use crate::skr_errors::{ParsingError, ResultOption};
 use crate::tokens::{Token, TokenContainer};
 use crate::{impl_debug, some_token};
 use std::collections::VecDeque;
@@ -49,9 +49,9 @@ impl Ci {
             match Exp::parse(tokens)? {
                 Some(exp) => match Scope::parse(tokens)? {
                     Some(scope) => Ok(Some(Ci::new(exp, scope))),
-                    None => Err(CustomError::element_expected(container, tokens, "scope")),
+                    None => Err(ParsingError::element_expected(container, tokens, "scope")),
                 },
-                None => Err(CustomError::element_expected(
+                None => Err(ParsingError::element_expected(
                     container,
                     tokens,
                     "expression",

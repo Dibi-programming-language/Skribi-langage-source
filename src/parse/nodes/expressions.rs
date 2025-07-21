@@ -14,7 +14,7 @@ use crate::parse::nodes::if_else::Cond;
 use crate::parse::nodes::operations::{NoValueN, TakePriorityLast};
 use crate::parse::nodes::vars::{VarDec, VarMod};
 use crate::parse::nodes::{GraphDisplay, Parsable};
-use crate::skr_errors::{CustomError, ResultOption};
+use crate::skr_errors::{ParsingError, ResultOption};
 use crate::tokens::{SpaceTypes, Token, TokenContainer};
 use crate::{impl_debug, some_token};
 
@@ -105,7 +105,7 @@ impl NatCallIn {
                 let nat_call_in = NatCallIn::parse(tokens)?;
                 match nat_call_in {
                     Some(nat_call_in) => Ok(Some(NatCallIn::new(identifier, Some(nat_call_in)))),
-                    None => Err(CustomError::UnexpectedToken(format!(
+                    None => Err(ParsingError::UnexpectedToken(format!(
                         "Expected a new line or a nat_call_in (l{}:{})",
                         token_container.line, token_container.column
                     ))),
@@ -156,7 +156,7 @@ impl NatCall {
             if let Some(nat_call_in) = NatCallIn::parse(tokens)? {
                 Ok(Some(NatCall::new(nat_call_in)))
             } else {
-                Err(CustomError::UnexpectedToken(
+                Err(ParsingError::UnexpectedToken(
                     "Expected a nat_call_in".to_string(),
                 ))
             }
@@ -335,7 +335,7 @@ impl IdUse {
                     }
                 }
             } else {
-                Err(CustomError::UnexpectedToken(
+                Err(ParsingError::UnexpectedToken(
                     "Expected an identifier".to_string(),
                 ))
             }
@@ -481,7 +481,7 @@ impl IdUseV {
                     }
                 }
             } else {
-                Err(CustomError::UnexpectedToken(
+                Err(ParsingError::UnexpectedToken(
                     "Expected an identifier".to_string(),
                 ))
             }
@@ -580,12 +580,12 @@ impl ExpBase {
                 if let some_token!(Token::RightParenthesis) = tokens.pop_front() {
                     Ok(Some(ExpBase::RightP(Box::new(exp))))
                 } else {
-                    Err(CustomError::UnexpectedToken(
+                    Err(ParsingError::UnexpectedToken(
                         "Expected a right parenthesis".to_string(),
                     ))
                 }
             } else {
-                Err(CustomError::UnexpectedToken(
+                Err(ParsingError::UnexpectedToken(
                     "Expected an expression for ExpBase".to_string(),
                 ))
             }
@@ -776,7 +776,7 @@ impl Return {
             if let Some(exp) = Exp::parse(tokens)? {
                 Ok(Some(Return { exp }))
             } else {
-                Err(CustomError::UnexpectedToken(
+                Err(ParsingError::UnexpectedToken(
                     "Expected an expression".to_string(),
                 ))
             }
@@ -908,7 +908,7 @@ impl StaL {
             if let some_token!(Token::RightBrace) = tokens.pop_front() {
                 Ok(Some(StaL::new(sta_l)))
             } else {
-                Err(CustomError::UnexpectedToken(
+                Err(ParsingError::UnexpectedToken(
                     "Expected a right curly bracket".to_string(),
                 ))
             }

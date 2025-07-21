@@ -5,7 +5,7 @@ use crate::execute::{OperationContext, OperationO};
 use crate::parse::nodes::classes::is_type_def;
 use crate::parse::nodes::expressions::Exp;
 use crate::parse::nodes::GraphDisplay;
-use crate::skr_errors::{CustomError, ResultOption};
+use crate::skr_errors::{ParsingError, ResultOption};
 use crate::tokens::{ModifierKeyword, Token, TokenContainer};
 use crate::{impl_debug, some_token};
 
@@ -114,12 +114,12 @@ impl Vd {
             if let Some(exp0) = Exp::parse(tokens)? {
                 Ok(Some(Vd::new(type_, identifier, exp0)))
             } else {
-                Err(CustomError::UnexpectedToken(
+                Err(ParsingError::UnexpectedToken(
                     "Expected an expression for Vd".to_string(),
                 ))
             }
         } else {
-            Err(CustomError::UnexpectedToken(
+            Err(ParsingError::UnexpectedToken(
                 "Expected an identifier".to_string(),
             ))
         }
@@ -195,7 +195,7 @@ impl GlobalVar {
             tokens.pop_front();
             match Vd::parse(tokens)? {
                 Some(vd) => Ok(Some(GlobalVar::new(vd))),
-                None => Err(CustomError::UnexpectedToken(
+                None => Err(ParsingError::UnexpectedToken(
                     "Expected a variable declaration".to_string(),
                 )),
             }
@@ -216,7 +216,7 @@ impl PrivateVar {
             tokens.pop_front();
             match Vd::parse(tokens)? {
                 Some(vd) => Ok(Some(PrivateVar::new(vd))),
-                None => Err(CustomError::UnexpectedToken(
+                None => Err(ParsingError::UnexpectedToken(
                     "Expected a variable declaration".to_string(),
                 )),
             }
@@ -282,7 +282,7 @@ impl ConstVar {
             } else if let Some(vd) = Vd::parse(tokens)? {
                 Ok(Some(ConstVar::Vd(vd)))
             } else {
-                Err(CustomError::UnexpectedToken(
+                Err(ParsingError::UnexpectedToken(
                     "Expected a variable declaration".to_string(),
                 ))
             }

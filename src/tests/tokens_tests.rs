@@ -1,4 +1,4 @@
-use crate::skr_errors::CustomError;
+use crate::skr_errors::ParsingError;
 use crate::token_m;
 use crate::tokens::TokenContainer;
 use crate::tokens::{tokenize, SpaceTypes, Token};
@@ -25,7 +25,7 @@ fn test_simple() {
 
 fn assert_valid_tokens(
     expected: Vec<Token>,
-    actual: Result<VecDeque<TokenContainer>, CustomError>,
+    actual: Result<VecDeque<TokenContainer>, ParsingError>,
 ) {
     match actual {
         Ok(tokens) => {

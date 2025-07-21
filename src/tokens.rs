@@ -1,5 +1,5 @@
 use crate::execute::IntType;
-use crate::skr_errors::CustomError;
+use crate::skr_errors::ParsingError;
 use std::collections::VecDeque;
 use std::fmt::{Display, Formatter};
 use std::str::Chars;
@@ -117,7 +117,7 @@ impl CharsIterator<'_> {
     }
 }
 
-fn tokenize_string(file: &mut CharsIterator) -> Result<Token, CustomError> {
+fn tokenize_string(file: &mut CharsIterator) -> Result<Token, ParsingError> {
     let mut string_escape = false;
     let mut res = String::new();
 
@@ -140,7 +140,7 @@ fn tokenize_string(file: &mut CharsIterator) -> Result<Token, CustomError> {
         }
     }
 
-    Err(CustomError::InvalidString(
+    Err(ParsingError::InvalidString(
         "String not closed".to_string(),
         file.line,
     ))
@@ -149,7 +149,7 @@ fn tokenize_string(file: &mut CharsIterator) -> Result<Token, CustomError> {
 fn tokenize_number(
     file: &mut CharsIterator,
     first_char: char,
-) -> Result<(Token, Option<char>), CustomError> {
+) -> Result<(Token, Option<char>), ParsingError> {
     let mut res = String::new();
     res.push(first_char);
     let mut is_float = false;
@@ -157,7 +157,7 @@ fn tokenize_number(
     while let Some(ch) = file.next() {
         if ch == '.' {
             if is_float {
-                return Err(CustomError::InvalidFloat(
+                return Err(ParsingError::InvalidFloat(
                     "A float can have only one . !".to_string(),
                     file.line,
                 ));
@@ -192,7 +192,7 @@ fn tokenize_number(
 fn tokenize_word(
     file: &mut CharsIterator,
     first_char: char,
-) -> Result<(Token, Option<char>), CustomError> {
+) -> Result<(Token, Option<char>), ParsingError> {
     let mut res = String::new();
     res.push(first_char);
 
@@ -259,7 +259,7 @@ macro_rules! expect_char {
     };
 }
 
-pub(crate) fn tokenize(file: String) -> Result<VecDeque<TokenContainer>, CustomError> {
+pub(crate) fn tokenize(file: String) -> Result<VecDeque<TokenContainer>, ParsingError> {
     let mut tokens: VecDeque<TokenContainer> = VecDeque::new();
 
     let mut file_ch = CharsIterator {

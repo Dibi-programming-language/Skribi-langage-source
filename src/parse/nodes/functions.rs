@@ -3,7 +3,7 @@ use std::collections::VecDeque;
 use crate::parse::nodes::blocs::Scope;
 use crate::parse::nodes::id_nodes::TupleNode;
 use crate::parse::nodes::GraphDisplay;
-use crate::skr_errors::{CustomError, ResultOption};
+use crate::skr_errors::{ParsingError, ResultOption};
 use crate::tokens::{Token, TokenContainer};
 use crate::{impl_debug, some_token};
 
@@ -60,12 +60,12 @@ impl FctDec {
                             tuple,
                             scope,
                         })),
-                        None => Err(CustomError::UnexpectedToken("Expected a scope".to_string())),
+                        None => Err(ParsingError::UnexpectedToken("Expected a scope".to_string())),
                     },
-                    None => Err(CustomError::UnexpectedToken("Expected a tuple".to_string())),
+                    None => Err(ParsingError::UnexpectedToken("Expected a tuple".to_string())),
                 }
             } else {
-                Err(CustomError::UnexpectedToken(
+                Err(ParsingError::UnexpectedToken(
                     "Expected an identifier".to_string(),
                 ))
             }
