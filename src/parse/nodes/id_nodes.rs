@@ -2,7 +2,7 @@ use std::collections::VecDeque;
 
 use crate::parse::nodes::classes::is_type_def;
 use crate::parse::nodes::GraphDisplay;
-use crate::skr_errors::{CustomError, ResultOption};
+use crate::skr_errors::{ParsingError, ResultOption};
 use crate::tokens::{Token, TokenContainer};
 use crate::{impl_debug, skr_errors, some_token};
 
@@ -24,8 +24,13 @@ pub struct TupleNode {
 }
 
 impl GraphDisplay for TupleNode {
-    fn graph_display(&self, graph: &mut String, id: &mut usize) {
-        graph.push_str(&format!("\nsubgraph TupleNode_{}[TupleNode]\nend", id));
+    fn graph_display(&self, graph: &mut String, id: &mut usize, indent: usize) {
+        graph.push_str(&format!(
+            "\n{:indent$}subgraph TupleNode_{}[TupleNode]\nend",
+            "",
+            id,
+            indent = indent
+        ));
         *id += 1;
     }
 }
@@ -65,16 +70,22 @@ impl TupleNode {
 /// > `Variable of type A and name D`
 /// > `Variable of type int and name E`
 ///
-/// A, E and D can be accessed with a `CGet` node while B, B0 of D and C cannot. See the [IdGet]
-/// for further information.
+/// A, E and D can be accessed with a `CGet` node while B, B0 of D and C cannot.
+/// See the [IdGet] for further information.
 #[derive(PartialEq)]
 pub struct CGet {
     pub(crate) name: String,
 }
 
 impl GraphDisplay for CGet {
-    fn graph_display(&self, graph: &mut String, id: &mut usize) {
-        graph.push_str(&format!("\nsubgraph CGet_{}[CGet {}]\nend", id, self.name));
+    fn graph_display(&self, graph: &mut String, id: &mut usize, indent: usize) {
+        graph.push_str(&format!(
+            "\n{:indent$}subgraph CGet_{}[CGet {}]\nend",
+            "",
+            id,
+            self.name,
+            indent = indent
+        ));
         *id += 1;
     }
 }
@@ -147,17 +158,20 @@ pub struct IdGet {
 }
 
 impl GraphDisplay for IdGet {
-    fn graph_display(&self, graph: &mut String, id: &mut usize) {
+    fn graph_display(&self, graph: &mut String, id: &mut usize, indent: usize) {
         graph.push_str(&format!(
-            "\nsubgraph IdGet_{}[IdGet {}]",
-            id, self.identifier
+            "\n{:indent$}subgraph IdGet_{}[IdGet {}]",
+            "",
+            id,
+            self.identifier,
+            indent = indent
         ));
         *id += 1;
         if let Some(tuple) = &self.tuple {
-            tuple.graph_display(graph, id);
+            tuple.graph_display(graph, id, indent + 2);
         }
-        self.op_in.graph_display(graph, id);
-        graph.push_str("\nend");
+        self.op_in.graph_display(graph, id, indent + 2);
+        graph.push_str(&format!("\n{:indent$}end", "", indent = indent));
     }
 }
 
@@ -212,15 +226,20 @@ pub enum OpIn {
 }
 
 impl GraphDisplay for OpIn {
-    fn graph_display(&self, graph: &mut String, id: &mut usize) {
-        graph.push_str(&format!("\nsubgraph OpIn_{}[OpIn]", id));
+    fn graph_display(&self, graph: &mut String, id: &mut usize, indent: usize) {
+        graph.push_str(&format!(
+            "\n{:indent$}subgraph OpIn_{}[OpIn]",
+            "",
+            id,
+            indent = indent
+        ));
         *id += 1;
         match self {
-            OpIn::IdGet(id_get) => id_get.graph_display(graph, id),
-            OpIn::CGet(c_get) => c_get.graph_display(graph, id),
+            OpIn::IdGet(id_get) => id_get.graph_display(graph, id, indent + 2),
+            OpIn::CGet(c_get) => c_get.graph_display(graph, id, indent + 2),
             OpIn::Empty => {}
         }
-        graph.push_str("\nend");
+        graph.push_str(&format!("\n{:indent$}end", "", indent = indent));
     }
 }
 
@@ -235,7 +254,7 @@ pub(crate) fn parse_op_in(tokens: &mut VecDeque<TokenContainer>) -> skr_errors::
         } else if let Some(id_get) = IdGet::parse(tokens)? {
             Ok(OpIn::IdGet(id_get))
         } else {
-            Err(CustomError::UnexpectedToken(
+            Err(ParsingError::UnexpectedToken(
                 "Expected id_get or cget after \"indide\" token".to_string(),
             ))
         }

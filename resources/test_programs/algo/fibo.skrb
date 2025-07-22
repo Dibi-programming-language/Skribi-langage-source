@@ -1,0 +1,19 @@
+
+int max 19
+int res 4181
+
+int last 0
+int current 1
+
+int i 0
+
+ci i < max {
+    int temp current + last
+    last current
+    current temp
+    i i + 1
+}
+
+skr_app assert_eq max i
+skr_app assert_eq res last
+

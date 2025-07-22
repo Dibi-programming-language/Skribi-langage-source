@@ -11,6 +11,7 @@ pub mod files_node;
 mod functions;
 pub(crate) mod id_nodes;
 mod if_else;
+mod loops;
 pub(crate) mod operations;
 mod vars;
 
@@ -36,9 +37,9 @@ macro_rules! impl_debug {
 ///
 /// # Example
 ///
-/// ```
+/// ```ignore
 /// use std::fmt;
-/// use skr::parse::nodes::GraphDisplay;
+/// // Import GraphDisplay and impl_debug
 ///
 /// struct MyNode {
 ///    name: String,
@@ -57,13 +58,13 @@ macro_rules! impl_debug {
 /// println!("{:?}", node);
 /// ```
 trait GraphDisplay {
-    fn graph_display(&self, graph: &mut String, id: &mut usize);
+    fn graph_display(&self, graph: &mut String, id: &mut usize, indent: usize);
 
     fn graph(&self) -> String {
         let mut graph = String::new();
         graph.push_str("flowchart TD");
         let mut id = 0;
-        self.graph_display(&mut graph, &mut id);
+        self.graph_display(&mut graph, &mut id, 0);
         graph
     }
 }

@@ -5,55 +5,20 @@
 ////////////////////
 
 use std::env;
+use std::process::ExitCode;
 
-use get_file_content::get_content;
-
-// Import
-use crate::tokens::tokenize;
-use crate::utils::clear;
-
-pub mod execute;
-mod get_file_content;
-mod parse;
-mod skr_errors;
-#[cfg(test)]
-mod tests;
-mod tokens;
-mod utils;
-
-const FLAG_CHAR: &str = "--";
+use skribi_language_source::execute;
 
 /// Launch the interpreter
-fn main() {
-    // parameters
-    let extension: Vec<String> = vec!["skrb".to_string(), "skribi".to_string()];
-
+fn main() -> ExitCode {
     // generic parameters
     let args = env::args().collect::<Vec<_>>(); // get the command line arguments
 
-    // clear the shell for the user
-    if !args.contains(&format!("{FLAG_CHAR}compiler-debug")) {
-        clear();
-    }
-
-    match get_content(args, extension.clone()) {
-        Ok(content) => {
-            // Read the file
-            let lines = content;
-
-            // Remove the comments and split the code into instructions
-            match tokenize(lines) {
-                Ok(tokens) => {
-                    let _nodes = parse::parse(tokens);
-                    // TODO
-                }
-                Err(err) => {
-                    panic!("{:?}", err);
-                }
-            }
-        }
+    match execute(args, true) {
+        Ok(_) => ExitCode::SUCCESS,
         Err(err) => {
-            panic!("Error while getting the content of the file. Check the file extension and the file path. Valid file extensions : {:?}. Error message : {:?}", extension.clone(), err);
+            eprintln!("\n{err}");
+            ExitCode::FAILURE
         }
     }
 }
