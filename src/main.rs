@@ -41,25 +41,25 @@ fn main() {
     // Read the file
     match get_content(args, extension.clone()) {
         Ok(content) => {
-            println!("{}", "Reading...".italic());
+            eprintln!("{}", "Reading...".italic());
             // Remove the comments and split the code into instructions
             match tokenize(content) {
                 Ok(tokens) => {
-                    println!("{}", "Analysing...".italic());
+                    eprintln!("{}", "Analysing...".italic());
                     let nodes = parse::parse(tokens);
                     if let Ok(Some(ast)) = nodes {
-                        println!("{}", "Executing...".italic());
+                        eprintln!("{}", "Executing...".italic());
                         let result = ast.execute(&mut ());
                         if let Err(err) = result {
-                            println!();
+                            eprintln!();
                             err.show();
                             panic!(
                                 "{}",
                                 "--- Your program stopped in a unexpected way ---".red()
                             );
                         } else {
-                            println!();
-                            println!("{}", "Program's end with no error".bold());
+                            eprintln!();
+                            eprintln!("{}", "Program's end with no error".bold());
                         }
                     } else if let Err(err) = nodes {
                         panic!("{} {:?}", "--- The code is wrong ---\n".red(), err)
