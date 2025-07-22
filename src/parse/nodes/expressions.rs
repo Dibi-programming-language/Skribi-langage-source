@@ -47,12 +47,19 @@ use crate::{impl_debug, some_token};
 // --- NatCallIn ---
 // -----------------
 
-/// `NatCallIn` represents an argument of a native call. It contains an identifier and an optional
-/// [NatCallIn] to represent the next argument.
+/// `NatCallIn` represents an argument of a native call.
+/// It contains an identifier and an optional [NatCallIn] to represent the next argument.
 ///
-/// The identifier is the name of the variable that will be passed to the native function. The
-/// [NatCallIn] is the next argument to pass to the native function, this is the tail of the list of
-/// arguments.
+/// The [NatCallIn] is the next argument to pass to the native function,
+/// this is the tail of the list of arguments.
+///
+/// The first identifier of the list is the name of the native function to call.
+/// All others are in general the name of variables that will be used as arguments.
+/// The value behind the name will be retreived to be used in this function.
+///
+/// Variables are not yet implemented in this pull request.
+///
+/// See the glossary if needed.
 #[derive(PartialEq)]
 struct NatCallIn {
     identifier: String,
@@ -124,8 +131,9 @@ impl Parsable for NatCallIn {
 // --- NatCall ---
 // ---------------
 
-/// `NatCall` represents a native call. It contains a [NatCallIn] to represent the first argument
-/// and the chain of arguments. The first argument is the name of the native function to call.
+/// `NatCall` represents a native call.
+/// It contains a [NatCallIn] to represent the first argument and the chain of arguments.
+/// The first argument is the name of the native function to call.
 #[derive(PartialEq)]
 pub struct NatCall {
     nat_call_in: NatCallIn,
