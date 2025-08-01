@@ -3,13 +3,16 @@ use std::fs;
 use std::io::{stdin, stdout, ErrorKind, Write};
 use std::process::Command;
 
-/// This function clear the shell
+/// This function clears the shell
 pub fn clear() {
+    // Tries the classic command
     match Command::new("clear").status() {
         Ok(_) => {}
+        // In case of error, tries another possible command (ex on Windows)
         Err(_) => match Command::new("cls").status() {
             Ok(_) => {}
             Err(_) => {
+                // Just print to simulate a clear
                 for _ in 0..100 {
                     println!()
                 }

@@ -1,13 +1,13 @@
-use crate::execute::{Evaluate, OperationIO};
+use crate::execute::{Evaluate, OperationCleanOutput};
 use crate::parse::nodes::operations::TakePriorityLast;
 use crate::parse::nodes::Parsable;
 use crate::tokens::tokenize;
 
-fn assert_evaluation(file: String, expected: OperationIO) {
+fn assert_evaluation(file: String, expected: OperationCleanOutput) {
     let mut tokens = tokenize(file).unwrap();
     let ast = TakePriorityLast::parse(&mut tokens).unwrap().unwrap();
     println!("{:?}", ast);
-    let result = ast.evaluate(&());
+    let result = ast.evaluate(&mut ()).unwrap();
     assert_eq!(result, expected, "{:?}", ast);
 }
 

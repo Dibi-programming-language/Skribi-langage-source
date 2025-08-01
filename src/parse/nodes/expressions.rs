@@ -1,5 +1,8 @@
 use std::collections::VecDeque;
 
+use crate::execute::OperationContext;
+use crate::execute::OperationO;
+use crate::execute::{Evaluate, Execute, ExecutionError, GeneralOutput};
 use crate::parse::nodes::blocs::ScopeBase;
 use crate::parse::nodes::functions::FctDec;
 use crate::parse::nodes::id_nodes::{parse_op_in, OpIn, TupleNode};
@@ -44,12 +47,19 @@ use crate::{impl_debug, some_token};
 // --- NatCallIn ---
 // -----------------
 
-/// `NatCallIn` represents an argument of a native call. It contains an identifier and an optional
-/// [NatCallIn] to represent the next argument.
+/// `NatCallIn` represents an argument of a native call.
+/// It contains an identifier and an optional [NatCallIn] to represent the next argument.
 ///
-/// The identifier is the name of the variable that will be passed to the native function. The
-/// [NatCallIn] is the next argument to pass to the native function, this is the tail of the list of
-/// arguments.
+/// The [NatCallIn] is the next argument to pass to the native function,
+/// this is the tail of the list of arguments.
+///
+/// The first identifier of the list is the name of the native function to call.
+/// All others are in general the name of variables that will be used as arguments.
+/// The value behind the name will be retreived to be used in this function.
+///
+/// Variables are not yet implemented in this pull request.
+///
+/// See the glossary if needed.
 #[derive(PartialEq)]
 struct NatCallIn {
     identifier: String,
@@ -79,29 +89,37 @@ impl NatCallIn {
             nat_call_in: nat_call_in.map(Box::new),
         }
     }
+}
 
-    pub fn parse(tokens: &mut VecDeque<TokenContainer>) -> ResultOption<NatCallIn> {
-        // <nat_call_in> ::= T_IDENTIFIER ("\n" | <nat_call_in>)
-        if let some_token!(Token::Identifier(_)) = tokens.front() {
-            if let some_token!(Token::Identifier(identifier)) = tokens.pop_front() {
-                if let some_token!(Token::Space(SpaceTypes::NewLine)) = tokens.front() {
-                    tokens.pop_front();
-                    Ok(Some(NatCallIn::new(identifier, None)))
-                } else {
-                    let nat_call_in = NatCallIn::parse(tokens)?;
-                    match nat_call_in {
-                        Some(nat_call_in) => {
-                            Ok(Some(NatCallIn::new(identifier, Some(nat_call_in))))
-                        }
-                        None => Err(CustomError::UnexpectedToken(
-                            "Expected a new line or a nat_call_in".to_string(),
-                        )),
-                    }
-                }
+impl Parsable for NatCallIn {
+    /// Parse a chain of identifiers that finishes by a new line.
+    /// Grammar:
+    /// <nat_call_in> ::= T_IDENTIFIER ("\n" | <nat_call_in>).
+    /// Used by [NatCall] to get the arguments of a skr_app.
+    fn parse(tokens: &mut VecDeque<TokenContainer>) -> ResultOption<NatCallIn> {
+        // As usual, verify that this is a NatCallIn by checking that there
+        // is an identifier at the front of the VecDeque.
+        if let some_token!(Token::Identifier(identifier)) = tokens.front() {
+            let identifier = identifier.to_string();
+            // We know that unwrap will not fail as tokens.front returned
+            // something. Note that we do not get the type (identifier) but
+            // only the container of the enum from the Option.
+            let token_container = tokens.pop_front().unwrap();
+
+            if let some_token!(Token::Space(SpaceTypes::NewLine)) = tokens.front() {
+                // End of line and of arguments
+                tokens.pop_front();
+                Ok(Some(NatCallIn::new(identifier, None)))
             } else {
-                Err(CustomError::UnexpectedToken(
-                    "Had an identifier, but couldn't get it".to_string(),
-                ))
+                // Rec call of this function to get following identifiers.
+                let nat_call_in = NatCallIn::parse(tokens)?;
+                match nat_call_in {
+                    Some(nat_call_in) => Ok(Some(NatCallIn::new(identifier, Some(nat_call_in)))),
+                    None => Err(CustomError::UnexpectedToken(format!(
+                        "Expected a new line or a nat_call_in (l{}:{})",
+                        token_container.line, token_container.column
+                    ))),
+                }
             }
         } else {
             Ok(None)
@@ -113,10 +131,11 @@ impl NatCallIn {
 // --- NatCall ---
 // ---------------
 
-/// `NatCall` represents a native call. It contains a [NatCallIn] to represent the first argument
-/// and the chain of arguments. The first argument is the name of the native function to call.
+/// `NatCall` represents a native call.
+/// It contains a [NatCallIn] to represent the first argument and the chain of arguments.
+/// The first argument is the name of the native function to call.
 #[derive(PartialEq)]
-struct NatCall {
+pub struct NatCall {
     nat_call_in: NatCallIn,
 }
 
@@ -149,6 +168,29 @@ impl NatCall {
             }
         } else {
             Ok(None)
+        }
+    }
+
+    fn print(&self, _operation_context: &mut OperationContext) -> GeneralOutput {
+        let mut current = &self.nat_call_in.nat_call_in;
+        while let Some(content) = current {
+            print!("{}", content.identifier);
+            current = &content.nat_call_in;
+        }
+        Ok(())
+    }
+}
+
+impl Execute for NatCall {
+    fn execute(&self, operation_context: &mut OperationContext) -> GeneralOutput {
+        match &self.nat_call_in.identifier[..] {
+            "print" => self.print(operation_context),
+            "println" => {
+                self.print(operation_context)?;
+                println!();
+                Ok(())
+            }
+            name => Err(ExecutionError::native_call_invalid(name)),
         }
     }
 }
@@ -252,7 +294,7 @@ impl IdUse {
 // --------------
 
 /// `InsideIdUseV` represents the possible values that can be inside an [IdUseV]. It can be a
-/// [TupleNode] (with an optional [NoValue]), a [VarMod], a [NoValue], or nothing.
+/// [TupleNode] (with an optional [NoValueN]), a [VarMod], a [NoValueN], or nothing.
 #[derive(PartialEq)]
 pub(crate) enum InsideIdUseV {
     Tuple {
@@ -266,18 +308,18 @@ pub(crate) enum InsideIdUseV {
 
 /// `IdUseV` works like an [IdUse] but can apply operations on the result of a get. This means that
 /// it can be an identifier usage on which we apply operations, or not. We must notice that we
-/// cannot directly apply a [NoValue] to an [IdUse] because [NoValue] has a higher priority than
+/// cannot directly apply a [NoValueN] to an [IdUse] because [NoValueN] has a higher priority than
 /// [VarMod] and cannot be used with it.
 ///
 /// # Grammar
 ///
 /// `<id_use_v> ::= T_IDENTIFIER ( <tuple> <op_in> (<no_value> |) | <op_in> (<no_value> | <var_mod> |) )`
 ///
-/// See also [TupleNode], [OpIn], [NoValue] and [VarMod].
+/// See also [TupleNode], [OpIn], [NoValueN] and [VarMod].
 ///
 /// # Example
 ///
-/// The expression `a + 1` is an identifier followed by an empty [OpIn] and the [NoValue] `+ 1`.
+/// The expression `a + 1` is an identifier followed by an empty [OpIn] and the [NoValueN] `+ 1`.
 ///
 /// See the test `test_simple_exp_id_use_v` in `src/tests/parse_tests/expressions_tests.rs` for an
 /// example of parsing.
@@ -497,9 +539,11 @@ impl ExpTp {
 // --- Exp ---
 // -----------
 
-/// `Exp` represents any expression with low priority. It might be between parentheses to work. It
-/// contains [ExpTp] or [TPLast]. [TPLast] represents any chain of operations, and [ExpTp] a high
-/// priority expression.
+/// `Exp` represents any expression with low priority.
+/// It might be between parentheses to work.
+/// It contains [ExpTp] or [TakePriorityLast].
+/// [TakePriorityLast] represents any chain of operations,
+/// and [ExpTp] a high priority expression.
 #[derive(PartialEq)]
 pub enum Exp {
     ExpTp(ExpTp),
@@ -531,6 +575,15 @@ impl Exp {
             Ok(Some(Exp::TPLast(tp_last)))
         } else {
             Ok(None)
+        }
+    }
+}
+
+impl Evaluate for Exp {
+    fn evaluate(&self, operation_context: &mut OperationContext) -> OperationO {
+        match self {
+            Exp::ExpTp(_exp_tp) => todo!(),
+            Exp::TPLast(tp_last) => tp_last.evaluate(operation_context),
         }
     }
 }
@@ -584,6 +637,7 @@ impl Return {
 pub enum Sta {
     Return(Return),
     Exp(Exp),
+    NatCall(NatCall),
 }
 
 impl GraphDisplay for Sta {
@@ -593,6 +647,7 @@ impl GraphDisplay for Sta {
         match self {
             Sta::Return(return_node) => return_node.graph_display(graph, id),
             Sta::Exp(exp) => exp.graph_display(graph, id),
+            Sta::NatCall(nat_call) => nat_call.graph_display(graph, id),
         }
         graph.push_str("\nend");
     }
@@ -602,14 +657,33 @@ impl_debug!(Sta);
 
 impl Sta {
     pub fn parse(tokens: &mut VecDeque<TokenContainer>) -> ResultOption<Sta> {
-        // <sta> ::= <return> | <exp>
+        // <sta> ::= <return> | <exp> | <nat_call>
         if let Some(return_node) = Return::parse(tokens)? {
             Ok(Some(Sta::Return(return_node)))
+        } else if let Some(nat_call) = NatCall::parse(tokens)? {
+            Ok(Some(Sta::NatCall(nat_call)))
         } else if let Some(exp) = Exp::parse(tokens)? {
             Ok(Some(Sta::Exp(exp)))
         } else {
             Ok(None)
         }
+    }
+}
+
+impl Execute for Sta {
+    fn execute(&self, operation_context: &mut OperationContext) -> GeneralOutput {
+        match self {
+            Sta::Return(_return_node) => {
+                todo!()
+            }
+            Sta::NatCall(nat_call) => {
+                nat_call.execute(operation_context)?;
+            }
+            Sta::Exp(exp) => {
+                exp.evaluate(operation_context)?;
+            }
+        }
+        Ok(())
     }
 }
 
@@ -631,6 +705,7 @@ impl GraphDisplay for StaL {
         for sta in &self.sta_l {
             match sta {
                 Sta::Return(return_node) => return_node.graph_display(graph, id),
+                Sta::NatCall(nat_call) => nat_call.graph_display(graph, id),
                 Sta::Exp(exp) => exp.graph_display(graph, id),
             }
         }
