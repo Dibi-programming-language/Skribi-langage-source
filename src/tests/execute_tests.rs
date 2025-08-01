@@ -1,4 +1,4 @@
-use crate::execute::Evaluate;
+use crate::execute::{Evaluate, ExecutionContext};
 use crate::parse::nodes::operations::TakePriorityLast;
 use crate::parse::nodes::Parsable;
 use crate::tokens::{Token, TokenContainer};
@@ -15,7 +15,7 @@ fn add_test() {
     let res = TakePriorityLast::parse(&mut vec)
         .expect("Fail with error to parse TakePriorityLast.")
         .expect("TakePriorityLast should not return None.")
-        .evaluate(&mut ())
+        .evaluate(&mut ExecutionContext::new())
         .expect("Evaluation of 1 + 2 should not fail.");
     assert_eq!(res, 3);
 }
