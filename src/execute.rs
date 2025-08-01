@@ -130,7 +130,6 @@ pub trait Execute {
     fn execute(&self, operation_context: &mut OperationContext) -> GeneralOutput;
 }
 
-#[allow(dead_code)]
 #[derive(PartialEq, Debug)]
 pub struct ExecutionHint {
     message: String,
@@ -152,7 +151,6 @@ impl ExecutionHint {
     }
 }
 
-#[allow(dead_code)]
 #[derive(PartialEq, Debug)]
 pub struct ExecutionError {
     message: String,
@@ -200,18 +198,18 @@ impl ExecutionError {
     }
 
     pub fn show(&self) {
-        println!("Error: {}", self.message.red().bold());
+        eprintln!("Error: {}", self.message.red().bold());
 
         if self.hints.len() == 1 {
-            println!(
+            eprintln!(
                 "{} {}",
                 "Hint:".bold().green(),
                 self.hints[0].message.green()
             )
         } else if self.hints.len() > 1 {
-            println!("{}", "Hints:".bold().green());
+            eprintln!("{}", "Hints:".bold().green());
             for hint in &self.hints {
-                println!("{} {}", "-".green(), hint.message.green());
+                eprintln!("{} {}", "-".green(), hint.message.green());
             }
         }
     }

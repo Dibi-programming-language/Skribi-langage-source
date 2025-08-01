@@ -1,19 +1,3 @@
-// fu = global, pu = private, ju = constant
-// skr my_skr "Hello, World!"
 int my_int 5
 skr_app println my_int
 skr_app println my_skr
-// fu int global 1
-// ju int constant 2
-// fu ju int global_constant 3
-// pu ju int private_constant 4
-// skr_app println constant global
-// skr_app print global_constant
-// skr_app print private_constant
-// skr_app println private_constant
-// throw an error
-// skr_app 1 private
-// throw an error
-// pu pomme private 3
-// exit(42)
-// ei 5
