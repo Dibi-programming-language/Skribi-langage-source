@@ -1,11 +1,118 @@
+use std::collections::HashMap;
+
 use colored::Colorize;
 
-pub type IntType = u32;
 pub type OperationI = u32;
+
+struct Variable {
+    pub content: u32,
+}
+
+impl Variable {
+    fn new(value: OperationI) -> Self {
+        Self { content: value }
+    }
+}
+
+struct ExecutionScope {
+    variables: HashMap<String, Variable>,
+    outer_scope: Option<Box<ExecutionScope>>,
+}
+
+impl ExecutionScope {
+    fn new(outer_scope: Option<Box<ExecutionScope>>) -> Self {
+        Self {
+            variables: HashMap::new(),
+            outer_scope,
+        }
+    }
+
+    fn associate_new(&mut self, name: String, value: OperationI) {
+        self.variables.insert(name, Variable::new(value));
+    }
+
+    fn edit_variable(
+        &mut self,
+        name: &String,
+        new_value: OperationI,
+        line: usize,
+    ) -> Result<(), ExecutionError> {
+        if let Some(variable) = self.variables.get_mut(name) {
+            variable.content = new_value;
+            Ok(())
+        } else if let Some(ref mut outer) = self.outer_scope {
+            outer.edit_variable(name, new_value, line)
+        } else {
+            Err(ExecutionError::variable_not_exists(name, line))
+        }
+    }
+
+    fn get_variable(&mut self, name: &String, line: usize) -> Result<OperationI, ExecutionError> {
+        if let Some(variable) = self.variables.get_mut(name) {
+            Ok(variable.content)
+        } else if let Some(ref mut outer) = self.outer_scope {
+            outer.get_variable(name, line)
+        } else {
+            Err(ExecutionError::variable_not_exists(name, line))
+        }
+    }
+}
+
+pub struct ExecutionContext {
+    scope: Option<ExecutionScope>,
+}
+
+impl ExecutionContext {
+    pub fn new() -> Self {
+        Self { scope: None }
+    }
+
+    pub fn associate_new(&mut self, name: String, value: OperationI) {
+        if let Some(ref mut scope) = self.scope {
+            scope.associate_new(name, value);
+        } else {
+            self.scope = Some(ExecutionScope::new(None));
+            self.associate_new(name, value);
+        }
+    }
+
+    pub fn change_value(
+        &mut self,
+        name: &String,
+        value: OperationI,
+        line: usize,
+    ) -> Result<(), ExecutionError> {
+        if let Some(ref mut scope) = self.scope {
+            scope.edit_variable(name, value, line)
+        } else {
+            Err(ExecutionError::variable_not_exists(name, line))
+        }
+    }
+
+    pub fn get_variable(
+        &mut self,
+        name: &String,
+        line: usize,
+    ) -> Result<OperationI, ExecutionError> {
+        if let Some(ref mut scope) = self.scope {
+            scope.get_variable(name, line)
+        } else {
+            Err(ExecutionError::variable_not_exists(name, line))
+        }
+    }
+}
+
+impl Default for ExecutionContext {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+pub type IntType = u32;
 pub type OperationCleanOutput = u32;
 pub type OperationO = Result<OperationCleanOutput, ExecutionError>;
 pub type GeneralOutput = Result<(), ExecutionError>;
-pub type OperationContext = ();
+pub type OperationContext = ExecutionContext;
 
 pub trait EvaluateFromInput {
     fn evaluate_from_input(
@@ -70,8 +177,11 @@ impl ExecutionError {
         self
     }
 
-    pub fn variable_not_exists() -> Self {
-        Self::new("This variable does not exists.")
+    pub fn variable_not_exists(name: &String, line: usize) -> Self {
+        Self::new_str(format!(
+            "The variable {} does not exists at line {}",
+            name, line
+        ))
     }
 
     pub fn native_call_invalid(name: &str) -> Self {

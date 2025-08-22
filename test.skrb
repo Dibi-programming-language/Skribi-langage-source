@@ -1,8 +1,3 @@
-// Should print the name of the variable for this pull request
+int my_int 5
+skr_app println my_int
 skr_app println my_skr
-skr_app println constant global
-skr_app print global_constant
-skr_app print private_constant
-skr_app println private_constant
-// Should crash as ei 5 is not valid outside of a function
-ei 5

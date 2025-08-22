@@ -1,5 +1,7 @@
 use std::collections::VecDeque;
 
+use crate::execute::Evaluate;
+use crate::execute::{OperationContext, OperationO};
 use crate::parse::nodes::classes::is_type_def;
 use crate::parse::nodes::expressions::Exp;
 use crate::parse::nodes::GraphDisplay;
@@ -30,6 +32,20 @@ pub struct Type {
     pub(crate) name: String,
 }
 
+impl Type {
+    pub(crate) fn parse(tokens: &mut VecDeque<TokenContainer>) -> Option<Type> {
+        if let some_token!(Token::Identifier(identifier)) = tokens.front() {
+            if is_type_def(identifier) {
+                if let some_token!(Token::Identifier(identifier)) = tokens.pop_front() {
+                    return Some(Type { name: identifier });
+                }
+            }
+        }
+
+        None
+    }
+}
+
 impl GraphDisplay for Type {
     fn graph_display(&self, graph: &mut String, id: &mut usize) {
         graph.push_str(&format!("\nsubgraph CGet_{}[CGet {}]\nend", id, self.name));
@@ -39,24 +55,13 @@ impl GraphDisplay for Type {
 
 impl_debug!(Type);
 
-pub(crate) fn parse_type(tokens: &mut VecDeque<TokenContainer>) -> Option<Type> {
-    if let some_token!(Token::Identifier(identifier)) = tokens.front() {
-        if is_type_def(identifier) {
-            if let some_token!(Token::Identifier(identifier)) = tokens.pop_front() {
-                return Some(Type { name: identifier });
-            }
-        }
-    }
-
-    None
-}
-
 // ----------
 // --- Vd ---
 // ----------
 
-/// `Vd` represents a variable declaration in the AST. It contains a type, an identifier and an
-/// expression. The expression is not yet implemented.
+/// `Vd` represents a variable declaration in the AST.
+/// It contains a type, an identifier and an expression.
+/// The expression is not yet implemented.
 #[derive(PartialEq)]
 pub struct Vd {
     type_: Type,
@@ -86,7 +91,7 @@ impl Vd {
 
     fn parse(tokens: &mut VecDeque<TokenContainer>) -> ResultOption<Self> {
         // <vd> ::= <type> T_IDENTIFIER <exp>
-        let type_ = match parse_type(tokens) {
+        let type_ = match Type::parse(tokens) {
             Some(type_) => type_,
             None => return Ok(None),
         };
@@ -104,6 +109,14 @@ impl Vd {
                 "Expected an identifier".to_string(),
             ))
         }
+    }
+}
+
+impl Evaluate for Vd {
+    fn evaluate(&self, operation_context: &mut OperationContext) -> OperationO {
+        let content = self.exp.evaluate(operation_context)?;
+        operation_context.associate_new(self.identifier.clone(), content);
+        operation_context.get_variable(&self.identifier, 0)
     }
 }
 
@@ -300,6 +313,15 @@ impl VarDec {
             Ok(Some(VarDec::Vd(vd)))
         } else {
             Ok(None)
+        }
+    }
+}
+
+impl Evaluate for VarDec {
+    fn evaluate(&self, operation_context: &mut OperationContext) -> OperationO {
+        match self {
+            Self::Vd(vd) => vd.evaluate(operation_context),
+            _ => todo!(),
         }
     }
 }
