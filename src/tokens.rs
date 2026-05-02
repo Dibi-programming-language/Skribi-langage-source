@@ -1,3 +1,4 @@
+use crate::execute::IntType;
 use crate::skr_errors::CustomError;
 use std::collections::VecDeque;
 use std::fmt::{Display, Formatter};
@@ -22,7 +23,7 @@ pub enum SpaceTypes {
 #[derive(Debug, PartialEq)]
 pub enum Token {
     Bool(bool),
-    Int(u32),
+    Int(IntType),
     Float(f32),
     String(String),
     NatCall,
