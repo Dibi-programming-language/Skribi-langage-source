@@ -20,6 +20,7 @@ pub fn get_content(args: Vec<String>, extensions: Vec<String>) -> Result<String,
         return read(&path);
     }
 
+    println!("No path or invalid path, reading input:");
     let mut content = String::new();
 
     loop {

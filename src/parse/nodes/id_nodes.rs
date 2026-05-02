@@ -2,7 +2,7 @@ use std::collections::VecDeque;
 
 use crate::parse::nodes::classes::is_type_def;
 use crate::parse::nodes::GraphDisplay;
-use crate::skr_errors::{CustomError, ResultOption};
+use crate::skr_errors::{ParsingError, ResultOption};
 use crate::tokens::{Token, TokenContainer};
 use crate::{impl_debug, skr_errors, some_token};
 
@@ -254,7 +254,7 @@ pub(crate) fn parse_op_in(tokens: &mut VecDeque<TokenContainer>) -> skr_errors::
         } else if let Some(id_get) = IdGet::parse(tokens)? {
             Ok(OpIn::IdGet(id_get))
         } else {
-            Err(CustomError::UnexpectedToken(
+            Err(ParsingError::UnexpectedToken(
                 "Expected id_get or cget after \"indide\" token".to_string(),
             ))
         }
