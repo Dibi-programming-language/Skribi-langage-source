@@ -13,3 +13,5 @@ harness = false
 [dependencies]
 thiserror = "2"
 colored = "3"
+chumsky = "0.12"
+ariadne = "0.6"
