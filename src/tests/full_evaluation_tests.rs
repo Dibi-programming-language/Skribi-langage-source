@@ -1,13 +1,20 @@
-use crate::execute::{Evaluate, ExecutionContext, OperationCleanOutput};
+use crate::execute::{Evaluate, ExecutionContext, IntType};
 use crate::parse::nodes::operations::TakePriorityLast;
 use crate::parse::nodes::Parsable;
 use crate::tokens::tokenize;
 
-fn assert_evaluation(file: String, expected: OperationCleanOutput) {
+fn assert_evaluation(file: String, expected: IntType) {
     let mut tokens = tokenize(file).unwrap();
-    let ast = TakePriorityLast::parse(&mut tokens).unwrap().unwrap();
+    let ast = TakePriorityLast::parse(&mut tokens)
+        .expect("Should be valid.")
+        .expect("Should be present.");
     println!("{:?}", ast);
-    let result = ast.evaluate(&mut ExecutionContext::new()).unwrap();
+    let mut context = ExecutionContext::new();
+    let result = ast
+        .evaluate(&mut context)
+        .expect("Should be evaluated without error.")
+        .as_int(&context)
+        .expect("Should be an integi.");
     assert_eq!(result, expected, "{:?}", ast);
 }
 

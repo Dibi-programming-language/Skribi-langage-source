@@ -1,6 +1,7 @@
 use std::collections::VecDeque;
 use std::io::stdin;
 
+use crate::execute::int::InternalInt;
 use crate::execute::IntType;
 use crate::execute::OperationContext;
 use crate::execute::OperationO;
@@ -203,7 +204,11 @@ impl NatCall {
             while let (Some(content), Some(str)) = (current, iter.next()) {
                 let result = str.parse::<IntType>();
                 if let Ok(number) = result {
-                    operation_context.change_value(&content.identifier, number, 0)?;
+                    operation_context.change_value(
+                        &content.identifier,
+                        InternalInt::new_boxed(number),
+                        0,
+                    )?;
                 } else {
                     return Err(ExecutionError::wrong_input_type("int", str));
                 }
@@ -224,7 +229,7 @@ impl NatCall {
             current = &content.nat_call_in;
             while let Some(content) = current {
                 let value = operation_context.get_variable(&content.identifier, 0)?;
-                if value != first_value {
+                if !value.basic_equal(&first_value, operation_context)? {
                     return Err(ExecutionError::assertion_error(first_value, value));
                 }
                 current = &content.nat_call_in;
@@ -362,7 +367,7 @@ impl Evaluate for IdUse {
             InsideIdUse::Empty => operation_context.get_variable(&self.identifier, 0),
             InsideIdUse::VarMod(modification) => {
                 let value = modification.evaluate(operation_context)?;
-                operation_context.change_value(&self.identifier, value, 0)?;
+                operation_context.change_value(&self.identifier, value.clone(), 0)?;
                 Ok(value)
             }
             _ => todo!(),
@@ -508,7 +513,7 @@ impl Evaluate for IdUseV {
             InsideIdUseV::Empty => operation_context.get_variable(&self.identifier, 0),
             InsideIdUseV::VarMod(modification) => {
                 let value = modification.evaluate(operation_context)?;
-                operation_context.change_value(&self.identifier, value, 0)?;
+                operation_context.change_value(&self.identifier, value.clone(), 0)?;
                 Ok(value)
             }
             InsideIdUseV::NoValue(nv) => {

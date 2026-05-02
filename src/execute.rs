@@ -1,12 +1,63 @@
-use std::collections::HashMap;
+use std::{collections::HashMap, fmt::Display};
 
 use colored::Colorize;
 
+pub mod int;
+pub mod ioi;
+
 pub type IntType = i32;
-pub type OperationI = IntType;
+
+pub trait BasicValue: Display {
+    /// A clone function that does not require Sized.
+    /// Used to avoid useless allocations of VariableValue
+    fn clone(&self) -> VariableValue;
+
+    fn add(
+        self: Box<Self>,
+        other: &VariableValue,
+        context: &OperationContext,
+    ) -> Result<VariableValue, ExecutionError>;
+
+    fn sub(
+        self: Box<Self>,
+        other: &VariableValue,
+        context: &OperationContext,
+    ) -> Result<VariableValue, ExecutionError>;
+
+    fn div(
+        self: Box<Self>,
+        other: &VariableValue,
+        context: &OperationContext,
+    ) -> Result<VariableValue, ExecutionError>;
+
+    fn mul(
+        self: Box<Self>,
+        other: &VariableValue,
+        context: &OperationContext,
+    ) -> Result<VariableValue, ExecutionError>;
+
+    fn minus(self: Box<Self>, context: &OperationContext) -> Result<VariableValue, ExecutionError>;
+
+    fn as_int(&self, context: &OperationContext) -> Result<IntType, ExecutionError>;
+    fn as_ioi(&self, context: &OperationContext) -> Result<bool, ExecutionError>;
+
+    fn basic_equal(
+        &self,
+        other: &VariableValue,
+        context: &OperationContext,
+    ) -> Result<bool, ExecutionError>;
+    fn equal(
+        &self,
+        other: &VariableValue,
+        context: &OperationContext,
+    ) -> Result<VariableValue, ExecutionError>;
+}
+
+pub type VariableValue = Box<dyn BasicValue>;
+pub type OperationI = VariableValue;
 
 struct Variable {
-    pub content: OperationI,
+    pub content: VariableValue,
 }
 
 impl Variable {
@@ -48,9 +99,13 @@ impl ExecutionScope {
         }
     }
 
-    fn get_variable(&mut self, name: &String, line: usize) -> Result<OperationI, ExecutionError> {
+    fn get_variable(
+        &mut self,
+        name: &String,
+        line: usize,
+    ) -> Result<VariableValue, ExecutionError> {
         if let Some(variable) = self.variables.get_mut(name) {
-            Ok(variable.content)
+            Ok(variable.content.clone())
         } else if let Some(ref mut outer) = self.outer_scope {
             outer.get_variable(name, line)
         } else {
@@ -80,7 +135,7 @@ impl ExecutionContext {
     pub fn change_value(
         &mut self,
         name: &str,
-        value: OperationI,
+        value: VariableValue,
         line: usize,
     ) -> Result<(), ExecutionError> {
         if let Some(ref mut scope) = self.scope {
@@ -109,7 +164,7 @@ impl Default for ExecutionContext {
     }
 }
 
-pub type OperationCleanOutput = OperationI;
+pub type OperationCleanOutput = VariableValue;
 pub type OperationO = Result<OperationCleanOutput, ExecutionError>;
 pub type GeneralOutput = Result<(), ExecutionError>;
 pub type OperationContext = ExecutionContext;
@@ -156,6 +211,10 @@ impl ExecutionHint {
 
     pub fn try_another_input() -> Self {
         Self::new("Try to enter another input.")
+    }
+
+    pub fn check_types() -> Self {
+        Self::new("Check operations around this value to verify the type.")
     }
 }
 
@@ -225,8 +284,20 @@ impl ExecutionError {
 
     pub fn assertion_error(expected: OperationI, received: OperationI) -> Self {
         Self::new_str(format!(
-            "Assertion Error: expected {} got {}",
+            "Assertion Error: expected {} got {}.",
             expected, received,
+        ))
+    }
+
+    pub fn wrong_type(expected: &str, got: &str) -> Self {
+        Self::new_str(format!("Type Error: expected {} got {}.", expected, got))
+            .add_hint(ExecutionHint::check_types())
+    }
+
+    pub fn not_implemented_for(operation: &str, got: &str) -> Self {
+        Self::new_str(format!(
+            "Type Error: operation {} does not have any meaning for {}.",
+            operation, got
         ))
     }
 

@@ -1,3 +1,5 @@
+use crate::execute::int::InternalInt;
+use crate::execute::ioi::InternalIoi;
 use crate::execute::{
     Evaluate, EvaluateFromInput, IntType, OperationContext, OperationI, OperationO,
 };
@@ -126,7 +128,8 @@ impl ValueBase {
 impl Evaluate for ValueBase {
     fn evaluate(&self, _operation_context: &mut OperationContext) -> OperationO {
         match self {
-            ValueBase::Int(value) => Ok(*value),
+            ValueBase::Int(value) => Ok(InternalInt::new_boxed(*value)),
+            ValueBase::Bool(value) => Ok(InternalIoi::new_boxed(*value)),
             _ => todo!(),
         }
     }
@@ -346,7 +349,7 @@ impl Evaluate for UnaryTP {
         match self {
             UnaryTP::Plus(unary_tp) => unary_tp.evaluate(operation_context),
             UnaryTP::TakePriority(take_priority) => take_priority.evaluate(operation_context),
-            UnaryTP::Minus(minus) => minus.evaluate(operation_context).map(|x| -x),
+            UnaryTP::Minus(minus) => minus.evaluate(operation_context)?.minus(operation_context),
             _ => todo!(),
         }
     }
@@ -453,10 +456,22 @@ impl EvaluateFromInput for OperationN {
         input: OperationI,
     ) -> OperationO {
         Ok(match self.operation {
-            Add => input + self.tp_nm1.evaluate(operation_context)?,
-            Sub => input - self.tp_nm1.evaluate(operation_context)?,
-            Div => input / self.tp_nm1.evaluate(operation_context)?,
-            Mul => input * self.tp_nm1.evaluate(operation_context)?,
+            Add => {
+                let other = self.tp_nm1.evaluate(operation_context)?;
+                input.add(&other, operation_context)?
+            }
+            Sub => {
+                let other = self.tp_nm1.evaluate(operation_context)?;
+                input.sub(&other, operation_context)?
+            }
+            Div => {
+                let other = self.tp_nm1.evaluate(operation_context)?;
+                input.div(&other, operation_context)?
+            }
+            Mul => {
+                let other = self.tp_nm1.evaluate(operation_context)?;
+                input.mul(&other, operation_context)?
+            }
             _ => todo!(),
         })
     }
