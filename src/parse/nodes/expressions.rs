@@ -1,8 +1,9 @@
 use std::collections::VecDeque;
+use std::io::stdin;
 
 use crate::execute::OperationContext;
 use crate::execute::OperationO;
-use crate::execute::{Evaluate, Execute, ExecutionError, GeneralOutput};
+use crate::execute::{Evaluate, EvaluateFromInput, Execute, ExecutionError, GeneralOutput};
 use crate::parse::nodes::blocs::ScopeBase;
 use crate::parse::nodes::functions::FctDec;
 use crate::parse::nodes::id_nodes::{parse_op_in, OpIn, TupleNode};
@@ -67,16 +68,19 @@ struct NatCallIn {
 }
 
 impl GraphDisplay for NatCallIn {
-    fn graph_display(&self, graph: &mut String, id: &mut usize) {
+    fn graph_display(&self, graph: &mut String, id: &mut usize, indent: usize) {
         graph.push_str(&format!(
-            "\nsubgraph NatCallIn_{}[NatCallIn {}]",
-            id, self.identifier
+            "\n{:dec$}subgraph NatCallIn_{}[NatCallIn {}]",
+            "",
+            id,
+            self.identifier,
+            dec = indent
         ));
         *id += 1;
         if let Some(nat_call_in) = &self.nat_call_in {
-            nat_call_in.graph_display(graph, id);
+            nat_call_in.graph_display(graph, id, indent + 2);
         }
-        graph.push_str("\nend");
+        graph.push_str(&format!("\n{:indent$}end", "", indent = indent));
     }
 }
 
@@ -140,11 +144,16 @@ pub struct NatCall {
 }
 
 impl GraphDisplay for NatCall {
-    fn graph_display(&self, graph: &mut String, id: &mut usize) {
-        graph.push_str(&format!("\nsubgraph NatCall_{}[NatCall]", id));
+    fn graph_display(&self, graph: &mut String, id: &mut usize, indent: usize) {
+        graph.push_str(&format!(
+            "\n{:dec$}subgraph NatCall_{}[NatCall]",
+            "",
+            id,
+            dec = indent
+        ));
         *id += 1;
-        self.nat_call_in.graph_display(graph, id);
-        graph.push_str("\nend");
+        self.nat_call_in.graph_display(graph, id, indent + 2);
+        graph.push_str(&format!("\n{:indent$}end", "", indent = indent));
     }
 }
 
@@ -182,6 +191,46 @@ impl NatCall {
         }
         Ok(())
     }
+
+    fn input(&self, operation_context: &mut OperationContext) -> GeneralOutput {
+        let mut buffer = String::new();
+        if stdin().read_line(&mut buffer).is_err() {
+            Err(ExecutionError::cannot_read_input())
+        } else {
+            let mut iter = buffer.trim().split(" ");
+            let mut current = &self.nat_call_in.nat_call_in;
+            while let (Some(content), Some(str)) = (current, iter.next()) {
+                let result = str.parse::<u32>();
+                if let Ok(number) = result {
+                    operation_context.change_value(&content.identifier, number, 0)?;
+                } else {
+                    return Err(ExecutionError::wrong_input_type("int", str));
+                }
+                current = &content.nat_call_in;
+            }
+            if current.is_some() {
+                Err(ExecutionError::wrong_number_of_inputs())
+            } else {
+                Ok(())
+            }
+        }
+    }
+
+    fn assert_equal(&self, operation_context: &mut OperationContext) -> GeneralOutput {
+        let mut current = &self.nat_call_in.nat_call_in;
+        if let Some(content) = current {
+            let first_value = operation_context.get_variable(&content.identifier, 0)?;
+            current = &content.nat_call_in;
+            while let Some(content) = current {
+                let value = operation_context.get_variable(&content.identifier, 0)?;
+                if value != first_value {
+                    return Err(ExecutionError::assertion_error(first_value, value));
+                }
+                current = &content.nat_call_in;
+            }
+        }
+        Ok(())
+    }
 }
 
 impl Execute for NatCall {
@@ -193,6 +242,8 @@ impl Execute for NatCall {
                 println!();
                 Ok(())
             }
+            "read_int" => self.input(operation_context),
+            "assert_eq" => self.assert_equal(operation_context),
             name => Err(ExecutionError::native_call_invalid(name)),
         }
     }
@@ -202,12 +253,19 @@ impl Execute for NatCall {
 // --- IdUse ---
 // -------------
 
-/// `InsideIdUse` represents the possible values that can be inside an [IdUse].
-/// It can be a [TupleNode], a [VarMod], or nothing.
+/// `InsideIdUse` represents the possible values that
+/// can be inside an [IdUse].
+/// It can be:
+/// - a [TupleNode],
+/// - a [VarMod],
+/// - or nothing.
 #[derive(PartialEq)]
 pub(crate) enum InsideIdUse {
+    /// Function call
     Tuple(TupleNode),
+    /// Variable modification
     VarMod(VarMod),
+    /// Just get the value
     Empty,
 }
 
@@ -224,23 +282,27 @@ pub(crate) enum InsideIdUse {
 pub struct IdUse {
     identifier: String,
     op_in: OpIn,
-    inside_id_use: Box<InsideIdUse>,
+    inside_id_use: InsideIdUse,
 }
 
 impl GraphDisplay for IdUse {
-    fn graph_display(&self, graph: &mut String, id: &mut usize) {
+    fn graph_display(&self, graph: &mut String, id: &mut usize, indent: usize) {
         graph.push_str(&format!(
-            "\nsubgraph IdUse_{}[IdUse {}]",
-            id, self.identifier
+            "\n{:dec$}subgraph IdUse_{}[IdUse {}] dec={}",
+            "",
+            id,
+            self.identifier,
+            indent,
+            dec = indent
         ));
         *id += 1;
-        self.op_in.graph_display(graph, id);
-        match &*self.inside_id_use {
-            InsideIdUse::Tuple(tuple) => tuple.graph_display(graph, id),
-            InsideIdUse::VarMod(var_mod) => var_mod.graph_display(graph, id),
+        self.op_in.graph_display(graph, id, indent + 2);
+        match &self.inside_id_use {
+            InsideIdUse::Tuple(tuple) => tuple.graph_display(graph, id, indent + 2),
+            InsideIdUse::VarMod(var_mod) => var_mod.graph_display(graph, id, indent + 2),
             InsideIdUse::Empty => {}
         }
-        graph.push_str("\nend");
+        graph.push_str(&format!("\n{:indent$}end", "", indent = indent));
     }
 }
 
@@ -251,7 +313,7 @@ impl IdUse {
         Self {
             identifier,
             op_in,
-            inside_id_use: Box::new(inside_id_use),
+            inside_id_use,
         }
     }
 
@@ -294,8 +356,16 @@ impl IdUse {
 }
 
 impl Evaluate for IdUse {
-    fn evaluate(&self, _operation_context: &mut OperationContext) -> OperationO {
-        todo!()
+    fn evaluate(&self, operation_context: &mut OperationContext) -> OperationO {
+        match &self.inside_id_use {
+            InsideIdUse::Empty => operation_context.get_variable(&self.identifier, 0),
+            InsideIdUse::VarMod(modification) => {
+                let value = modification.evaluate(operation_context)?;
+                operation_context.change_value(&self.identifier, value, 0)?;
+                Ok(value)
+            }
+            _ => todo!(),
+        }
     }
 }
 
@@ -313,7 +383,7 @@ pub(crate) enum InsideIdUseV {
         no_value: Option<NoValueN>,
     },
     NoValue(NoValueN),
-    VarMod(VarMod),
+    VarMod(Box<VarMod>),
     Empty,
 }
 
@@ -345,29 +415,32 @@ pub(crate) enum InsideIdUseV {
 pub struct IdUseV {
     identifier: String,
     op_in: OpIn,
-    inside_id_use_v: Box<InsideIdUseV>,
+    inside_id_use_v: InsideIdUseV,
 }
 
 impl GraphDisplay for IdUseV {
-    fn graph_display(&self, graph: &mut String, id: &mut usize) {
+    fn graph_display(&self, graph: &mut String, id: &mut usize, indent: usize) {
         graph.push_str(&format!(
-            "\nsubgraph IdUseV_{}[IdUseV {}]",
-            id, self.identifier
+            "\n{:dec$}subgraph IdUseV_{}[IdUseV {}]",
+            "",
+            id,
+            self.identifier,
+            dec = indent
         ));
         *id += 1;
-        self.op_in.graph_display(graph, id);
-        match &*self.inside_id_use_v {
+        self.op_in.graph_display(graph, id, indent + 2);
+        match &self.inside_id_use_v {
             InsideIdUseV::Tuple { tuple, no_value } => {
-                tuple.graph_display(graph, id);
+                tuple.graph_display(graph, id, indent + 2);
                 if let Some(no_value) = no_value {
-                    no_value.graph_display(graph, id);
+                    no_value.graph_display(graph, id, indent + 2);
                 }
             }
-            InsideIdUseV::NoValue(no_value) => no_value.graph_display(graph, id),
-            InsideIdUseV::VarMod(var_mod) => var_mod.graph_display(graph, id),
+            InsideIdUseV::NoValue(no_value) => no_value.graph_display(graph, id, indent + 2),
+            InsideIdUseV::VarMod(var_mod) => var_mod.graph_display(graph, id, indent + 2),
             InsideIdUseV::Empty => {}
         }
-        graph.push_str("\nend");
+        graph.push_str(&format!("\n{:indent$}end", "", indent = indent));
     }
 }
 
@@ -378,7 +451,7 @@ impl IdUseV {
         Self {
             identifier,
             op_in,
-            inside_id_use_v: Box::new(inside_id_use_v),
+            inside_id_use_v,
         }
     }
 
@@ -411,7 +484,7 @@ impl IdUseV {
                         Ok(Some(IdUseV::new(
                             identifier,
                             op_in,
-                            InsideIdUseV::VarMod(var_mod),
+                            InsideIdUseV::VarMod(Box::new(var_mod)),
                         )))
                     } else {
                         Ok(Some(IdUseV::new(identifier, op_in, InsideIdUseV::Empty)))
@@ -429,8 +502,20 @@ impl IdUseV {
 }
 
 impl Evaluate for IdUseV {
-    fn evaluate(&self, _operation_context: &mut OperationContext) -> OperationO {
-        todo!()
+    fn evaluate(&self, operation_context: &mut OperationContext) -> OperationO {
+        match &self.inside_id_use_v {
+            InsideIdUseV::Empty => operation_context.get_variable(&self.identifier, 0),
+            InsideIdUseV::VarMod(modification) => {
+                let value = modification.evaluate(operation_context)?;
+                operation_context.change_value(&self.identifier, value, 0)?;
+                Ok(value)
+            }
+            InsideIdUseV::NoValue(nv) => {
+                let left = operation_context.get_variable(&self.identifier, 0)?;
+                nv.evaluate_from_input(operation_context, left)
+            }
+            _ => todo!(),
+        }
     }
 }
 
@@ -447,24 +532,30 @@ pub enum ExpBase {
     Cond(Box<Cond>),
     ScopeBase(Box<ScopeBase>),
     FctDec(Box<FctDec>),
-    LeftP(Box<Exp>),
     RightP(Box<Exp>),
 }
 
 impl GraphDisplay for ExpBase {
-    fn graph_display(&self, graph: &mut String, id: &mut usize) {
-        graph.push_str(&format!("\nsubgraph ExpBase_{}[ExpBase]", id));
+    fn graph_display(&self, graph: &mut String, id: &mut usize, indent: usize) {
+        graph.push_str(&format!(
+            "\n{:dec$}subgraph ExpBase_{}[ExpBase]",
+            "",
+            id,
+            dec = indent
+        ));
         *id += 1;
         match self {
-            ExpBase::IdUse(id_use) => id_use.graph_display(graph, id),
-            ExpBase::VarDec(var_dec) => var_dec.graph_display(graph, id),
-            ExpBase::Cond(cond) => cond.graph_display(graph, id),
-            ExpBase::ScopeBase(scope_base) => scope_base.graph_display(graph, id),
-            ExpBase::FctDec(fct_dec) => fct_dec.graph_display(graph, id),
-            ExpBase::LeftP(exp) => exp.graph_display(graph, id),
-            ExpBase::RightP(exp) => exp.graph_display(graph, id),
+            ExpBase::IdUse(id_use) => id_use.graph_display(graph, id, indent + 2),
+            ExpBase::VarDec(var_dec) => var_dec.graph_display(graph, id, indent + 2),
+            ExpBase::Cond(cond) => cond.graph_display(graph, id, indent + 2),
+            ExpBase::ScopeBase(scope_base) => scope_base.graph_display(graph, id, indent + 2),
+            ExpBase::FctDec(fct_dec) => fct_dec.graph_display(graph, id, indent + 2),
+            ExpBase::RightP(exp) => {
+                graph.push_str(" with ()");
+                exp.graph_display(graph, id, indent + 2)
+            }
         }
-        graph.push_str("\nend");
+        graph.push_str(&format!("\n{:indent$}end", "", indent = indent));
     }
 }
 
@@ -519,9 +610,8 @@ impl Evaluate for ExpBase {
         match self {
             Self::IdUse(id_use) => id_use.evaluate(operation_context),
             Self::Cond(_cond) => todo!(),
-            Self::LeftP(_leftp) => todo!(),
             Self::VarDec(var_dec) => var_dec.evaluate(operation_context),
-            Self::RightP(_rightp) => todo!(),
+            Self::RightP(rightp) => rightp.evaluate(operation_context),
             Self::FctDec(_fct_dec) => todo!(),
             Self::ScopeBase(_scope_base) => todo!(),
         }
@@ -542,14 +632,19 @@ pub enum ExpTp {
 }
 
 impl GraphDisplay for ExpTp {
-    fn graph_display(&self, graph: &mut String, id: &mut usize) {
-        graph.push_str(&format!("\nsubgraph ExpTp_{}[ExpTp]", id));
+    fn graph_display(&self, graph: &mut String, id: &mut usize, indent: usize) {
+        graph.push_str(&format!(
+            "\n{:dec$}subgraph ExpTp_{}[ExpTp]",
+            "",
+            id,
+            dec = indent
+        ));
         *id += 1;
         match self {
-            ExpTp::ExpBase(exp_base) => exp_base.graph_display(graph, id),
-            ExpTp::IdUseV(id_use_v) => id_use_v.graph_display(graph, id),
+            ExpTp::ExpBase(exp_base) => exp_base.graph_display(graph, id, indent + 2),
+            ExpTp::IdUseV(id_use_v) => id_use_v.graph_display(graph, id, indent + 2),
         }
-        graph.push_str("\nend");
+        graph.push_str(&format!("\n{:indent$}end", "", indent = indent));
     }
 }
 
@@ -564,10 +659,10 @@ impl ExpTp {
         // <exp_tp> ::=
         //   <exp_base>
         //   | <id_use_v>
-        if let Some(exp_base) = ExpBase::parse(tokens)? {
-            Ok(Some(ExpTp::new(exp_base)))
-        } else if let Some(id_use_v) = IdUseV::parse(tokens)? {
+        if let Some(id_use_v) = IdUseV::parse(tokens)? {
             Ok(Some(ExpTp::IdUseV(id_use_v)))
+        } else if let Some(exp_base) = ExpBase::parse(tokens)? {
+            Ok(Some(ExpTp::new(exp_base)))
         } else {
             Ok(None)
         }
@@ -599,14 +694,19 @@ pub enum Exp {
 }
 
 impl GraphDisplay for Exp {
-    fn graph_display(&self, graph: &mut String, id: &mut usize) {
-        graph.push_str(&format!("\nsubgraph Exp_{}[Exp]", id));
+    fn graph_display(&self, graph: &mut String, id: &mut usize, indent: usize) {
+        graph.push_str(&format!(
+            "\n{:dec$}subgraph Exp_{}[Exp]",
+            "",
+            id,
+            dec = indent
+        ));
         *id += 1;
         match self {
-            Exp::ExpTp(exp_tp) => exp_tp.graph_display(graph, id),
-            Exp::TPLast(tp_last) => tp_last.graph_display(graph, id),
+            Exp::ExpTp(exp_tp) => exp_tp.graph_display(graph, id, indent + 2),
+            Exp::TPLast(tp_last) => tp_last.graph_display(graph, id, indent + 2),
         }
-        graph.push_str("\nend");
+        graph.push_str(&format!("\n{:indent$}end", "", indent = indent));
     }
 }
 
@@ -617,10 +717,10 @@ impl Exp {
         // <exp> ::=
         //   <exp_tp>
         //   | <tp_last>
-        if let Some(exp_tp) = ExpTp::parse(tokens)? {
-            Ok(Some(Exp::ExpTp(exp_tp)))
-        } else if let Some(tp_last) = TakePriorityLast::parse(tokens)? {
+        if let Some(tp_last) = TakePriorityLast::parse(tokens)? {
             Ok(Some(Exp::TPLast(tp_last)))
+        } else if let Some(exp_tp) = ExpTp::parse(tokens)? {
+            Ok(Some(Exp::ExpTp(exp_tp)))
         } else {
             Ok(None)
         }
@@ -648,11 +748,16 @@ pub struct Return {
 }
 
 impl GraphDisplay for Return {
-    fn graph_display(&self, graph: &mut String, id: &mut usize) {
-        graph.push_str(&format!("\nsubgraph Return_{}[Return]", id));
+    fn graph_display(&self, graph: &mut String, id: &mut usize, indent: usize) {
+        graph.push_str(&format!(
+            "\n{:dec$}subgraph Return_{}[Return]",
+            "",
+            id,
+            dec = indent
+        ));
         *id += 1;
-        self.exp.graph_display(graph, id);
-        graph.push_str("\nend");
+        self.exp.graph_display(graph, id, indent + 2);
+        graph.push_str(&format!("\n{:indent$}end", "", indent = indent));
     }
 }
 
@@ -689,15 +794,20 @@ pub enum Sta {
 }
 
 impl GraphDisplay for Sta {
-    fn graph_display(&self, graph: &mut String, id: &mut usize) {
-        graph.push_str(&format!("\nsubgraph Sta_{}[Sta]", id));
+    fn graph_display(&self, graph: &mut String, id: &mut usize, indent: usize) {
+        graph.push_str(&format!(
+            "\n{:dec$}subgraph Sta_{}[Sta]",
+            "",
+            id,
+            dec = indent
+        ));
         *id += 1;
         match self {
-            Sta::Return(return_node) => return_node.graph_display(graph, id),
-            Sta::Exp(exp) => exp.graph_display(graph, id),
-            Sta::NatCall(nat_call) => nat_call.graph_display(graph, id),
+            Sta::Return(return_node) => return_node.graph_display(graph, id, indent + 2),
+            Sta::Exp(exp) => exp.graph_display(graph, id, indent + 2),
+            Sta::NatCall(nat_call) => nat_call.graph_display(graph, id, indent + 2),
         }
-        graph.push_str("\nend");
+        graph.push_str(&format!("\n{:indent$}end", "", indent = indent));
     }
 }
 
@@ -750,17 +860,22 @@ pub struct StaL {
 }
 
 impl GraphDisplay for StaL {
-    fn graph_display(&self, graph: &mut String, id: &mut usize) {
-        graph.push_str(&format!("\nsubgraph StaL_{}[StaL]", id));
+    fn graph_display(&self, graph: &mut String, id: &mut usize, indent: usize) {
+        graph.push_str(&format!(
+            "\n{:dec$}subgraph StaL_{}[StaL]",
+            "",
+            id,
+            dec = indent
+        ));
         *id += 1;
         for sta in &self.sta_l {
             match sta {
-                Sta::Return(return_node) => return_node.graph_display(graph, id),
-                Sta::NatCall(nat_call) => nat_call.graph_display(graph, id),
-                Sta::Exp(exp) => exp.graph_display(graph, id),
+                Sta::Return(return_node) => return_node.graph_display(graph, id, indent + 2),
+                Sta::NatCall(nat_call) => nat_call.graph_display(graph, id, indent + 2),
+                Sta::Exp(exp) => exp.graph_display(graph, id, indent + 2),
             }
         }
-        graph.push_str("\nend");
+        graph.push_str(&format!("\n{:indent$}end", "", indent = indent));
     }
 }
 

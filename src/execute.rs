@@ -33,7 +33,7 @@ impl ExecutionScope {
 
     fn edit_variable(
         &mut self,
-        name: &String,
+        name: &str,
         new_value: OperationI,
         line: usize,
     ) -> Result<(), ExecutionError> {
@@ -78,7 +78,7 @@ impl ExecutionContext {
 
     pub fn change_value(
         &mut self,
-        name: &String,
+        name: &str,
         value: OperationI,
         line: usize,
     ) -> Result<(), ExecutionError> {
@@ -149,6 +149,14 @@ impl ExecutionHint {
     pub fn remove_line() -> Self {
         Self::new("Consider removing this line.")
     }
+
+    pub fn try_again() -> Self {
+        Self::new("Try again the same action, this could work this time.")
+    }
+
+    pub fn try_another_input() -> Self {
+        Self::new("Try to enter another input.")
+    }
 }
 
 #[derive(PartialEq, Debug)]
@@ -177,7 +185,7 @@ impl ExecutionError {
         self
     }
 
-    pub fn variable_not_exists(name: &String, line: usize) -> Self {
+    pub fn variable_not_exists(name: &str, line: usize) -> Self {
         Self::new_str(format!(
             "The variable {} does not exists at line {}",
             name, line
@@ -195,6 +203,31 @@ impl ExecutionError {
         Self::new("Cannot return a value outside of a function.")
             .add_hint(ExecutionHint::remove_line())
             .add_hint(ExecutionHint::move_to_function())
+    }
+
+    pub fn cannot_read_input() -> Self {
+        Self::new("Failed to read user input.")
+            .add_hint(ExecutionHint::try_again())
+            .add_hint(ExecutionHint::try_another_input())
+    }
+
+    pub fn wrong_input_type(expected: &str, received: &str) -> Self {
+        Self::new_str(format!(
+            "The input type is wrong. Fail to parse {} to type {}.",
+            received, expected
+        ))
+        .add_hint(ExecutionHint::try_another_input())
+    }
+
+    pub fn wrong_number_of_inputs() -> Self {
+        Self::new("More inputs were expected.")
+    }
+
+    pub fn assertion_error(expected: OperationI, received: OperationI) -> Self {
+        Self::new_str(format!(
+            "Assertion Error: expected {} got {}",
+            expected, received,
+        ))
     }
 
     pub fn show(&self) {
