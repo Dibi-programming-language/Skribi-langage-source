@@ -1,8 +1,8 @@
 use std::collections::VecDeque;
 
+use crate::parse::nodes::GraphDisplay;
 use crate::parse::nodes::blocs::Scope;
 use crate::parse::nodes::id_nodes::TupleNode;
-use crate::parse::nodes::GraphDisplay;
 use crate::skr_errors::{ParsingError, ResultOption};
 use crate::tokens::{Token, TokenContainer};
 use crate::{impl_debug, some_token};

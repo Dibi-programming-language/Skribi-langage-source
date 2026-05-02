@@ -1,8 +1,8 @@
 use crate::execute::unit::InternalUnit;
 use crate::execute::{Evaluate, ExecutionError, OperationContext, OperationO};
+use crate::parse::nodes::GraphDisplay;
 use crate::parse::nodes::blocs::Scope;
 use crate::parse::nodes::expressions::Exp;
-use crate::parse::nodes::GraphDisplay;
 use crate::skr_errors::{ParsingError, ResultOption};
 use crate::tokens::{Token, TokenContainer};
 use crate::{impl_debug, some_token};

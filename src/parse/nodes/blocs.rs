@@ -1,8 +1,8 @@
 use std::collections::VecDeque;
 
 use crate::execute::{Evaluate, OperationContext, OperationO};
-use crate::parse::nodes::expressions::StaL;
 use crate::parse::nodes::GraphDisplay;
+use crate::parse::nodes::expressions::StaL;
 use crate::skr_errors::{ParsingError, ResultOption};
 use crate::tokens::{Token, TokenContainer};
 use crate::{impl_debug, some_token};

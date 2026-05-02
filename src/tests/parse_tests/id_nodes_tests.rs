@@ -1,6 +1,6 @@
 use std::collections::VecDeque;
 
-use crate::parse::nodes::id_nodes::{parse_cget, CGet, IdGet, OpIn};
+use crate::parse::nodes::id_nodes::{CGet, IdGet, OpIn, parse_cget};
 use crate::skr_errors::ResultOption;
 use crate::tokens::Token;
 

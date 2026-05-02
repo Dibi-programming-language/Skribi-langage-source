@@ -33,7 +33,7 @@
           skribi = skribiBuild;
           default = skribi;
         };
-        devShells = pkgs.mkShell {
+        devShells.default = pkgs.mkShell {
           inputsFrom = [ skribiBuild ];
           buildInputs = with pkgs; [
             rust-analyzer
