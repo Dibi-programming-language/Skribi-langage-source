@@ -29,7 +29,7 @@ Tous les types de nœuds suivent une logique précise.
 - Pour le parsing, cela a été modifié pendant le développement. Pour les premières classes, une fonction est utilisée,
   tandis que pour les plus récentes, c'est une méthode `parse` et une méthode `new` qui sont utilisées.
 - Les erreurs sont toutes d'un type personnalisé : la plupart des méthodes de parsing renvoient
-  un `Option<Result<[type de la node], CustomError>>`, avec `option`ou `result` en moins en fonction des cas qui ne
+  un `Option<Result<[type de la node], CustomError>>`, avec `option` ou `result` en moins en fonction des cas qui ne
   peuvent pas apparaitre.
 
 ### Tester les nœuds
