@@ -115,7 +115,7 @@ impl Vd {
                 Ok(Some(Vd::new(type_, identifier, exp0)))
             } else {
                 Err(CustomError::UnexpectedToken(
-                    "Expected an expression".to_string(),
+                    "Expected an expression for Vd".to_string(),
                 ))
             }
         } else {

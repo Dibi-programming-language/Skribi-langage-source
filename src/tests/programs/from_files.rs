@@ -44,3 +44,18 @@ fn test_multiplication() {
 fn test_ij_sula() {
     execute_from_name(file!("ij"));
 }
+
+#[test]
+fn test_or_eq() {
+    execute_from_name(file!("cmp/or_eq"));
+}
+
+#[test]
+fn test_simple_cmp() {
+    execute_from_name(file!("cmp/simple"));
+}
+
+#[test]
+fn test_bool() {
+    execute_from_name(file!("bool"));
+}

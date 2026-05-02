@@ -251,6 +251,7 @@ impl Execute for NatCall {
             }
             "read_int" => self.input(operation_context),
             "assert_eq" => self.assert_equal(operation_context),
+            "fail" => Err(ExecutionError::fail()),
             name => Err(ExecutionError::native_call_invalid(name)),
         }
     }
@@ -599,7 +600,7 @@ impl ExpBase {
                 }
             } else {
                 Err(CustomError::UnexpectedToken(
-                    "Expected an expression".to_string(),
+                    "Expected an expression for ExpBase".to_string(),
                 ))
             }
         } else {

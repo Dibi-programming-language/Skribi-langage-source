@@ -1,0 +1,68 @@
+
+// Testing !
+
+ij !io {
+    skr_app fail
+} sula ij !no {
+    // Ok
+} sula {
+    skr_app fail
+}
+
+// Testing ||
+
+ij no || no {
+    skr_app fail
+} sula ij io || no {
+    // Ok
+} sula {
+    skr_app fail
+}
+
+ij no || io {
+    // Ok
+} sula {
+    skr_app fail
+}
+
+ij io || io {
+    // Ok
+} sula {
+    skr_app fail
+}
+
+// Testing &&
+
+ij no && no {
+    skr_app fail
+} sula ij io && no {
+    skr_app fail
+} sula ij no && io {
+    skr_app fail
+} sula ij io && io {
+    // Ok
+} sula {
+    skr_app fail
+}
+
+// Testing priorities
+
+ij !no && no {
+    // ((!no) && no) => no
+    // Should not be !(no && no)
+    skr_app fail
+} sula ij !no && !no {
+    // io && io => io
+    // Should not be anything else
+} sula {
+    skr_app fail
+}
+
+ij !io || no && io || no {
+    skr_app fail
+} sula ij no || !no && !no || no {
+    // Ok
+} sula {
+    skr_app fail
+}
+

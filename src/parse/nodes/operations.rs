@@ -1,3 +1,15 @@
+//! This file is pretty long
+//! Start of grammar for this file :
+//! ```
+//! <value_base> ::= T_BOOL | T_INT | T_STRING | T_FLOAT
+//! <value> ::=
+//!   <value_base>
+//!   | <exp_base>
+//! <take_prio> ::=
+//!   T_LEFT_P <exp> T_RIGHT_P
+//!   | <value>
+//! ```
+
 use crate::execute::int::InternalInt;
 use crate::execute::ioi::InternalIoi;
 use crate::execute::{
@@ -11,17 +23,7 @@ use crate::skr_errors::{CustomError, ResultOption};
 use crate::tokens::{Token, TokenContainer};
 use crate::{impl_debug, some_token};
 use std::collections::VecDeque;
-// This file is pretty long
-// Start of grammar for this file :
-// ```
-// <value_base> ::= T_BOOL | T_INT | T_STRING | T_FLOAT
-// <value> ::=
-//   <value_base>
-//   | <exp_base>
-// <take_prio> ::=
-//   T_LEFT_P <exp> T_RIGHT_P
-//   | <value>
-// ```
+use std::fmt::Display;
 
 // -----------------
 // --- ValueBase ---
@@ -252,7 +254,7 @@ impl TakePriority {
                     }
                 }
                 None => Err(CustomError::UnexpectedToken(
-                    "Expected an expression".to_string(),
+                    "Expected an expression for TakePriority".to_string(),
                 )),
             }
         } else if let Some(value) = ValueNode::parse(tokens)? {
@@ -350,7 +352,7 @@ impl Evaluate for UnaryTP {
             UnaryTP::Plus(unary_tp) => unary_tp.evaluate(operation_context),
             UnaryTP::TakePriority(take_priority) => take_priority.evaluate(operation_context),
             UnaryTP::Minus(minus) => minus.evaluate(operation_context)?.minus(operation_context),
-            _ => todo!(),
+            UnaryTP::Not(not) => not.evaluate(operation_context)?.not(operation_context),
         }
     }
 }
@@ -365,6 +367,29 @@ pub enum Operations {
     NotEqual,
     And,
     Or,
+    LessThan,
+    GreaterThan,
+    LessOrEqual,
+    GreaterOrEqual,
+}
+
+impl Display for Operations {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str(match self {
+            Self::Mul => "*",
+            Self::Or => "||",
+            Self::And => "&&",
+            Self::Div => "/",
+            Self::Add => "+",
+            Self::Sub => "-",
+            Self::Equal => "=",
+            Self::NotEqual => "!=",
+            Self::LessThan => "<",
+            Self::GreaterThan => ">",
+            Self::LessOrEqual => "<=",
+            Self::GreaterOrEqual => ">=",
+        })
+    }
 }
 
 const HIGHEST_LEVEL: u8 = 5;
@@ -373,7 +398,7 @@ const LOWEST_LEVEL: u8 = 1;
 /// With:
 /// 1. * and /
 /// 2. + and -
-/// 3. = and !=
+/// 3. <=, >=, <, >, = and !=
 /// 4. &&
 /// 5. ||
 ///
@@ -387,6 +412,10 @@ impl Token {
             Token::Sub => Some(2),
             Token::Equal => Some(3),
             Token::NotEqual => Some(3),
+            Token::LessThan => Some(3),
+            Token::GreaterThan => Some(3),
+            Token::LessOrEqual => Some(3),
+            Token::GreaterOrEqual => Some(3),
             Token::And => Some(4),
             Token::Or => Some(5),
             _ => None,
@@ -404,6 +433,10 @@ impl Token {
             Token::NotEqual => NotEqual,
             Token::And => Operations::And,
             Token::Or => Operations::Or,
+            Token::LessThan => Operations::LessThan,
+            Token::GreaterThan => Operations::GreaterThan,
+            Token::LessOrEqual => Operations::LessOrEqual,
+            Token::GreaterOrEqual => Operations::GreaterOrEqual,
             _ => panic!("Unexpected token found"),
         }
     }
@@ -455,25 +488,8 @@ impl EvaluateFromInput for OperationN {
         operation_context: &mut OperationContext,
         input: OperationI,
     ) -> OperationO {
-        Ok(match self.operation {
-            Add => {
-                let other = self.tp_nm1.evaluate(operation_context)?;
-                input.add(&other, operation_context)?
-            }
-            Sub => {
-                let other = self.tp_nm1.evaluate(operation_context)?;
-                input.sub(&other, operation_context)?
-            }
-            Div => {
-                let other = self.tp_nm1.evaluate(operation_context)?;
-                input.div(&other, operation_context)?
-            }
-            Mul => {
-                let other = self.tp_nm1.evaluate(operation_context)?;
-                input.mul(&other, operation_context)?
-            }
-            _ => todo!(),
-        })
+        let other = self.tp_nm1.evaluate(operation_context)?;
+        input.apply_operation(&self.operation, &other, operation_context)
     }
 }
 
@@ -683,6 +699,10 @@ impl GraphDisplay for Operations {
                 NotEqual => "CO !=",
                 Operations::And => "LG &&",
                 Operations::Or => "LG ||",
+                Operations::LessThan => "CO <",
+                Operations::GreaterThan => "CO >",
+                Operations::LessOrEqual => "CO <=",
+                Operations::GreaterOrEqual => "CO >=",
             },
             indent = indent
         ));

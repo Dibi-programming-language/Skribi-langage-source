@@ -1,3 +1,14 @@
-int my_int 5
-skr_app println my_int
-skr_app println my_skr
+int input 0
+skr_app read_int input
+int input2 0
+skr_app read_int input2
+
+int res input * input2
+ioi n no
+
+ij res > 5 {
+    skr_app println res
+} sula {
+    skr_app println n
+}
+
