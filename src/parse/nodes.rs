@@ -11,6 +11,7 @@ pub mod files_node;
 mod functions;
 pub(crate) mod id_nodes;
 mod if_else;
+mod loops;
 pub(crate) mod operations;
 mod vars;
 

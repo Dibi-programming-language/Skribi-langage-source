@@ -41,6 +41,7 @@ pub enum Token {
     KeywordModifier(ModifierKeyword),
     KeywordIf,
     KeywordElse,
+    KeywordWhile,
     KeywordClass,
     KeywordFunction,
     KeywordReturn,
@@ -222,6 +223,7 @@ fn word_to_token(res: String) -> Token {
         "biuli" => Token::KeywordBubbleScope,
         "kodi" => Token::KeywordSimpleScope,
         "spoki" => Token::KeywordUnusedScope,
+        "ci" => Token::KeywordWhile,
         _ => Token::Identifier(res),
     }
 }
