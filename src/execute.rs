@@ -184,7 +184,6 @@ pub trait Execute {
     fn execute(&self, operation_context: &mut OperationContext) -> GeneralOutput;
 }
 
-#[allow(dead_code)]
 #[derive(PartialEq, Debug)]
 pub struct ExecutionHint {
     message: String,
@@ -318,7 +317,7 @@ impl ExecutionError {
     }
 
     pub fn show(&self) {
-        println!("{}", self);
+        eprintln!("{}", self);
     }
 }
 
