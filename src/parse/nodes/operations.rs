@@ -143,7 +143,7 @@ impl Evaluate for ValueBase {
 /// mistaken with a wrong node because the syntax is clear. This node is either a [ValueBase] or an
 /// [ExpBase].
 ///
-/// [ValueNode] and [ExpBase] have in common that all their possibles values start with a token that
+/// [ValueNode] and [ExpBase] have in common that all their possible values start with a token that
 /// can only mean one thing. Example : `T_BOOL` can only be a boolean, `biuli` can only mean that
 /// this is a special scope.
 #[derive(PartialEq)]
