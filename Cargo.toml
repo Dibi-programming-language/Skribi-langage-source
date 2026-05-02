@@ -15,3 +15,4 @@ thiserror = "2"
 colored = "3"
 chumsky = "0.12"
 ariadne = "0.6"
+inkwell = { version = "0.9", features = ["llvm22-1"] }

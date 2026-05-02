@@ -26,6 +26,9 @@
         skribiBuild = (pkgs.callPackage naersk {}).buildPackage {
           src = ./.;
           doCheck = true;
+          buildInputs = with pkgs; [
+            llvm_22
+          ];
         };
       in
       {
