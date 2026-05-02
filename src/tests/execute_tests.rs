@@ -17,7 +17,7 @@ fn add_test() {
     let res = TakePriorityLast::parse(&mut vec)
         .expect("Fail with error to parse TakePriorityLast.")
         .expect("TakePriorityLast should not return None.")
-        .evaluate(&context)
+        .evaluate(&mut context)
         .expect("Evaluation of 1 + 2 should not fail.")
         .as_int(&context)
         .expect("Should be an integi.");
