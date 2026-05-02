@@ -4,28 +4,29 @@
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs?ref=nixos-unstable";
     utils.url = "github:numtide/flake-utils";
+
+    naersk = {
+      # Rust build toolchain
+      url = "github:nix-community/naersk";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
   outputs =
     {
       nixpkgs,
       utils,
+      naersk,
       ...
     }:
     utils.lib.eachDefaultSystem (
       system:
       let
         pkgs = nixpkgs.legacyPackages.${system};
-        skribiBuild = pkgs.rustPlatform.buildRustPackage {
-            pname = "skribi";
-            version = "0.1";
-            src = ./.;
-
-            doCheck = true;
-            cargoLock = {
-              lockFile = ./Cargo.lock;
-            };
-          };
+        skribiBuild = (pkgs.callPackage naersk {}).buildPackage {
+          src = ./.;
+          doCheck = true;
+        };
       in
       {
         packages = rec {
@@ -33,7 +34,7 @@
           default = skribi;
         };
         devShells = pkgs.mkShell {
-          inputsFrom = [skribiBuild];
+          inputsFrom = [ skribiBuild ];
           buildInputs = with pkgs; [
             rust-analyzer
             clippy
