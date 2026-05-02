@@ -1,0 +1,27 @@
+
+ioi n no
+ioi i io
+
+ij io {
+    skr_app assert_eq i i
+} sula {
+    skr_app assert_eq i n
+}
+
+ij no {
+    skr_app assert_eq i n
+} sula {
+    skr_app assert_eq i i
+}
+
+// Test with variables
+ij n {
+    skr_app assert_eq i n
+} sula ij n {
+    skr_app assert_eq i n
+} sula ij i {
+    skr_app assert_eq i i
+} sula {
+    skr_app assert_eq i n
+}
+

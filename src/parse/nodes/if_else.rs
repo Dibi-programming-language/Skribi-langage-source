@@ -1,3 +1,5 @@
+use crate::execute::unit::InternalUnit;
+use crate::execute::{Evaluate, ExecutionError, OperationContext, OperationO};
 use crate::parse::nodes::blocs::Scope;
 use crate::parse::nodes::expressions::Exp;
 use crate::parse::nodes::GraphDisplay;
@@ -90,6 +92,23 @@ impl Sula {
     }
 }
 
+impl Evaluate for Sula {
+    fn evaluate(&self, operation_context: &mut OperationContext) -> OperationO {
+        match self {
+            Self::Ij { ij, sula } => {
+                if ij.can_execute(operation_context)? {
+                    ij.evaluate(operation_context)
+                } else if let Some(sula) = sula {
+                    sula.evaluate(operation_context)
+                } else {
+                    Ok(InternalUnit::new_boxed())
+                }
+            }
+            Self::Scope(scope) => scope.evaluate(operation_context),
+        }
+    }
+}
+
 // ----------
 // --- Ij ---
 // ----------
@@ -129,19 +148,41 @@ impl Ij {
     pub fn parse(tokens: &mut VecDeque<TokenContainer>) -> ResultOption<Self> {
         // <ij> ::= ij <exp> <scope>
         if let some_token!(Token::KeywordIf) = tokens.front() {
-            tokens.pop_front();
+            let container = tokens.pop_front().expect("Container Some");
             match Exp::parse(tokens)? {
                 Some(exp) => match Scope::parse(tokens)? {
                     Some(scope) => Ok(Some(Ij::new(exp, scope))),
-                    None => Err(CustomError::UnexpectedToken("Expected a scope".to_string())),
+                    None => {
+                        println!("{}", exp.graph());
+                        Err(CustomError::element_expected(container, tokens, "scope"))
+                    }
                 },
-                None => Err(CustomError::UnexpectedToken(
-                    "Expected an expression".to_string(),
+                None => Err(CustomError::element_expected(
+                    container,
+                    tokens,
+                    "expression",
                 )),
             }
         } else {
             Ok(None)
         }
+    }
+
+    pub fn can_execute(
+        &self,
+        operation_context: &mut OperationContext,
+    ) -> Result<bool, ExecutionError> {
+        self.exp
+            .evaluate(operation_context)?
+            .as_ioi(operation_context)
+    }
+}
+
+impl Evaluate for Ij {
+    /// For optimisation purposes, this function is not testing the condition.
+    /// The function [Ij::can_execute] should be called before.
+    fn evaluate(&self, operation_context: &mut OperationContext) -> OperationO {
+        self.scope.evaluate(operation_context)
     }
 }
 
@@ -201,6 +242,18 @@ impl Cond {
             }
         } else {
             Ok(None)
+        }
+    }
+}
+
+impl Evaluate for Cond {
+    fn evaluate(&self, operation_context: &mut OperationContext) -> OperationO {
+        if self.ij.can_execute(operation_context)? {
+            self.ij.evaluate(operation_context)
+        } else if let Some(sula) = &self.sula {
+            sula.evaluate(operation_context)
+        } else {
+            Ok(InternalUnit::new_boxed())
         }
     }
 }

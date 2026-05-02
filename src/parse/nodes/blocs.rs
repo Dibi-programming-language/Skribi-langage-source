@@ -1,5 +1,6 @@
 use std::collections::VecDeque;
 
+use crate::execute::{Evaluate, OperationContext, OperationO};
 use crate::parse::nodes::expressions::StaL;
 use crate::parse::nodes::GraphDisplay;
 use crate::skr_errors::{CustomError, ResultOption};
@@ -305,6 +306,17 @@ impl ScopeBase {
     }
 }
 
+impl Evaluate for ScopeBase {
+    fn evaluate(&self, operation_context: &mut OperationContext) -> OperationO {
+        match self {
+            Self::StaL(stal) => stal.evaluate(operation_context),
+            Self::Kodi(_kodi) => todo!(),
+            Self::Spoki(_spoki) => todo!(),
+            Self::Biuli(_biuli) => todo!(),
+        }
+    }
+}
+
 // -------------
 // --- Scope ---
 // -------------
@@ -343,6 +355,15 @@ impl Scope {
             Ok(Some(Scope::Sta(sta_l)))
         } else {
             Ok(None)
+        }
+    }
+}
+
+impl Evaluate for Scope {
+    fn evaluate(&self, operation_context: &mut OperationContext) -> OperationO {
+        match self {
+            Self::Sta(stal) => stal.evaluate(operation_context),
+            Self::ScopeBase(scope_base) => scope_base.evaluate(operation_context),
         }
     }
 }

@@ -1,4 +1,8 @@
+use std::collections::VecDeque;
+
 use thiserror::Error;
+
+use crate::tokens::TokenContainer;
 
 #[allow(dead_code)]
 #[derive(Error, Debug, PartialEq)]
@@ -29,6 +33,26 @@ pub enum CustomError {
     #[error("Not yet implemented: {0}")]
     NotYetImplemented(NotYetImplementedType),
     // Add other kinds of errors as needed
+}
+
+impl CustomError {
+    pub fn element_expected(
+        from: TokenContainer,
+        at: &VecDeque<TokenContainer>,
+        what: &str,
+    ) -> Self {
+        if let Some(token) = at.front() {
+            Self::UnexpectedToken(format!(
+                "Token at line {}:{} is expecting a {} at line {}:{}",
+                from.line, from.column, what, token.line, token.column
+            ))
+        } else {
+            Self::UnexpectedToken(format!(
+                "Token at line {}:{} is expecting a(n) {} after the last line.",
+                from.line, from.column, what
+            ))
+        }
+    }
 }
 
 pub type ShortResult<T> = Result<T, CustomError>;
