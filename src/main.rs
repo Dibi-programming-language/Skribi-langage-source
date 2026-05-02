@@ -7,7 +7,7 @@
 use std::env;
 use std::process::ExitCode;
 
-use skribi_language_source::execute;
+use skribi::execute;
 
 /// Launch the interpreter
 fn main() -> ExitCode {
