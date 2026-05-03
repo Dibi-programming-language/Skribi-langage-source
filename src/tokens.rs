@@ -1,4 +1,4 @@
-use logos::Logos;
+use logos::{Logos, SpannedIter};
 
 use crate::execute::IntType;
 use crate::skr_errors::ParsingError;
@@ -8,9 +8,6 @@ use std::str::Chars;
 
 #[derive(Logos, Clone, PartialEq)]
 pub enum NewTokens<'a> {
-    /// Any character not used by other tokens, only used when parsing bloc title
-    Error(&'a str),
-
     #[regex(r"io|no", |lex| lex.slice().starts_with("i"))]
     Bool(bool),
     #[regex(r"[+-]?[0-9]*\.[0-9]+", |lex| lex.slice().parse::<f32>().unwrap())]
@@ -97,6 +94,16 @@ pub enum NewTokens<'a> {
     And,
     #[token("&&")]
     Or,
+
+    /// Any character not used by other tokens, only used when parsing bloc title
+    #[regex(".", priority=0)]
+    Error(&'a str),
+}
+
+pub(crate) fn new_tokenise<'a>(arg: &'a str) -> SpannedIter<'a, NewTokens<'a>>
+{
+    // Inspired from the logos example
+    NewTokens::lexer(arg).spanned()
 }
 
 #[derive(Debug, PartialEq)]
