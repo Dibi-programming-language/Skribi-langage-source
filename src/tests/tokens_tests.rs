@@ -1,7 +1,7 @@
 use crate::skr_errors::ParsingError;
 use crate::token_m;
 use crate::tokens::TokenContainer;
-use crate::tokens::{tokenize, SpaceTypes, Token};
+use crate::tokens::{SpaceTypes, Token, tokenize};
 use std::collections::VecDeque;
 
 #[test]
@@ -119,7 +119,9 @@ fn test_strings() {
 #[test]
 fn test_strings_hard_1() {
     // escape, special characters, alphanumerics, etc.
-    let content = String::from("\"start with simple\" \"harder 11234 5489 \\\"\" \"escape characters \\n \\t \\r \\0\" \"special ... ^éà@¨ï$\"");
+    let content = String::from(
+        "\"start with simple\" \"harder 11234 5489 \\\"\" \"escape characters \\n \\t \\r \\0\" \"special ... ^éà@¨ï$\"",
+    );
     let tokens_res = tokenize(content);
     let expected = vec![
         Token::String(String::from("start with simple")),

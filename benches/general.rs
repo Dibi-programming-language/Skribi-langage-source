@@ -1,5 +1,5 @@
-use criterion::{criterion_group, criterion_main, Criterion};
-use skribi_language_source::execute;
+use criterion::{Criterion, criterion_group, criterion_main};
+use skribi::execute;
 
 macro_rules! create_benchmark {
     ($c: expr, $name: expr, $path: expr) => {

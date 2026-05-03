@@ -1,6 +1,6 @@
 use crate::execute::{Evaluate, ExecutionContext};
-use crate::parse::nodes::operations::TakePriorityLast;
 use crate::parse::nodes::Parsable;
+use crate::parse::nodes::operations::TakePriorityLast;
 use crate::tokens::{Token, TokenContainer};
 use std::collections::VecDeque;
 

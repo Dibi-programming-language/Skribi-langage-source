@@ -1,6 +1,6 @@
 use crate::execute::{Evaluate, ExecutionContext, IntType};
-use crate::parse::nodes::operations::TakePriorityLast;
 use crate::parse::nodes::Parsable;
+use crate::parse::nodes::operations::TakePriorityLast;
 use crate::tokens::tokenize;
 
 fn assert_evaluation(file: String, expected: IntType) {

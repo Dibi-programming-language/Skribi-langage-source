@@ -1,6 +1,6 @@
 use crate::impl_debug;
-use crate::parse::nodes::blocs::Scope;
 use crate::parse::nodes::GraphDisplay;
+use crate::parse::nodes::blocs::Scope;
 
 // Grammar of this file :
 // <class_dec> ::= kat T_IDENTIFIER <scope>

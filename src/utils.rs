@@ -1,6 +1,6 @@
 use std::fmt::Display;
 use std::fs;
-use std::io::{stdin, stdout, ErrorKind, Write};
+use std::io::{ErrorKind, Write, stdin, stdout};
 use std::process::Command;
 
 /// This function clears the shell

@@ -1,7 +1,7 @@
 use std::io::ErrorKind;
 
-use crate::utils::{input, read};
 use crate::FLAG_CHAR;
+use crate::utils::{input, read};
 
 /// This function is used to get the path of the file to run
 ///

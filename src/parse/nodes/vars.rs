@@ -2,9 +2,9 @@ use std::collections::VecDeque;
 
 use crate::execute::Evaluate;
 use crate::execute::{OperationContext, OperationO};
+use crate::parse::nodes::GraphDisplay;
 use crate::parse::nodes::classes::is_type_def;
 use crate::parse::nodes::expressions::Exp;
-use crate::parse::nodes::GraphDisplay;
 use crate::skr_errors::{ParsingError, ResultOption};
 use crate::tokens::{ModifierKeyword, Token, TokenContainer};
 use crate::{impl_debug, some_token};
