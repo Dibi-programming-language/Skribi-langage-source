@@ -45,6 +45,8 @@ pub enum NewTokens<'a> {
 
     #[token(":")]
     Inside,
+    #[token(".")]
+    UseType,
 
     #[regex(r"[ \t]+", logos::skip)]
     Ignore,
@@ -96,12 +98,11 @@ pub enum NewTokens<'a> {
     Or,
 
     /// Any character not used by other tokens, only used when parsing bloc title
-    #[regex(".", priority=0)]
+    #[regex(".", priority = 0)]
     Error(&'a str),
 }
 
-pub(crate) fn new_tokenise<'a>(arg: &'a str) -> SpannedIter<'a, NewTokens<'a>>
-{
+pub(crate) fn new_tokenise<'a>(arg: &'a str) -> SpannedIter<'a, NewTokens<'a>> {
     // Inspired from the logos example
     NewTokens::lexer(arg).spanned()
 }
