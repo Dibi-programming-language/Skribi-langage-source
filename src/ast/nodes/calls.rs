@@ -2,7 +2,7 @@ use crate::ast::nodes::expressions::Expression;
 
 pub struct IdentifierChain<'a> {
     identifier: &'a str,
-    previous: Option<Box<Expression<'a>>>
+    previous: Option<Box<Expression<'a>>>,
 }
 
 /// Represent a call to a function.
@@ -17,5 +17,5 @@ pub struct FunctionCall<'a> {
 
 pub struct VariableModification<'a> {
     identifier: IdentifierChain<'a>,
-    value: Expression<'a>
+    value: Expression<'a>,
 }

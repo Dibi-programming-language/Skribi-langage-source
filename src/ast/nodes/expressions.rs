@@ -1,5 +1,10 @@
 use crate::ast::nodes::{
-    base::ValueBase, calls::{FunctionCall, IdentifierChain, VariableModification}, conditions::Condition, declarations::{FunctionDeclaration, VariableDeclaration}, loops::Ci, operations::{BinaryOperation, UnaryOperation}
+    base::ValueBase,
+    calls::{FunctionCall, IdentifierChain, VariableModification},
+    conditions::Condition,
+    declarations::{FunctionDeclaration, VariableDeclaration},
+    loops::Ci,
+    operations::{BinaryOperation, UnaryOperation},
 };
 
 pub enum Expression<'a> {

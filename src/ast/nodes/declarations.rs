@@ -29,4 +29,3 @@ pub struct VariableDeclaration<'a> {
     global: bool,
     constant: bool,
 }
-

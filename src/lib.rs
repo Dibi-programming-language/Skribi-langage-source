@@ -7,7 +7,7 @@ use crate::execute::{Execute, ExecutionContext};
 use crate::tokens::tokenize;
 use crate::utils::clear;
 
-mod ast;
+pub(crate) mod ast;
 pub mod execute;
 mod get_file_content;
 mod parse;

@@ -102,6 +102,7 @@ pub enum NewTokens<'a> {
     Error(&'a str),
 }
 
+#[allow(dead_code)]
 pub(crate) fn new_tokenise<'a>(arg: &'a str) -> SpannedIter<'a, NewTokens<'a>> {
     // Inspired from the logos example
     NewTokens::lexer(arg).spanned()
