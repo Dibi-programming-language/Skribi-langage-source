@@ -38,6 +38,7 @@
         };
         devShells.default = pkgs.mkShell {
           inputsFrom = [ skribiBuild ];
+          LLVM_SYS_221_PREFIX=pkgs.llvm_22.dev;
           buildInputs = with pkgs; [
             rust-analyzer
             clippy

@@ -1,8 +1,103 @@
+use logos::Logos;
+
 use crate::execute::IntType;
 use crate::skr_errors::ParsingError;
 use std::collections::VecDeque;
 use std::fmt::{Display, Formatter};
 use std::str::Chars;
+
+#[derive(Logos, Clone, PartialEq)]
+pub enum NewTokens<'a> {
+    /// Any character not used by other tokens, only used when parsing bloc title
+    Error(&'a str),
+
+    #[regex(r"io|no", |lex| lex.slice().starts_with("i"))]
+    Bool(bool),
+    #[regex(r"[+-]?[0-9]*\.[0-9]+", |lex| lex.slice().parse::<f32>().unwrap())]
+    Float(f32),
+    #[regex(r"[+-]?[0-9]+", |lex| lex.slice().parse::<IntType>().unwrap())]
+    Int(IntType),
+    #[regex(r#""[!"]*""#)]
+    String(&'a str),
+    #[regex(r#"[a-zA-Z][a-zA-Z0-9_]*"#)]
+    Identifier(&'a str),
+    #[token("skr_app")]
+    NatCall,
+
+    #[token("+")]
+    Add,
+    #[token("-")]
+    Sub,
+    #[token("/")]
+    Div,
+    #[token("*")]
+    Mul,
+
+    #[token("!")]
+    Not,
+
+    #[token("(")]
+    LeftParenthesis,
+    #[token(")")]
+    RightParenthesis,
+
+    #[token("{")]
+    LeftBrace,
+    #[token("}")]
+    RightBrace,
+
+    #[token(":")]
+    Inside,
+
+    #[regex(r"[ \t]+", logos::skip)]
+    Ignore,
+    #[regex(r"(\n)+")]
+    Space,
+
+    #[token("fu")]
+    KeyGlobal,
+    #[token("ju")]
+    KeyConstant,
+    #[token("pu")]
+    KeyPrivate,
+
+    #[token("ij")]
+    KeywordIf,
+    #[token("sula")]
+    KeywordElse,
+    #[token("ci")]
+    KeywordWhile,
+    #[token("kat")]
+    KeywordClass,
+    #[token("ums")]
+    KeywordFunction,
+    #[token("ei")]
+    KeywordReturn,
+
+    #[token("biuli")]
+    KeywordBubbleScope,
+    #[token("kodi")]
+    KeywordSimpleScope,
+    #[token("spoki")]
+    KeywordUnusedScope,
+
+    #[token("=")]
+    Equal,
+    #[token("!=")]
+    NotEqual,
+    #[token("<")]
+    LessThan,
+    #[token(">")]
+    GreaterThan,
+    #[token("<=")]
+    LessOrEqual,
+    #[token(">=")]
+    GreaterOrEqual,
+    #[token("||")]
+    And,
+    #[token("&&")]
+    Or,
+}
 
 #[derive(Debug, PartialEq)]
 pub enum ModifierKeyword {
