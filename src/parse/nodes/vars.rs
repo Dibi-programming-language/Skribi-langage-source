@@ -36,9 +36,10 @@ impl Type {
     pub(crate) fn parse(tokens: &mut VecDeque<TokenContainer>) -> Option<Type> {
         if let some_token!(Token::Identifier(identifier)) = tokens.front()
             && is_type_def(identifier)
-                && let some_token!(Token::Identifier(identifier)) = tokens.pop_front() {
-                    return Some(Type { name: identifier });
-                }
+            && let some_token!(Token::Identifier(identifier)) = tokens.pop_front()
+        {
+            return Some(Type { name: identifier });
+        }
 
         None
     }

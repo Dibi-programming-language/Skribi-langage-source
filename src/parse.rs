@@ -4,7 +4,7 @@ use chumsky::error::Rich;
 use chumsky::input::{Input, Stream, ValueInput};
 use chumsky::span::SimpleSpan;
 use chumsky::{IterParser, Parser, extra, select};
-use logos::{SpannedIter};
+use logos::SpannedIter;
 
 use crate::ast::nodes::AstRoot;
 use crate::ast::nodes::base::ValueBase;

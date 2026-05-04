@@ -15,6 +15,6 @@ pub struct AstRoot<'a> {
 
 impl AstRoot<'_> {
     pub fn new<'a>(content: Vec<Statement<'a>>) -> AstRoot<'a> {
-        return AstRoot { content }
+        return AstRoot { content };
     }
 }
