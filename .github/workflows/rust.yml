@@ -15,8 +15,8 @@ jobs:
 
     steps:
     - uses: actions/checkout@v5
-    - uses: determinate-systems/nix-installer-action@v1
-    - uses: determinate-systems/magic-nix-cache-action@v1
+    - uses: DeterminateSystems/nix-installer-action@v22
+    - uses: DeterminateSystems/magic-nix-cache-action@v13
     - name: Build
       run: nix develop --command cargo build --verbose
     - name: Run tests
