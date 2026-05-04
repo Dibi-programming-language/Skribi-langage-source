@@ -2,9 +2,8 @@ use std::collections::VecDeque;
 
 use chumsky::error::Rich;
 use chumsky::input::{Input, Stream, ValueInput};
-use chumsky::prelude::todo;
 use chumsky::span::SimpleSpan;
-use chumsky::{Parser, extra};
+use chumsky::{Parser, extra, select};
 use logos::SpannedIter;
 
 use crate::ast::nodes::AstRoot;
@@ -14,12 +13,14 @@ use crate::tokens::{NewTokens, TokenContainer};
 
 pub(crate) mod nodes;
 
-fn parser<'tok, 'src: 'tok, I>()
+fn root_parser<'tok, 'src: 'tok, I>()
 -> impl Parser<'tok, I, AstRoot<'src>, extra::Err<Rich<'tok, NewTokens<'src>>>>
 where
     I: ValueInput<'tok, Token = NewTokens<'src>, Span = SimpleSpan>,
 {
-    todo()
+    select! {
+        NewTokens::Bool(_) => AstRoot {content: vec!()}
+    }
 }
 
 #[allow(dead_code)]
@@ -29,11 +30,11 @@ pub fn new_parse<'a>(
 ) -> Result<AstRoot<'a>, Vec<Rich<'a, NewTokens<'a>>>> {
     let iter = tokens.map(|(token, span)| match token {
         Ok(tok) => (tok, span.into()),
-        Err(()) => (NewTokens::Error("E"), span.into()),
+        Err(()) => (NewTokens::Error("?"), span.into()),
     });
 
     let token_stream = Stream::from_iter(iter).map((0..src_len).into(), |(t, s): (_, _)| (t, s));
-    parser().parse(token_stream).into_result()
+    root_parser().parse(token_stream).into_result()
 }
 
 /// Parse the tokens into an AST.

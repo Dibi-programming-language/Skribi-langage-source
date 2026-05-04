@@ -102,6 +102,54 @@ pub enum NewTokens<'a> {
     Error(&'a str),
 }
 
+impl Display for NewTokens<'_> {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        f.write_str(match self {
+            Self::Bool(true) => "io",
+            Self::Bool(false) => "no",
+            Self::Float(_) => "float",
+            Self::Int(_) => "number",
+            Self::String(str) => str,
+            Self::Identifier(str) => str,
+            Self::NatCall => "skr_app",
+            Self::Add => "+",
+            Self::Sub => "-",
+            Self::Div => "/",
+            Self::Mul => "*",
+            Self::Not => "!",
+            Self::LeftParenthesis => "(",
+            Self::RightParenthesis => ")",
+            Self::LeftBrace => "{",
+            Self::RightBrace => "}",
+            Self::Inside => ":",
+            Self::UseType => ".",
+            Self::Ignore => " ",
+            Self::Space => "new line",
+            Self::KeyGlobal => "global",
+            Self::KeyConstant => "const",
+            Self::KeyPrivate => "private",
+            Self::KeywordIf => "ij",
+            Self::KeywordElse => "sula",
+            Self::KeywordWhile => "ci",
+            Self::KeywordClass => "kat",
+            Self::KeywordFunction => "ums",
+            Self::KeywordReturn => "ret",
+            Self::KeywordBubbleScope => "bubble",
+            Self::KeywordSimpleScope => "simple",
+            Self::KeywordUnusedScope => "unused",
+            Self::Equal => "=",
+            Self::NotEqual => "!=",
+            Self::LessThan => "<",
+            Self::GreaterThan => ">",
+            Self::LessOrEqual => "<=",
+            Self::GreaterOrEqual => ">=",
+            Self::And => "&&",
+            Self::Or => "||",
+            Self::Error(err) => err,
+        })
+    }
+}
+
 #[allow(dead_code)]
 pub(crate) fn new_tokenise<'a>(arg: &'a str) -> SpannedIter<'a, NewTokens<'a>> {
     // Inspired from the logos example

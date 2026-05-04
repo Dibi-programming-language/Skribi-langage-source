@@ -93,13 +93,11 @@ impl GraphDisplay for CGet {
 impl_debug!(CGet);
 
 pub(crate) fn parse_cget(tokens: &mut VecDeque<TokenContainer>) -> Option<CGet> {
-    if let some_token!(Token::Identifier(identifier)) = tokens.front() {
-        if is_type_def(identifier) {
-            if let some_token!(Token::Identifier(identifier)) = tokens.pop_front() {
+    if let some_token!(Token::Identifier(identifier)) = tokens.front()
+        && is_type_def(identifier)
+            && let some_token!(Token::Identifier(identifier)) = tokens.pop_front() {
                 return Some(CGet { name: identifier });
             }
-        }
-    }
 
     None
 }

@@ -10,5 +10,5 @@ mod operations;
 mod statements;
 
 pub struct AstRoot<'a> {
-    content: Vec<Statement<'a>>,
+    pub content: Vec<Statement<'a>>,
 }
