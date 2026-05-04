@@ -1,14 +1,20 @@
 use crate::ast::nodes::statements::Statement;
 
-mod base;
-mod calls;
-mod conditions;
-mod declarations;
-mod expressions;
-mod loops;
-mod operations;
-mod statements;
+pub mod base;
+pub mod calls;
+pub mod conditions;
+pub mod declarations;
+pub mod expressions;
+pub mod loops;
+pub mod operations;
+pub mod statements;
 
 pub struct AstRoot<'a> {
     pub content: Vec<Statement<'a>>,
+}
+
+impl AstRoot<'_> {
+    pub fn new<'a>(content: Vec<Statement<'a>>) -> AstRoot<'a> {
+        return AstRoot { content }
+    }
 }
