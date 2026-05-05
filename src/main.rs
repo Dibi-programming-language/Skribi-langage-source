@@ -14,7 +14,7 @@ fn main() -> ExitCode {
     // generic parameters
     let args = env::args().collect::<Vec<_>>(); // get the command line arguments
 
-    match new_execute(args, true) {
+    match new_execute(args, false) {
         Ok(_) => ExitCode::SUCCESS,
         Err(err) => {
             eprintln!("\n{err}");

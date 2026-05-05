@@ -15,12 +15,14 @@ use crate::ast::nodes::{expressions::Expression, statements::StatementList};
 /// `<fct_dec> ::= ums T_IDENTIFIER <tuple> <scope>`
 ///
 /// See also [TupleNode] and [Scope].
+#[derive(PartialEq, Clone)]
 pub struct FunctionDeclaration<'a> {
     identifier: &'a str,
     args: Vec<Expression<'a>>,
     scope: StatementList<'a>,
 }
 
+#[derive(PartialEq, Clone)]
 pub struct VariableDeclaration<'a> {
     var_type: &'a str,
     identifier: &'a str,

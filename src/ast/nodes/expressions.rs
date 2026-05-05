@@ -7,6 +7,7 @@ use crate::ast::nodes::{
     operations::{BinaryOperation, UnaryOperation},
 };
 
+#[derive(PartialEq, Clone)]
 pub enum Expression<'a> {
     ValueBase(ValueBase),
     BinOp(Box<BinaryOperation<'a>>),
