@@ -31,3 +31,35 @@ pub struct VariableDeclaration<'a> {
     global: bool,
     constant: bool,
 }
+
+impl VariableDeclaration<'_> {
+    pub fn new<'a>(
+        var_type: &'a str,
+        identifier: &'a str,
+        content: Expression<'a>,
+    ) -> VariableDeclaration<'a> {
+        VariableDeclaration {
+            var_type,
+            identifier,
+            content,
+            private: false,
+            global: false,
+            constant: false,
+        }
+    }
+
+    pub fn private(mut self) -> Self {
+        self.private = true;
+        self
+    }
+
+    pub fn global(mut self) -> Self {
+        self.global = true;
+        self
+    }
+
+    pub fn constant(mut self) -> Self {
+        self.constant = true;
+        self
+    }
+}

@@ -1,84 +1,24 @@
 use std::collections::VecDeque;
 
 use chumsky::error::Rich;
-use chumsky::extra::Full;
 use chumsky::input::{Input, Stream, ValueInput};
-use chumsky::prelude::{Recursive, choice, just, one_of, recursive};
+use chumsky::prelude::{choice, empty, just, recursive, via_parser};
 use chumsky::span::SimpleSpan;
-use chumsky::{IterParser, Parser, extra, select};
+use chumsky::{IterParser, Parser, extra};
 use logos::SpannedIter;
 
 use crate::ast::nodes::AstRoot;
-use crate::ast::nodes::base::ValueBase;
 use crate::ast::nodes::expressions::Expression;
-use crate::ast::nodes::operations::BinaryOperation;
 use crate::ast::nodes::statements::Statement;
+use crate::parse::declarations::variable_declaration_parser;
 use crate::parse::nodes::files_node::FileNode;
+use crate::parse::nums::{binop_parser, value_parser};
 use crate::skr_errors::ResultOption;
 use crate::tokens::{NewTokens, TokenContainer};
 
+mod declarations;
 pub(crate) mod nodes;
-
-fn value_parser<'tok, 'src: 'tok, I>()
--> impl Parser<'tok, I, ValueBase, extra::Err<Rich<'tok, NewTokens<'src>>>> + Clone
-where
-    I: ValueInput<'tok, Token = NewTokens<'src>, Span = SimpleSpan>,
-{
-    select! {
-        NewTokens::Bool(val) => ValueBase::Bool(val),
-        NewTokens::Float(val) => ValueBase::Float(val),
-        NewTokens::Int(val) => ValueBase::Int(val),
-        NewTokens::String(source) => ValueBase::String(source.to_owned())
-    }.labelled("base value")
-}
-
-fn list_binop_parser<'tok, 'src: 'tok, I>(
-    elements: Vec<NewTokens<'src>>,
-    then: impl Parser<'tok, I, Expression<'src>, extra::Err<Rich<'tok, NewTokens<'src>>>> + Clone,
-) -> impl Parser<'tok, I, Expression<'src>, extra::Err<Rich<'tok, NewTokens<'src>>>> + Clone
-where
-    I: ValueInput<'tok, Token = NewTokens<'src>, Span = SimpleSpan>,
-{
-    then.clone()
-        .foldl(one_of(elements).then(then).repeated(), |lhs, (op, rhs)| {
-            BinaryOperation::from(op, lhs, rhs)
-        })
-}
-
-/// With:
-/// 1. * and /
-/// 2. + and -
-/// 3. <=, >=, <, >, = and !=
-/// 4. &&
-/// 5. ||
-///
-/// 0 is for unary
-fn binop_parser<'tok, 'src: 'tok, I>(
-    exp: Recursive<
-        dyn Parser<'tok, I, Expression<'src>, Full<Rich<'tok, NewTokens<'src>>, (), ()>> + 'tok,
-    >,
-) -> impl Parser<'tok, I, Expression<'src>, extra::Err<Rich<'tok, NewTokens<'src>>>> + Clone
-where
-    I: ValueInput<'tok, Token = NewTokens<'src>, Span = SimpleSpan>,
-{
-    let binary_md = list_binop_parser(vec![NewTokens::Mul, NewTokens::Div], exp);
-    let binary_as = list_binop_parser(vec![NewTokens::Add, NewTokens::Sub], binary_md);
-    let binary_cmp = list_binop_parser(
-        vec![
-            NewTokens::LessOrEqual,
-            NewTokens::GreaterOrEqual,
-            NewTokens::LessThan,
-            NewTokens::GreaterThan,
-            NewTokens::Equal,
-            NewTokens::NotEqual,
-        ],
-        binary_as,
-    );
-    let binary_and = list_binop_parser(vec![NewTokens::And], binary_cmp);
-    let binary_or = list_binop_parser(vec![NewTokens::Or], binary_and);
-
-    binary_or
-}
+mod nums;
 
 fn expression_parser<'tok, 'src: 'tok, I>()
 -> impl Parser<'tok, I, Expression<'src>, extra::Err<Rich<'tok, NewTokens<'src>>>>
@@ -86,15 +26,14 @@ where
     I: ValueInput<'tok, Token = NewTokens<'src>, Span = SimpleSpan>,
 {
     recursive(|exp| {
-        let priority = recursive(|_| {
-            choice((
-                value_parser().map(Expression::ValueBase),
-                exp.delimited_by(
-                    just(NewTokens::LeftParenthesis),
-                    just(NewTokens::RightParenthesis),
-                ),
-            ))
-        });
+        let priority = choice((
+            value_parser().map(Expression::ValueBase),
+            exp.clone().delimited_by(
+                just(NewTokens::LeftParenthesis),
+                just(NewTokens::RightParenthesis).recover_with(via_parser(empty().to(NewTokens::RightParenthesis))),
+            ),
+            variable_declaration_parser(exp.clone()).map(|arg| Expression::VarDec(Box::new(arg))),
+        ));
 
         choice((binop_parser(priority.clone()), priority.clone()))
     })
