@@ -15,7 +15,7 @@ pub enum Sula<'a> {
 /// `Condition` is the starting node for an "if" block in the AST.
 #[derive(PartialEq, Clone)]
 pub struct Condition<'a> {
-    condition: Expression<'a>,
-    positive: StatementList<'a>,
-    negative: Option<Box<Sula<'a>>>,
+    pub condition: Expression<'a>,
+    pub positive: StatementList<'a>,
+    pub negative: Option<Box<Sula<'a>>>,
 }

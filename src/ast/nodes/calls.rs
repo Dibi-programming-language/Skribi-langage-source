@@ -19,6 +19,6 @@ pub struct FunctionCall<'a> {
 
 #[derive(PartialEq, Clone)]
 pub struct VariableModification<'a> {
-    identifier: IdentifierChain<'a>,
-    value: Expression<'a>,
+    pub identifier: IdentifierChain<'a>,
+    pub value: Expression<'a>,
 }

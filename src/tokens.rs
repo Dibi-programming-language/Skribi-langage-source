@@ -14,7 +14,7 @@ pub enum NewTokens<'a> {
     Float(f32),
     #[regex(r"[+-]?[0-9]+", |lex| lex.slice().parse::<IntType>().unwrap())]
     Int(IntType),
-    #[regex(r#""[!"]*""#)]
+    #[regex(r#""(\\"|[^"])*""#)]
     String(&'a str),
     #[regex(r#"[a-zA-Z][a-zA-Z0-9_]*"#)]
     Identifier(&'a str),

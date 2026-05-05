@@ -30,7 +30,8 @@ where
             value_parser().map(Expression::ValueBase),
             exp.clone().delimited_by(
                 just(NewTokens::LeftParenthesis),
-                just(NewTokens::RightParenthesis).recover_with(via_parser(empty().to(NewTokens::RightParenthesis))),
+                just(NewTokens::RightParenthesis)
+                    .recover_with(via_parser(empty().to(NewTokens::RightParenthesis))),
             ),
             variable_declaration_parser(exp.clone()).map(|arg| Expression::VarDec(Box::new(arg))),
         ));

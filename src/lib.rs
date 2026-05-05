@@ -3,6 +3,7 @@ use colored::Colorize;
 use get_file_content::get_content;
 use skr_errors::RootError;
 
+use crate::ast::visitors::pretty::Pretty;
 use crate::execute::{Execute, ExecutionContext};
 use crate::parse::new_parse;
 use crate::skr_errors::ErrorCodes;
@@ -45,7 +46,10 @@ pub fn new_execute(args: Vec<String>, verbose: bool) -> Result<(), RootError> {
             };
 
             match new_parse(tokens, content.content.len()) {
-                Ok(_) => Ok(()),
+                Ok(ast) => {
+                    Pretty::eprint(&ast);
+                    Ok(())
+                },
                 Err(errs) => {
                     let gap = errs.len() < 5;
                     for err in errs {

@@ -24,12 +24,12 @@ pub struct FunctionDeclaration<'a> {
 
 #[derive(PartialEq, Clone)]
 pub struct VariableDeclaration<'a> {
-    var_type: &'a str,
-    identifier: &'a str,
-    content: Expression<'a>,
-    private: bool,
-    global: bool,
-    constant: bool,
+    pub var_type: &'a str,
+    pub identifier: &'a str,
+    pub content: Expression<'a>,
+    pub private: bool,
+    pub global: bool,
+    pub constant: bool,
 }
 
 impl VariableDeclaration<'_> {

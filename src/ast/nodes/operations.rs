@@ -1,4 +1,9 @@
-use crate::{ast::nodes::expressions::Expression, tokens::NewTokens};
+use std::fmt::Display;
+
+use crate::{
+    ast::{nodes::expressions::Expression, visitors::NodeVisitor},
+    tokens::NewTokens,
+};
 
 #[derive(PartialEq, Clone)]
 pub enum BinOps {
@@ -16,11 +21,30 @@ pub enum BinOps {
     GreaterOrEqual,
 }
 
+impl Display for BinOps {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str(match self {
+            Self::Add => "+",
+            Self::Sub => "-",
+            Self::Div => "/",
+            Self::Mul => "*",
+            Self::Equal => "=",
+            Self::NotEqual => "!=",
+            Self::LessThan => "<",
+            Self::GreaterThan => ">",
+            Self::LessOrEqual => "<=",
+            Self::GreaterOrEqual => ">=",
+            Self::And => "&&",
+            Self::Or => "||",
+        })
+    }
+}
+
 #[derive(PartialEq, Clone)]
 pub struct BinaryOperation<'a> {
-    binop: BinOps,
-    left: Expression<'a>,
-    right: Expression<'a>,
+    pub binop: BinOps,
+    pub left: Expression<'a>,
+    pub right: Expression<'a>,
 }
 
 impl BinaryOperation<'_> {
@@ -66,4 +90,15 @@ pub enum UnaryOperation<'a> {
     Minus(Expression<'a>),
     Not(Expression<'a>),
     None(Expression<'a>),
+}
+
+impl UnaryOperation<'_> {
+    pub fn accept<U, T: NodeVisitor<Value = U>>(&self, v: &mut T) -> U {
+        match self {
+            Self::Plus(b) => v.visit_plus(b),
+            Self::Minus(i) => v.visit_minus(i),
+            Self::Not(f) => v.visit_not(f),
+            Self::None(s) => s.accept(v),
+        }
+    }
 }
