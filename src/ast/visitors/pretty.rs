@@ -1,4 +1,4 @@
-use std::fmt::{Display};
+use std::fmt::Display;
 
 use crate::{
     ast::{
@@ -133,7 +133,7 @@ impl NodeVisitor for Printer<'_, '_> {
             write!(self.f, "sula ")?;
             match &**content {
                 Sula::Scope(sta) => self.visit_statements(sta)?,
-                Sula::Condition(cond) => self.visit_condition(cond)?
+                Sula::Condition(cond) => self.visit_condition(cond)?,
             }
         }
         Ok(())

@@ -32,3 +32,31 @@ pub struct StatementList<'a> {
     pub simple: bool,
     pub bubble: bool,
 }
+
+impl StatementList<'_> {
+    pub fn new<'a>(
+        statements: Vec<Statement<'a>>,
+    ) -> StatementList<'a> {
+        StatementList {
+            statements,
+            unused: false,
+            simple: false,
+            bubble: false,
+        }
+    }
+
+    pub fn unused(mut self) -> Self {
+        self.unused = true;
+        self
+    }
+
+    pub fn simple(mut self) -> Self {
+        self.simple = true;
+        self
+    }
+
+    pub fn bubble(mut self) -> Self {
+        self.bubble = true;
+        self
+    }
+}

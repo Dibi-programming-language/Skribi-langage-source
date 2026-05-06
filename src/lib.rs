@@ -49,7 +49,7 @@ pub fn new_execute(args: Vec<String>, verbose: bool) -> Result<(), RootError> {
                 Ok(ast) => {
                     Pretty::eprint(&ast);
                     Ok(())
-                },
+                }
                 Err(errs) => {
                     let gap = errs.len() < 5;
                     for err in errs {
