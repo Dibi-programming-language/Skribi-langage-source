@@ -23,12 +23,13 @@ pub struct Pretty<'a> {
 
 struct Printer<'a, 'b> {
     f: &'a mut std::fmt::Formatter<'b>,
+    indent: usize,
 }
 
 impl Display for Pretty<'_> {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         f.write_str("AST:\n")?;
-        let mut printer = Printer { f };
+        let mut printer = Printer { f, indent: 0 };
         printer.visit_root(self.root)
     }
 }
@@ -43,6 +44,7 @@ impl NodeVisitor for Printer<'_, '_> {
     type Value = std::fmt::Result;
 
     fn visit_root(&mut self, v: &AstRoot) -> Self::Value {
+        self.indent = 0;
         for sta in &v.content {
             sta.accept(self)?;
             self.f.write_str("\n")?;
@@ -50,8 +52,9 @@ impl NodeVisitor for Printer<'_, '_> {
         self.f.write_str("\n")
     }
 
-    fn visit_return(&mut self, _v: &Return) -> Self::Value {
-        todo!()
+    fn visit_return(&mut self, v: &Return) -> Self::Value {
+        self.f.write_str("ei ")?;
+        v.exp.accept(self)
     }
 
     fn visit_statements(&mut self, v: &StatementList) -> Self::Value {
@@ -64,12 +67,14 @@ impl NodeVisitor for Printer<'_, '_> {
         if v.simple {
             self.f.write_str("kodi ")?;
         }
-        self.f.write_str("{\n")?;
+        self.indent += 4;
+        write!(self.f, "{:-<1$}", "{\n", self.indent)?;
         for sta in &v.statements {
             sta.accept(self)?;
-            self.f.write_str("\n")?;
+            write!(self.f, "{:-<1$}", "\n", self.indent)?;
         }
-        self.f.write_str("}\n")
+        self.indent -= 4;
+        write!(self.f, "{:-<1$}", "}\n", self.indent)
     }
 
     fn visit_binary(&mut self, v: &BinaryOperation) -> Self::Value {
@@ -80,24 +85,30 @@ impl NodeVisitor for Printer<'_, '_> {
         self.f.write_str(")")
     }
 
-    fn visit_not(&mut self, _v: &Expression) -> Self::Value {
-        self.f.write_str("")
+    fn visit_not(&mut self, v: &Expression) -> Self::Value {
+        self.f.write_str("!(")?;
+        v.accept(self)?;
+        self.f.write_str(")")
     }
 
-    fn visit_plus(&mut self, _v: &Expression) -> Self::Value {
-        self.f.write_str("")
+    fn visit_plus(&mut self, v: &Expression) -> Self::Value {
+        self.f.write_str("+(")?;
+        v.accept(self)?;
+        self.f.write_str(")")
     }
 
-    fn visit_minus(&mut self, _v: &Expression) -> Self::Value {
-        self.f.write_str("")
+    fn visit_minus(&mut self, v: &Expression) -> Self::Value {
+        self.f.write_str("-(")?;
+        v.accept(self)?;
+        self.f.write_str(")")
     }
 
     fn visit_ci(&mut self, _v: &Ci) -> Self::Value {
-        self.f.write_str("")
+        todo!()
     }
 
     fn visit_function_dec(&mut self, _v: &FunctionDeclaration) -> Self::Value {
-        self.f.write_str("")
+        todo!()
     }
 
     fn visit_variable_dec(&mut self, v: &VariableDeclaration) -> Self::Value {
@@ -135,11 +146,11 @@ impl NodeVisitor for Printer<'_, '_> {
     }
 
     fn visit_function_call(&mut self, _v: &FunctionCall) -> Self::Value {
-        self.f.write_str("")
+        todo!()
     }
 
     fn visit_identifier_chain(&mut self, _v: &IdentifierChain) -> Self::Value {
-        self.f.write_str("")
+        todo!()
     }
 
     fn visit_bool(&mut self, v: bool) -> Self::Value {

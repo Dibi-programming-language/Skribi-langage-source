@@ -5,7 +5,7 @@ use crate::ast::{
 
 #[derive(PartialEq, Clone)]
 pub struct Return<'a> {
-    exp: Expression<'a>,
+    pub exp: Expression<'a>,
 }
 
 #[derive(PartialEq, Clone)]
