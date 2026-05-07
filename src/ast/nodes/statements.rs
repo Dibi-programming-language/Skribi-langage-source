@@ -34,9 +34,7 @@ pub struct StatementList<'a> {
 }
 
 impl StatementList<'_> {
-    pub fn new<'a>(
-        statements: Vec<Statement<'a>>,
-    ) -> StatementList<'a> {
+    pub fn new<'a>(statements: Vec<Statement<'a>>) -> StatementList<'a> {
         StatementList {
             statements,
             unused: false,

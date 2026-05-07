@@ -12,8 +12,8 @@ use crate::{
     execute::IntType,
 };
 
-pub mod pretty;
 pub mod compile;
+pub mod pretty;
 
 /// Adapted visitor: we "accept" in enums, matching the element type, then
 /// "visiting" the resulting struct.

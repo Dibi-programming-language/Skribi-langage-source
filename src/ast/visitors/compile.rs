@@ -3,7 +3,7 @@ use crate::{
         nodes::{
             AstRoot,
             calls::{FunctionCall, IdentifierChain, VariableModification},
-            conditions::{Condition},
+            conditions::Condition,
             declarations::{FunctionDeclaration, VariableDeclaration},
             expressions::Expression,
             loops::Ci,
@@ -16,9 +16,7 @@ use crate::{
 };
 
 #[allow(dead_code)]
-struct CodeGenerator {
-
-}
+struct CodeGenerator {}
 
 impl NodeVisitor for CodeGenerator {
     type Value = Result<(), ()>;

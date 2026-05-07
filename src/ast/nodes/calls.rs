@@ -12,9 +12,22 @@ pub struct IdentifierChain<'a> {
 /// by the compiler itself, or even in the runtime.
 #[derive(PartialEq, Clone)]
 pub struct FunctionCall<'a> {
-    native: bool,
-    identifier: IdentifierChain<'a>,
-    arguments: Vec<Expression<'a>>,
+    pub native: bool,
+    pub identifier: IdentifierChain<'a>,
+    pub arguments: Vec<Expression<'a>>,
+}
+
+impl FunctionCall<'_> {
+    pub fn new<'a>(identifier: &'a str) -> FunctionCall<'a> {
+        FunctionCall {
+            native: false,
+            identifier: IdentifierChain {
+                identifier,
+                previous: None,
+            },
+            arguments: vec![],
+        }
+    }
 }
 
 #[derive(PartialEq, Clone)]

@@ -10,6 +10,7 @@ use logos::SpannedIter;
 use crate::ast::nodes::AstRoot;
 use crate::ast::nodes::expressions::Expression;
 use crate::ast::nodes::statements::{Statement, StatementList};
+use crate::parse::calls::native_call_parser;
 use crate::parse::conditions::condition_parser;
 use crate::parse::declarations::variable_declaration_parser;
 use crate::parse::nodes::files_node::FileNode;
@@ -17,15 +18,17 @@ use crate::parse::nums::{binop_parser, value_parser};
 use crate::skr_errors::ResultOption;
 use crate::tokens::{NewTokens, TokenContainer};
 
+mod calls;
 mod conditions;
 mod declarations;
 pub(crate) mod nodes;
 mod nums;
 
 fn expression_parser<'tok, 'src: 'tok, I>(
-    stal: impl Parser<'tok, I, StatementList<'src>, extra::Err<Rich<'tok, NewTokens<'src>>>> + Clone + 'tok,
-)
--> impl Parser<'tok, I, Expression<'src>, extra::Err<Rich<'tok, NewTokens<'src>>>> + Clone + 'tok
+    stal: impl Parser<'tok, I, StatementList<'src>, extra::Err<Rich<'tok, NewTokens<'src>>>>
+    + Clone
+    + 'tok,
+) -> impl Parser<'tok, I, Expression<'src>, extra::Err<Rich<'tok, NewTokens<'src>>>> + Clone + 'tok
 where
     I: ValueInput<'tok, Token = NewTokens<'src>, Span = SimpleSpan>,
 {
@@ -39,6 +42,7 @@ where
             ),
             variable_declaration_parser(exp.clone()).map(|arg| Expression::VarDec(Box::new(arg))),
             condition_parser(exp, stal),
+            native_call_parser().map(|x| Expression::FctCall(x)),
         ));
 
         choice((binop_parser(priority.clone()), priority.clone()))
@@ -47,16 +51,16 @@ where
 
 fn statement_list_parser<'tok, 'src: 'tok, I>(
     sta: impl Parser<'tok, I, Statement<'src>, extra::Err<Rich<'tok, NewTokens<'src>>>> + Clone + 'tok,
-)
--> impl Parser<'tok, I, StatementList<'src>, extra::Err<Rich<'tok, NewTokens<'src>>>> + Clone + 'tok
+) -> impl Parser<'tok, I, StatementList<'src>, extra::Err<Rich<'tok, NewTokens<'src>>>> + Clone + 'tok
 where
     I: ValueInput<'tok, Token = NewTokens<'src>, Span = SimpleSpan>,
 {
-    sta.repeated().collect().map(StatementList::new)
+    sta.repeated()
+        .collect()
+        .map(StatementList::new)
         .delimited_by(
             just(NewTokens::LeftBrace),
-            just(NewTokens::RightBrace)
-            .recover_with(via_parser(empty().to(NewTokens::RightBrace))),
+            just(NewTokens::RightBrace).recover_with(via_parser(empty().to(NewTokens::RightBrace))),
         )
 }
 
