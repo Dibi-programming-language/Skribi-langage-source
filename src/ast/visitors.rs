@@ -13,6 +13,7 @@ use crate::{
 };
 
 pub mod pretty;
+pub mod compile;
 
 /// Adapted visitor: we "accept" in enums, matching the element type, then
 /// "visiting" the resulting struct.
