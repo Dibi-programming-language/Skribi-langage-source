@@ -90,7 +90,10 @@ fn test_strings_hard_1() {
     let mut tokens = new_tokenise(content).map(|(a, _)| a);
     assert_valid!(tokens, NewTokens::String("\"start with simple\""));
     assert_valid!(tokens, NewTokens::String("\"harder 11234 5489 \\\"\""));
-    assert_valid!(tokens, NewTokens::String("\"escape characters \\n \\t \\r \\0\""));
+    assert_valid!(
+        tokens,
+        NewTokens::String("\"escape characters \\n \\t \\r \\0\"")
+    );
     assert_valid!(tokens, NewTokens::String("\"special ... ^éà@¨ï$\""));
     assert!(tokens.nth(0).is_none())
 }
