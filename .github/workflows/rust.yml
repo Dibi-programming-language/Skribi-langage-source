@@ -11,14 +11,15 @@ env:
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v5
+    - uses: DeterminateSystems/nix-installer-action@v22
+    - uses: DeterminateSystems/magic-nix-cache-action@v13
     - name: Build
-      run: cargo build --verbose
+      run: nix develop --command cargo build --verbose
     - name: Run tests
-      run: cargo test --verbose
+      run: nix develop --command cargo test --verbose
     - name: Run fmt
-      run: cargo fmt --all -- --check
+      run: nix develop --command cargo fmt --all -- --check

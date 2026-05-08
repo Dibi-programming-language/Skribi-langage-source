@@ -26,6 +26,9 @@
         skribiBuild = (pkgs.callPackage naersk {}).buildPackage {
           src = ./.;
           doCheck = true;
+          nativeBuildInputs = with pkgs; [
+            llvm_22
+          ];
         };
       in
       {
@@ -35,10 +38,12 @@
         };
         devShells.default = pkgs.mkShell {
           inputsFrom = [ skribiBuild ];
+          LLVM_SYS_221_PREFIX=pkgs.llvm_22.dev;
           buildInputs = with pkgs; [
             rust-analyzer
             clippy
             rustfmt
+            rustc
           ];
         };
       }

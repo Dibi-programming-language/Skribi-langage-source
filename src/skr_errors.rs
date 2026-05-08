@@ -68,6 +68,7 @@ pub enum RootError {
     ParsingError(#[from] ParsingError),
     ExecutionError(#[from] ExecutionError),
     FileError(Vec<String>, ErrorKind),
+    GlobalParsingError,
     EmptyFile,
 }
 
@@ -95,6 +96,19 @@ impl Display for RootError {
                 "{}",
                 "This file does not have any executable content.".red()
             ),
+            Self::GlobalParsingError => write!(f, "{}", "Parsing Error".red()),
+        }
+    }
+}
+
+pub enum ErrorCodes {
+    ParsingError,
+}
+
+impl Into<usize> for ErrorCodes {
+    fn into(self) -> usize {
+        match self {
+            Self::ParsingError => 1,
         }
     }
 }

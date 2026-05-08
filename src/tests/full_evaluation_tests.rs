@@ -59,10 +59,3 @@ fn test_combination() {
 
     assert_evaluation(String::from("3*4-1*2"), 10);
 }
-
-// TODO - fix in a later pull request
-// #[test]
-// fn test_combination_difficult() {
-//     assert_evaluation(String::from("3+2-5"), 0);
-//     assert_evaluation(String::from("2*5/10"), 1);
-// }

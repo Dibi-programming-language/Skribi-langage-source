@@ -1,8 +1,162 @@
+use logos::{Logos, SpannedIter};
+
 use crate::execute::IntType;
 use crate::skr_errors::ParsingError;
 use std::collections::VecDeque;
 use std::fmt::{Display, Formatter};
 use std::str::Chars;
+
+#[cfg(test)]
+mod tests;
+
+#[derive(Logos, Clone, PartialEq, Debug)]
+pub enum NewTokens<'a> {
+    #[regex(r"//[^\n]*\n?", logos::skip, allow_greedy = true, priority = 100)]
+    LineComment,
+    #[regex(r"[ \t\n]+", logos::skip)]
+    Ignore,
+
+    #[regex(r"io|no", |lex| lex.slice().starts_with("i"))]
+    Bool(bool),
+    #[regex(r"[+-]?[0-9]*\.[0-9]+", |lex| lex.slice().parse::<f32>().unwrap())]
+    Float(f32),
+    #[regex(r"[+-]?[0-9]+", |lex| lex.slice().parse::<IntType>().unwrap())]
+    Int(IntType),
+    #[regex(r#""(\\"|[^"])*""#)]
+    String(&'a str),
+    #[regex(r#"[a-zA-Z][a-zA-Z0-9_]*"#)]
+    Identifier(&'a str),
+    #[token("skr_app")]
+    KeyNativeCall,
+
+    #[token("+")]
+    Add,
+    #[token("-")]
+    Sub,
+    #[token("/", priority = 1)]
+    Div,
+    #[token("*")]
+    Mul,
+
+    #[token("(")]
+    LeftParenthesis,
+    #[token(")")]
+    RightParenthesis,
+
+    #[token("{")]
+    LeftBrace,
+    #[token("}")]
+    RightBrace,
+
+    #[token(":")]
+    Inside,
+    #[token(".")]
+    UseType,
+
+    #[token("fu")]
+    KeyGlobal,
+    #[token("ju")]
+    KeyConstant,
+    #[token("pu")]
+    KeyPrivate,
+
+    #[token("ij")]
+    KeywordIf,
+    #[token("sula")]
+    KeywordElse,
+    #[token("ci")]
+    KeywordWhile,
+    #[token("kat")]
+    KeywordClass,
+    #[token("ums")]
+    KeywordFunction,
+    #[token("ei")]
+    KeywordReturn,
+
+    #[token("biuli")]
+    KeywordBubbleScope,
+    #[token("kodi")]
+    KeywordSimpleScope,
+    #[token("spoki")]
+    KeywordUnusedScope,
+
+    #[token("=")]
+    Equal,
+    #[token("!=")]
+    NotEqual,
+    #[token("<")]
+    LessThan,
+    #[token(">")]
+    GreaterThan,
+    #[token("<=")]
+    LessOrEqual,
+    #[token(">=")]
+    GreaterOrEqual,
+
+    #[token("&&")]
+    And,
+    #[token("||")]
+    Or,
+    #[token("!")]
+    Not,
+
+    /// Any character not used by other tokens, only used when parsing bloc title
+    #[regex(".", priority = 0)]
+    Error(&'a str),
+}
+
+impl Display for NewTokens<'_> {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        f.write_str(match self {
+            Self::Bool(true) => "io",
+            Self::Bool(false) => "no",
+            Self::Float(_) => "float",
+            Self::Int(_) => "number",
+            Self::String(str) => str,
+            Self::Identifier(str) => str,
+            Self::KeyNativeCall => "skr_app",
+            Self::Add => "+",
+            Self::Sub => "-",
+            Self::Div => "/",
+            Self::Mul => "*",
+            Self::Not => "!",
+            Self::LeftParenthesis => "(",
+            Self::RightParenthesis => ")",
+            Self::LeftBrace => "{",
+            Self::RightBrace => "}",
+            Self::Inside => ":",
+            Self::UseType => ".",
+            Self::Ignore => " ",
+            Self::LineComment => "",
+            Self::KeyGlobal => "global",
+            Self::KeyConstant => "const",
+            Self::KeyPrivate => "private",
+            Self::KeywordIf => "ij",
+            Self::KeywordElse => "sula",
+            Self::KeywordWhile => "ci",
+            Self::KeywordClass => "kat",
+            Self::KeywordFunction => "ums",
+            Self::KeywordReturn => "ret",
+            Self::KeywordBubbleScope => "bubble",
+            Self::KeywordSimpleScope => "simple",
+            Self::KeywordUnusedScope => "unused",
+            Self::Equal => "=",
+            Self::NotEqual => "!=",
+            Self::LessThan => "<",
+            Self::GreaterThan => ">",
+            Self::LessOrEqual => "<=",
+            Self::GreaterOrEqual => ">=",
+            Self::And => "&&",
+            Self::Or => "||",
+            Self::Error(err) => err,
+        })
+    }
+}
+
+pub(crate) fn new_tokenise<'a>(arg: &'a str) -> SpannedIter<'a, NewTokens<'a>> {
+    // Inspired from the logos example
+    NewTokens::lexer(arg).spanned()
+}
 
 #[derive(Debug, PartialEq)]
 pub enum ModifierKeyword {
