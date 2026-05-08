@@ -28,6 +28,8 @@
           doCheck = true;
           nativeBuildInputs = with pkgs; [
             llvm_22
+            libffi
+            libxml2
           ];
         };
       in

@@ -1,3 +1,5 @@
+use inkwell::{builder::Builder, context::Context, module::Module};
+
 use crate::{
     ast::{
         nodes::{
@@ -16,13 +18,34 @@ use crate::{
 };
 
 #[allow(dead_code)]
-struct CodeGenerator {}
+pub struct CodeGenerator<'ctx> {
+    context: &'ctx Context,
+    module: Module<'ctx>,
+    builder: Builder<'ctx>,
+}
 
-impl NodeVisitor for CodeGenerator {
+impl CodeGenerator<'_> {
+    pub fn compile(root: &AstRoot) -> Result<(), ()> {
+        let context = Context::create();
+        let module = context.create_module("main");
+        let mut compiler = CodeGenerator {
+            context: &context,
+            module,
+            builder: context.create_builder()
+        };
+        compiler.visit_root(root)?;
+        Ok(())
+    }
+}
+
+impl NodeVisitor for CodeGenerator<'_> {
     type Value = Result<(), ()>;
 
-    fn visit_root(&mut self, _v: &AstRoot) -> Self::Value {
-        todo!()
+    fn visit_root(&mut self, v: &AstRoot) -> Self::Value {
+        for statement in &v.content {
+            statement.accept(self)?;
+        }
+        Ok(())
     }
 
     fn visit_return(&mut self, _v: &Return) -> Self::Value {
