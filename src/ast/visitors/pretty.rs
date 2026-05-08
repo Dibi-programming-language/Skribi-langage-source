@@ -145,12 +145,30 @@ impl NodeVisitor for Printer<'_, '_> {
         v.value.accept(self)
     }
 
-    fn visit_function_call(&mut self, _v: &FunctionCall) -> Self::Value {
-        todo!()
+    fn visit_function_call(&mut self, v: &FunctionCall) -> Self::Value {
+        if v.native {
+            self.f.write_str("skr_app ")?;
+        }
+        write!(self.f, "{}", v.identifier.identifier)?;
+        self.f.write_str("(")?;
+        for exp in &v.arguments {
+            exp.accept(self)?;
+        }
+        self.f.write_str(")")?;
+        if let Some(previous) = &v.identifier.previous {
+            self.f.write_str(":")?;
+            previous.accept(self)?;
+        }
+        Ok(())
     }
 
-    fn visit_identifier_chain(&mut self, _v: &IdentifierChain) -> Self::Value {
-        todo!()
+    fn visit_identifier_chain(&mut self, v: &IdentifierChain) -> Self::Value {
+        write!(self.f, "{} ", v.identifier)?;
+        if let Some(previous) = &v.previous {
+            self.f.write_str(":")?;
+            previous.accept(self)?;
+        }
+        Ok(())
     }
 
     fn visit_bool(&mut self, v: bool) -> Self::Value {

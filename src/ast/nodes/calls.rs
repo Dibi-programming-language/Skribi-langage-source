@@ -2,8 +2,8 @@ use crate::ast::nodes::expressions::Expression;
 
 #[derive(PartialEq, Clone)]
 pub struct IdentifierChain<'a> {
-    identifier: &'a str,
-    previous: Option<Box<Expression<'a>>>,
+    pub(in super::super) identifier: &'a str,
+    pub(in super::super) previous: Option<Box<Expression<'a>>>,
 }
 
 /// Represent a call to a function.
