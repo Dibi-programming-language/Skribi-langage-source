@@ -11,7 +11,7 @@ mod tests;
 
 #[derive(Logos, Clone, PartialEq, Debug)]
 pub enum NewTokens<'a> {
-    #[regex(r"//.*\n?", logos::skip, allow_greedy = true, priority = 100)]
+    #[regex(r"//[^\n]*\n?", logos::skip, allow_greedy = true, priority = 100)]
     LineComment,
     #[regex(r"[ \t\n]+", logos::skip)]
     Ignore,
