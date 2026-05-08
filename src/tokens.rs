@@ -6,8 +6,16 @@ use std::collections::VecDeque;
 use std::fmt::{Display, Formatter};
 use std::str::Chars;
 
-#[derive(Logos, Clone, PartialEq)]
+#[cfg(test)]
+mod tests;
+
+#[derive(Logos, Clone, PartialEq, Debug)]
 pub enum NewTokens<'a> {
+    #[regex(r"//.*\n?", logos::skip, allow_greedy = true, priority = 100)]
+    LineComment,
+    #[regex(r"[ \t\n]+", logos::skip)]
+    Ignore,
+
     #[regex(r"io|no", |lex| lex.slice().starts_with("i"))]
     Bool(bool),
     #[regex(r"[+-]?[0-9]*\.[0-9]+", |lex| lex.slice().parse::<f32>().unwrap())]
@@ -25,7 +33,7 @@ pub enum NewTokens<'a> {
     Add,
     #[token("-")]
     Sub,
-    #[token("/")]
+    #[token("/", priority = 1)]
     Div,
     #[token("*")]
     Mul,
@@ -44,9 +52,6 @@ pub enum NewTokens<'a> {
     Inside,
     #[token(".")]
     UseType,
-
-    #[regex(r"[ \t\n]+", logos::skip)]
-    Ignore,
 
     #[token("fu")]
     KeyGlobal,
@@ -122,6 +127,7 @@ impl Display for NewTokens<'_> {
             Self::Inside => ":",
             Self::UseType => ".",
             Self::Ignore => " ",
+            Self::LineComment => "",
             Self::KeyGlobal => "global",
             Self::KeyConstant => "const",
             Self::KeyPrivate => "private",
@@ -147,7 +153,6 @@ impl Display for NewTokens<'_> {
     }
 }
 
-#[allow(dead_code)]
 pub(crate) fn new_tokenise<'a>(arg: &'a str) -> SpannedIter<'a, NewTokens<'a>> {
     // Inspired from the logos example
     NewTokens::lexer(arg).spanned()
