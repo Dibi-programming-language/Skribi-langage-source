@@ -4,7 +4,7 @@ use crate::execute::IntType;
 /// unit of a value. This node is not dependent on any other node. The value can
 /// be a boolean, an integer, a float or a string.
 #[derive(PartialEq)]
-pub enum ValueBase {
+pub enum PrimitiveValue {
     Bool(bool),
     Int(IntType),
     Float(f32),

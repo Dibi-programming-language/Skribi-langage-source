@@ -1,21 +1,21 @@
 use crate::ast::nodes::{
-    base::ValueBase,
-    calls::{FunctionCall, IdentifierChain, VariableModification},
-    conditions::Condition,
+    branches::Branch,
+    calls::{FunctionCall, IdentifierChain, VariableReassignment},
     declarations::{FunctionDeclaration, VariableDeclaration},
-    loops::Ci,
+    loops::While,
     operations::{BinaryOperation, UnaryOperation},
+    primitive_values::PrimitiveValue,
 };
 
 pub enum Expression<'a> {
-    ValueBase(ValueBase),
+    ValueBase(PrimitiveValue),
     BinOp(Box<BinaryOperation<'a>>),
     UnaryOp(Box<UnaryOperation<'a>>),
-    FctCall(FunctionCall<'a>),
-    Identifier(IdentifierChain<'a>),
-    Cond(Box<Condition<'a>>),
-    FctDec(Box<FunctionDeclaration<'a>>),
-    VarDec(Box<VariableDeclaration<'a>>),
-    VarMod(Box<VariableModification<'a>>),
-    While(Box<Ci<'a>>),
+    FunctionCall(FunctionCall<'a>),
+    IdentifierChain(IdentifierChain<'a>),
+    Branch(Box<Branch<'a>>),
+    FunctionDeclaration(Box<FunctionDeclaration<'a>>),
+    VariableDeclaration(Box<VariableDeclaration<'a>>),
+    VariableReassignment(Box<VariableReassignment<'a>>),
+    While(Box<While<'a>>),
 }

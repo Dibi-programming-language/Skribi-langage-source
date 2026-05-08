@@ -96,7 +96,7 @@ impl Display for RootError {
                 "{}",
                 "This file does not have any executable content.".red()
             ),
-            Self::GlobalParsingError => write!(f, "Parsing Error"),
+            Self::GlobalParsingError => write!(f, "{}", "Parsing Error".red()),
         }
     }
 }
@@ -105,10 +105,10 @@ pub enum ErrorCodes {
     ParsingError,
 }
 
-impl ErrorCodes {
-    pub fn num(&self) -> usize {
+impl Into<usize> for ErrorCodes {
+    fn into(self) -> usize {
         match self {
-            Self::ParsingError => 0,
+            Self::ParsingError => 1,
         }
     }
 }

@@ -11,11 +11,11 @@ pub struct IdentifierChain<'a> {
 /// by the compiler itself, or even in the runtime.
 pub struct FunctionCall<'a> {
     native: bool,
-    identifier: IdentifierChain<'a>,
+    function_path: IdentifierChain<'a>,
     arguments: Vec<Expression<'a>>,
 }
 
-pub struct VariableModification<'a> {
+pub struct VariableReassignment<'a> {
     identifier: IdentifierChain<'a>,
     value: Expression<'a>,
 }

@@ -6,9 +6,9 @@ use chumsky::span::SimpleSpan;
 use chumsky::{IterParser, Parser, extra, select};
 use logos::SpannedIter;
 
-use crate::ast::nodes::AstRoot;
-use crate::ast::nodes::base::ValueBase;
+use crate::ast::nodes::ParsedFileRoot;
 use crate::ast::nodes::expressions::Expression;
+use crate::ast::nodes::primitive_values::PrimitiveValue;
 use crate::ast::nodes::statements::Statement;
 use crate::parse::nodes::files_node::FileNode;
 use crate::skr_errors::ResultOption;
@@ -17,15 +17,15 @@ use crate::tokens::{NewTokens, TokenContainer};
 pub(crate) mod nodes;
 
 fn value_parser<'tok, 'src: 'tok, I>()
--> impl Parser<'tok, I, ValueBase, extra::Err<Rich<'tok, NewTokens<'src>>>>
+-> impl Parser<'tok, I, PrimitiveValue, extra::Err<Rich<'tok, NewTokens<'src>>>>
 where
     I: ValueInput<'tok, Token = NewTokens<'src>, Span = SimpleSpan>,
 {
     select! {
-        NewTokens::Bool(val) => ValueBase::Bool(val),
-        NewTokens::Float(val) => ValueBase::Float(val),
-        NewTokens::Int(val) => ValueBase::Int(val),
-        NewTokens::String(source) => ValueBase::String(source.to_owned())
+        NewTokens::Bool(val) => PrimitiveValue::Bool(val),
+        NewTokens::Float(val) => PrimitiveValue::Float(val),
+        NewTokens::Int(val) => PrimitiveValue::Int(val),
+        NewTokens::String(source) => PrimitiveValue::String(source.to_owned())
     }
 }
 
@@ -46,18 +46,21 @@ where
 }
 
 fn root_parser<'tok, 'src: 'tok, I>()
--> impl Parser<'tok, I, AstRoot<'src>, extra::Err<Rich<'tok, NewTokens<'src>>>>
+-> impl Parser<'tok, I, ParsedFileRoot<'src>, extra::Err<Rich<'tok, NewTokens<'src>>>>
 where
     I: ValueInput<'tok, Token = NewTokens<'src>, Span = SimpleSpan>,
 {
-    statement_parser().repeated().collect().map(AstRoot::new)
+    statement_parser()
+        .repeated()
+        .collect()
+        .map(ParsedFileRoot::new)
 }
 
 #[allow(dead_code)]
 pub fn new_parse<'a>(
     tokens: SpannedIter<'a, NewTokens<'a>>,
     src_len: usize,
-) -> Result<AstRoot<'a>, Vec<Rich<'a, NewTokens<'a>>>> {
+) -> Result<ParsedFileRoot<'a>, Vec<Rich<'a, NewTokens<'a>>>> {
     let iter = tokens.map(|(token, span)| match token {
         Ok(tok) => (tok, span.into()),
         Err(()) => (NewTokens::Error("?"), span.into()),

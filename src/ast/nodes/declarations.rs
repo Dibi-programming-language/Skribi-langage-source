@@ -7,8 +7,11 @@
 
 use crate::ast::nodes::{expressions::Expression, statements::StatementList};
 
-/// `FctDec` represents a function declaration. It contains the identifier of
-/// the function, the tuple of arguments and the scope of the function.
+/// `FunctionDeclaration` represents a function declaration. It contains the
+/// identifier of the function, the tuple of arguments and the scope of the
+/// function.
+///
+/// Return types will be added later.
 ///
 /// # Grammar
 ///
@@ -22,8 +25,8 @@ pub struct FunctionDeclaration<'a> {
 }
 
 pub struct VariableDeclaration<'a> {
-    var_type: &'a str,
-    identifier: &'a str,
+    variable_type: &'a str,
+    variable_name: &'a str,
     content: Expression<'a>,
     private: bool,
     global: bool,

@@ -14,12 +14,12 @@ pub enum NewTokens<'a> {
     Float(f32),
     #[regex(r"[+-]?[0-9]+", |lex| lex.slice().parse::<IntType>().unwrap())]
     Int(IntType),
-    #[regex(r#""[!"]*""#)]
+    #[regex(r#""(\\"|[^"])*""#)]
     String(&'a str),
     #[regex(r#"[a-zA-Z][a-zA-Z0-9_]*"#)]
     Identifier(&'a str),
     #[token("skr_app")]
-    NatCall,
+    KeyNativeCall,
 
     #[token("+")]
     Add,
@@ -29,9 +29,6 @@ pub enum NewTokens<'a> {
     Div,
     #[token("*")]
     Mul,
-
-    #[token("!")]
-    Not,
 
     #[token("(")]
     LeftParenthesis,
@@ -48,10 +45,8 @@ pub enum NewTokens<'a> {
     #[token(".")]
     UseType,
 
-    #[regex(r"[ \t]+", logos::skip)]
+    #[regex(r"[ \t\n]+", logos::skip)]
     Ignore,
-    #[regex(r"(\n)+")]
-    Space,
 
     #[token("fu")]
     KeyGlobal,
@@ -92,10 +87,13 @@ pub enum NewTokens<'a> {
     LessOrEqual,
     #[token(">=")]
     GreaterOrEqual,
-    #[token("||")]
-    And,
+
     #[token("&&")]
+    And,
+    #[token("||")]
     Or,
+    #[token("!")]
+    Not,
 
     /// Any character not used by other tokens, only used when parsing bloc title
     #[regex(".", priority = 0)]
@@ -111,7 +109,7 @@ impl Display for NewTokens<'_> {
             Self::Int(_) => "number",
             Self::String(str) => str,
             Self::Identifier(str) => str,
-            Self::NatCall => "skr_app",
+            Self::KeyNativeCall => "skr_app",
             Self::Add => "+",
             Self::Sub => "-",
             Self::Div => "/",
@@ -124,7 +122,6 @@ impl Display for NewTokens<'_> {
             Self::Inside => ":",
             Self::UseType => ".",
             Self::Ignore => " ",
-            Self::Space => "new line",
             Self::KeyGlobal => "global",
             Self::KeyConstant => "const",
             Self::KeyPrivate => "private",

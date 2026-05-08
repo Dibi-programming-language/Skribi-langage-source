@@ -1,20 +1,20 @@
 use crate::ast::nodes::statements::Statement;
 
-pub mod base;
+pub mod branches;
 pub mod calls;
-pub mod conditions;
 pub mod declarations;
 pub mod expressions;
 pub mod loops;
 pub mod operations;
+pub mod primitive_values;
 pub mod statements;
 
-pub struct AstRoot<'a> {
+pub struct ParsedFileRoot<'a> {
     pub content: Vec<Statement<'a>>,
 }
 
-impl AstRoot<'_> {
-    pub fn new<'a>(content: Vec<Statement<'a>>) -> AstRoot<'a> {
-        return AstRoot { content };
+impl ParsedFileRoot<'_> {
+    pub fn new<'a>(content: Vec<Statement<'a>>) -> ParsedFileRoot<'a> {
+        return ParsedFileRoot { content };
     }
 }

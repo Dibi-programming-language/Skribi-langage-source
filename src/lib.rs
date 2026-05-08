@@ -31,12 +31,17 @@ pub fn new_execute(args: Vec<String>, verbose: bool) -> Result<(), RootError> {
         clear();
     }
 
+    if verbose {
+        eprintln!("{}", "Reading...".italic())
+    };
+
     // Read the file
     match get_content(args, extension.clone()) {
         Ok(content) => {
             if verbose {
-                eprintln!("{}", "Reading...".italic())
+                eprintln!("{}", "Splitting...".italic())
             };
+
             // Remove the comments and split the code into instructions
             let tokens = new_tokenise(&content.content);
 
@@ -47,6 +52,7 @@ pub fn new_execute(args: Vec<String>, verbose: bool) -> Result<(), RootError> {
             match new_parse(tokens, content.content.len()) {
                 Ok(_) => Ok(()),
                 Err(errs) => {
+                    // If there is too many errors, close the gap
                     let gap = errs.len() < 5;
                     for err in errs {
                         Report::build(
@@ -58,7 +64,7 @@ pub fn new_execute(args: Vec<String>, verbose: bool) -> Result<(), RootError> {
                                 .with_index_type(ariadne::IndexType::Byte)
                                 .with_compact(!gap),
                         )
-                        .with_code(ErrorCodes::ParsingError.num())
+                        .with_code::<usize>(ErrorCodes::ParsingError.into())
                         .with_message(err.to_string())
                         .with_label(
                             Label::new((content.to_string(), err.span().into_range()))
