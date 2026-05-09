@@ -49,7 +49,7 @@ pub fn new_execute(args: Vec<String>, verbose: bool) -> Result<(), RootError> {
             match new_parse(tokens, content.content.len()) {
                 Ok(ast) => {
                     Pretty::eprint(&ast);
-                    if let Err(_) = CodeGenerator::compile(&ast) {
+                    if let Err(_) = CodeGenerator::compile(&ast, verbose) {
                         todo!()
                     }
                     Ok(())
