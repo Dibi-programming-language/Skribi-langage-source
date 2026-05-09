@@ -14,11 +14,20 @@ pub struct GotFile {
     pub file: FileKind,
 }
 
+impl GotFile {
+    pub fn to_str<'a>(&'a self) -> &'a str {
+        match &self.file {
+            FileKind::Classic(string) => string,
+            FileKind::Stdin => "stdin",
+        }
+    }
+}
+
 impl Display for GotFile {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match &self.file {
             FileKind::Classic(string) => f.write_str(string),
-            FileKind::Stdin => f.write_str("Stdin"),
+            FileKind::Stdin => f.write_str("stdin"),
         }
     }
 }

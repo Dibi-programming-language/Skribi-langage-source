@@ -1,3 +1,6 @@
+use std::fs::{create_dir_all};
+use std::path::Path;
+
 use ariadne::{Color, Label, Report, Source};
 use colored::Colorize;
 use get_file_content::get_content;
@@ -10,7 +13,7 @@ use crate::parse::new_parse;
 use crate::skr_errors::ErrorCodes;
 // Import
 use crate::tokens::{new_tokenise, tokenize};
-use crate::utils::clear;
+use crate::utils::{clear, link_files};
 
 pub(crate) mod ast;
 pub mod execute;
@@ -27,6 +30,9 @@ const FLAG_CHAR: &str = "--";
 pub fn new_execute(args: Vec<String>, verbose: bool) -> Result<(), RootError> {
     // parameters
     let extension: Vec<String> = vec!["skrb".to_string(), "skribi".to_string()];
+    if create_dir_all(".skribi").is_err() {
+        todo!();
+    }
 
     // clear the shell for the user
     if args.contains(&format!("{FLAG_CHAR}clear")) && verbose {
@@ -49,9 +55,16 @@ pub fn new_execute(args: Vec<String>, verbose: bool) -> Result<(), RootError> {
             match new_parse(tokens, content.content.len()) {
                 Ok(ast) => {
                     Pretty::eprint(&ast);
-                    if let Err(_) = CodeGenerator::compile(&ast, verbose) {
+                    let name = content.to_str();
+                    if let Err(_) = CodeGenerator::compile(&ast, verbose, name) {
                         todo!()
                     }
+                    let raw_path = Path::new(".skribi").join(name).with_added_extension("ll");
+                    let path = raw_path.to_str().expect("Compiled file not found");
+                    if link_files(vec![path], name).is_err() {
+                        todo!()
+                    }
+                    println!("Saving result into {}", name);
                     Ok(())
                 }
                 Err(errs) => {

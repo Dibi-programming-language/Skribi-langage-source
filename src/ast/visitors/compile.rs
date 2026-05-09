@@ -27,9 +27,9 @@ pub struct CodeGenerator<'ctx> {
 }
 
 impl CodeGenerator<'_> {
-    pub fn compile(root: &AstRoot, verbose: bool) -> Result<(), ()> {
+    pub fn compile(root: &AstRoot, verbose: bool, name: &str) -> Result<(), ()> {
         let context = Context::create();
-        let module = context.create_module("main");
+        let module = context.create_module(name);
         let builder = context.create_builder();
 
         // Create main function
@@ -49,7 +49,7 @@ impl CodeGenerator<'_> {
 
         compiler
             .module
-            .print_to_file(Path::new("out.ll"))
+            .print_to_file(Path::new(".skribi").join(name).with_added_extension("ll"))
             .expect("Failed to save program in HIR format");
         Ok(())
     }

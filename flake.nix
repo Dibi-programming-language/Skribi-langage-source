@@ -33,6 +33,7 @@
           ];
           buildInputs = with pkgs; [
             clang
+            lld
           ];
         };
       in

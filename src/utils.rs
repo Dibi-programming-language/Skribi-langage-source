@@ -1,6 +1,7 @@
 use std::fmt::Display;
 use std::fs;
-use std::io::{ErrorKind, Write, stdin, stdout};
+use std::io::{Error, ErrorKind, Write, stdin, stdout};
+use std::path::Path;
 use std::process::Command;
 
 /// This function clears the shell
@@ -36,4 +37,15 @@ pub fn input<T: Display>(message: T) -> String {
     stdin().read_line(&mut user_input).unwrap();
 
     user_input
+}
+
+pub fn link_files(inputs: Vec<&str>, output: &str) -> Result<(), Error> {
+    let output = Path::new(output).with_added_extension("out");
+    Command::new("clang")
+        // For nix
+        .arg("-Wno-unused-command-line-argument")
+        .args(&["-o", output.to_str().expect("Cannot create output")])
+        .args(inputs)
+        .status()?;
+    Ok(())
 }

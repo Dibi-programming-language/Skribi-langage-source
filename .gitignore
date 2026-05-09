@@ -20,3 +20,4 @@ result
 *.ll
 *.s
 *.out
+*.o
