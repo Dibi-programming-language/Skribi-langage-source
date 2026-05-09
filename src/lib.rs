@@ -1,7 +1,6 @@
-use std::fs::{create_dir_all};
+use std::fs::create_dir_all;
 use std::path::Path;
 
-use ariadne::{Color, Label, Report, Source};
 use colored::Colorize;
 use get_file_content::get_content;
 use skr_errors::RootError;
@@ -10,7 +9,7 @@ use crate::ast::visitors::compile::CodeGenerator;
 use crate::ast::visitors::pretty::Pretty;
 use crate::execute::{Execute, ExecutionContext};
 use crate::parse::new_parse;
-use crate::skr_errors::ErrorCodes;
+use crate::skr_errors::print_parsing_errors;
 // Import
 use crate::tokens::{new_tokenise, tokenize};
 use crate::utils::{clear, link_files};
@@ -31,7 +30,7 @@ pub fn new_execute(args: Vec<String>, verbose: bool) -> Result<(), RootError> {
     // parameters
     let extension: Vec<String> = vec!["skrb".to_string(), "skribi".to_string()];
     if create_dir_all(".skribi").is_err() {
-        todo!();
+        RootError::CompilationError.show();
     }
 
     // clear the shell for the user
@@ -57,39 +56,18 @@ pub fn new_execute(args: Vec<String>, verbose: bool) -> Result<(), RootError> {
                     Pretty::eprint(&ast);
                     let name = content.to_str();
                     if let Err(_) = CodeGenerator::compile(&ast, verbose, name) {
-                        todo!()
+                        RootError::CompilationError.show();
                     }
                     let raw_path = Path::new(".skribi").join(name).with_added_extension("ll");
                     let path = raw_path.to_str().expect("Compiled file not found");
                     if link_files(vec![path], name).is_err() {
-                        todo!()
+                        RootError::CompilationError.show();
                     }
                     println!("Saving result into {}", name);
                     Ok(())
                 }
                 Err(errs) => {
-                    let gap = errs.len() < 5;
-                    for err in errs {
-                        Report::build(
-                            ariadne::ReportKind::Error,
-                            (content.to_string(), err.span().into_range()),
-                        )
-                        .with_config(
-                            ariadne::Config::new()
-                                .with_index_type(ariadne::IndexType::Byte)
-                                .with_compact(!gap),
-                        )
-                        .with_code(ErrorCodes::ParsingError.num())
-                        .with_message(err.to_string())
-                        .with_label(
-                            Label::new((content.to_string(), err.span().into_range()))
-                                .with_message(err.reason().to_string())
-                                .with_color(Color::Red),
-                        )
-                        .finish()
-                        .eprint((content.to_string(), Source::from(&content.content)))
-                        .expect("Error message failed to show error");
-                    }
+                    print_parsing_errors(errs, &content);
                     Err(RootError::GlobalParsingError)
                 }
             }

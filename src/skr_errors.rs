@@ -1,9 +1,15 @@
 use std::{collections::VecDeque, fmt::Display, io::ErrorKind};
 
+use ariadne::{Color, Label, Report, Source};
+use chumsky::error::Rich;
 use colored::Colorize;
 use thiserror::Error;
 
-use crate::{execute::ExecutionError, tokens::TokenContainer};
+use crate::{
+    execute::ExecutionError,
+    get_file_content::GotFile,
+    tokens::{NewTokens, TokenContainer},
+};
 
 #[derive(Error, Debug, PartialEq)]
 pub enum NotYetImplementedType {
@@ -70,6 +76,20 @@ pub enum RootError {
     FileError(Vec<String>, ErrorKind),
     GlobalParsingError,
     EmptyFile,
+    CompilationError,
+}
+
+impl RootError {
+    pub fn num(&self) -> usize {
+        match self {
+            Self::GlobalParsingError => 1,
+            _ => 0,
+        }
+    }
+
+    pub fn show(&self) {
+        eprintln!("{}", self);
+    }
 }
 
 impl Display for RootError {
@@ -97,18 +117,32 @@ impl Display for RootError {
                 "This file does not have any executable content.".red()
             ),
             Self::GlobalParsingError => write!(f, "Parsing Error"),
+            Self::CompilationError => write!(f, "Compilation Error"),
         }
     }
 }
 
-pub enum ErrorCodes {
-    ParsingError,
-}
-
-impl ErrorCodes {
-    pub fn num(&self) -> usize {
-        match self {
-            Self::ParsingError => 0,
-        }
+pub fn print_parsing_errors(errors: Vec<Rich<'_, NewTokens<'_>>>, content: &GotFile) {
+    let gap = errors.len() < 5;
+    for err in errors {
+        Report::build(
+            ariadne::ReportKind::Error,
+            (content.to_string(), err.span().into_range()),
+        )
+        .with_config(
+            ariadne::Config::new()
+                .with_index_type(ariadne::IndexType::Byte)
+                .with_compact(!gap),
+        )
+        .with_code(RootError::GlobalParsingError.num())
+        .with_message(err.to_string())
+        .with_label(
+            Label::new((content.to_string(), err.span().into_range()))
+                .with_message(err.reason().to_string())
+                .with_color(Color::Red),
+        )
+        .finish()
+        .eprint((content.to_string(), Source::from(&content.content)))
+        .expect("Error message failed to show error");
     }
 }
