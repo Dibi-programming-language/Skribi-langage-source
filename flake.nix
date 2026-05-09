@@ -31,6 +31,9 @@
             libffi
             libxml2
           ];
+          buildInputs = with pkgs; [
+            clang
+          ];
         };
       in
       {
@@ -46,6 +49,7 @@
             clippy
             rustfmt
             rustc
+            clang
           ];
         };
       }

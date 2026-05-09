@@ -47,9 +47,10 @@ impl CodeGenerator<'_> {
         };
         compiler.visit_root(root)?;
 
-        compiler.module
+        compiler
+            .module
             .print_to_file(Path::new("out.ll"))
-            .expect("Failed to save program");
+            .expect("Failed to save program in HIR format");
         Ok(())
     }
 }

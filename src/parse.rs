@@ -24,6 +24,10 @@ mod declarations;
 pub(crate) mod nodes;
 mod nums;
 
+// Global warning on the parser: please use .boxed() sometimes, so that the
+// compilation time decreases. This is like INTERCAL, you need to say please
+// sometimes.
+
 fn expression_parser<'tok, 'src: 'tok, I>(
     stal: impl Parser<'tok, I, StatementList<'src>, extra::Err<Rich<'tok, NewTokens<'src>>>>
     + Clone
@@ -43,7 +47,8 @@ where
             variable_declaration_parser(exp.clone()).map(|arg| Expression::VarDec(Box::new(arg))),
             condition_parser(exp, stal),
             native_call_parser().map(|x| Expression::FctCall(x)),
-        ));
+        ))
+        .boxed();
 
         choice((binop_parser(priority.clone()), priority.clone()))
     })
@@ -57,6 +62,7 @@ where
 {
     sta.repeated()
         .collect()
+        .boxed()
         .map(StatementList::new)
         .delimited_by(
             just(NewTokens::LeftBrace),
@@ -72,8 +78,10 @@ where
     recursive(|sta| {
         let list = statement_list_parser(sta);
         expression_parser(list)
+            .boxed()
             .map(Statement::Exp)
             .then_ignore(just(NewTokens::Space).repeated())
+            .boxed()
     })
 }
 
@@ -82,7 +90,11 @@ fn root_parser<'tok, 'src: 'tok, I>()
 where
     I: ValueInput<'tok, Token = NewTokens<'src>, Span = SimpleSpan>,
 {
-    statement_parser().repeated().collect().map(AstRoot::new)
+    statement_parser()
+        .repeated()
+        .collect()
+        .boxed()
+        .map(AstRoot::new)
 }
 
 pub fn new_parse<'a>(

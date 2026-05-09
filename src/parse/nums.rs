@@ -56,8 +56,8 @@ pub fn binop_parser<'tok, 'src: 'tok, I>(
 where
     I: ValueInput<'tok, Token = NewTokens<'src>, Span = SimpleSpan>,
 {
-    let binary_md = list_binop_parser(vec![NewTokens::Mul, NewTokens::Div], exp);
-    let binary_as = list_binop_parser(vec![NewTokens::Add, NewTokens::Sub], binary_md);
+    let binary_md = list_binop_parser(vec![NewTokens::Mul, NewTokens::Div], exp).boxed();
+    let binary_as = list_binop_parser(vec![NewTokens::Add, NewTokens::Sub], binary_md).boxed();
     let binary_cmp = list_binop_parser(
         vec![
             NewTokens::LessOrEqual,
@@ -68,9 +68,10 @@ where
             NewTokens::NotEqual,
         ],
         binary_as,
-    );
-    let binary_and = list_binop_parser(vec![NewTokens::And], binary_cmp);
-    let binary_or = list_binop_parser(vec![NewTokens::Or], binary_and);
+    )
+    .boxed();
+    let binary_and = list_binop_parser(vec![NewTokens::And], binary_cmp).boxed();
+    let binary_or = list_binop_parser(vec![NewTokens::Or], binary_and).boxed();
 
     binary_or.labelled("binary operation")
 }
