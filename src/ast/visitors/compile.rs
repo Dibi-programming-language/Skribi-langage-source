@@ -140,7 +140,7 @@ impl NodeVisitor for CodeGenerator<'_> {
                         eprintln!("Function declared");
                     }
 
-                    let argument = argument_type.const_int(1, false);
+                    let argument = argument_type.const_int(42, false);
                     self.builder
                         .build_call(exit_function, &[argument.into()], "call_exit")
                         .expect("Failed to create call to exit");
