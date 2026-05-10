@@ -16,26 +16,20 @@ use crate::utils::{clear, link_files};
 
 pub(crate) mod ast;
 pub mod execute;
-mod get_file_content;
+pub mod get_file_content;
 mod parse;
 mod skr_errors;
 #[cfg(test)]
 mod tests;
 mod tokens;
-mod utils;
+pub mod utils;
 
 const FLAG_CHAR: &str = "--";
 
 pub fn new_execute(args: Vec<String>, verbose: bool) -> Result<(), RootError> {
-    // parameters
     let extension: Vec<String> = vec!["skrb".to_string(), "skribi".to_string()];
     if create_dir_all(".skribi").is_err() {
         RootError::CompilationError.show();
-    }
-
-    // clear the shell for the user
-    if args.contains(&format!("{FLAG_CHAR}clear")) && verbose {
-        clear();
     }
 
     // Read the file
