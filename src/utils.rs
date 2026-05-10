@@ -1,6 +1,6 @@
 use std::fmt::Display;
 use std::fs;
-use std::io::{Error, ErrorKind, Write, stdin, stdout};
+use std::io::{Error, ErrorKind, Write, stderr, stdin, stdout};
 use std::path::Path;
 use std::process::Command;
 
@@ -30,8 +30,9 @@ pub fn read(file_name: &str) -> Result<String, ErrorKind> {
 
 /// This function ask the user for an input and return the user's answer
 pub fn input<T: Display>(message: T) -> String {
-    print!("{}", message);
+    eprint!("{}", message);
     stdout().flush().unwrap();
+    stderr().flush().unwrap();
 
     let mut user_input = String::new();
     stdin().read_line(&mut user_input).unwrap();

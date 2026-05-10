@@ -4,10 +4,10 @@
 // Skribi's shell //
 ////////////////////
 
-use std::env;
-use std::process::ExitCode;
 use clap::Parser;
 
+use miette::{Context, Result};
+use skribi::get_file_content::new_get_content;
 use skribi::new_execute;
 use skribi::utils::clear;
 
@@ -29,22 +29,14 @@ struct Arguments {
 }
 
 /// Launch the interpreter
-fn main() -> ExitCode {
+fn main() -> Result<()> {
     let new_args = Arguments::parse();
     if new_args.clear {
         clear();
     }
 
+    let gotfile = new_get_content(&new_args.file)
+        .context("While starting CLI")?;
 
-
-    // generic parameters
-    let args = env::args().collect::<Vec<_>>(); // get the command line arguments
-
-    match new_execute(args, new_args.verbose) {
-        Ok(_) => ExitCode::SUCCESS,
-        Err(err) => {
-            eprintln!("\n{err}");
-            ExitCode::FAILURE
-        }
-    }
+    new_execute(gotfile, new_args.verbose)
 }

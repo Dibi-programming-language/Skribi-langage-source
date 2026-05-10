@@ -1,5 +1,8 @@
 use std::fmt::Display;
+use std::fs::read_to_string;
 use std::io::ErrorKind;
+
+use miette::{Context, IntoDiagnostic, Result, miette};
 
 use crate::FLAG_CHAR;
 use crate::utils::{input, read};
@@ -69,31 +72,34 @@ pub fn get_content(args: Vec<String>, extensions: Vec<String>) -> Result<GotFile
     })
 }
 
+const EXTENSIONS: [&str; 2] = ["skrb", "skribi"];
+
 /// This function is used to get the path of the file to run
 ///
 /// The path can either be passed as an argument or entered the terminal
-pub fn new_get_content(args: Vec<String>, extensions: Vec<String>) -> Result<GotFile, ErrorKind> {
-    if args.len() > 1 && !args[1].starts_with(FLAG_CHAR) {
-        let path = args[1].clone();
-
+pub fn new_get_content(file: &Option<String>) -> Result<GotFile> {
+    if let Some(path) = file {
         // Check if the file has the right extension
-        let extension = String::from(path.split('.').next_back().unwrap());
-        if !extensions.contains(&extension) {
-            return Err(ErrorKind::InvalidInput);
+        let extension = path.split('.').next_back().unwrap();
+        if !EXTENSIONS.contains(&extension) {
+            return Err(miette!("Invalid extension. Expected: {:?}. Got: {}", EXTENSIONS, extension));
         }
 
+        let content = read_to_string(&path)
+            .into_diagnostic()
+            .context("While reading file content")?;
         // Read the file
         return Ok(GotFile {
-            content: read(&path)?,
-            file: FileKind::Classic(path),
+            content,
+            file: FileKind::Classic(path.clone()),
         });
     }
 
-    eprintln!("No path or invalid path, reading input:");
+    eprintln!("No given path, reading input:");
     let mut content = String::new();
 
     loop {
-        let user_input = input("");
+        let user_input = input("> ");
         if user_input.trim_end().is_empty() {
             break;
         };

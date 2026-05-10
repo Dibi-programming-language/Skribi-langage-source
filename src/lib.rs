@@ -3,11 +3,13 @@ use std::path::Path;
 
 use colored::Colorize;
 use get_file_content::get_content;
+use miette::{Context, IntoDiagnostic, Result, miette};
 use skr_errors::RootError;
 
 use crate::ast::visitors::compile::CodeGenerator;
 use crate::ast::visitors::pretty::Pretty;
 use crate::execute::{Execute, ExecutionContext};
+use crate::get_file_content::GotFile;
 use crate::parse::new_parse;
 use crate::skr_errors::print_parsing_errors;
 // Import
@@ -26,50 +28,45 @@ pub mod utils;
 
 const FLAG_CHAR: &str = "--";
 
-pub fn new_execute(args: Vec<String>, verbose: bool) -> Result<(), RootError> {
-    let extension: Vec<String> = vec!["skrb".to_string(), "skribi".to_string()];
-    if create_dir_all(".skribi").is_err() {
-        RootError::CompilationError.show();
-    }
+pub fn new_execute(content: GotFile, verbose: bool) -> Result<()> {
+    create_dir_all(".skribi")
+        .into_diagnostic()
+        .context("While creating hidden .skribi folder")?;
 
-    // Read the file
-    match get_content(args, extension.clone()) {
-        Ok(content) => {
-            if verbose {
-                eprintln!("{}", "Reading...".italic())
-            };
-            // Remove the comments and split the code into instructions
-            let tokens = new_tokenise(&content.content);
+    if verbose {
+        eprintln!("{}", "Reading...".italic())
+    };
 
-            if verbose {
-                eprintln!("{}", "Analysing...".italic())
-            };
+    // Remove the comments and split the code into instructions
+    let tokens = new_tokenise(&content.content);
 
-            match new_parse(tokens, content.content.len()) {
-                Ok(ast) => {
-                    Pretty::eprint(&ast);
-                    let name = content.to_str();
-                    if let Err(_) = CodeGenerator::compile(&ast, verbose, name) {
-                        RootError::CompilationError.show();
-                    }
-                    let raw_path = Path::new(".skribi").join(name).with_added_extension("ll");
-                    let path = raw_path.to_str().expect("Compiled file not found");
-                    if link_files(vec![path], name).is_err() {
-                        RootError::CompilationError.show();
-                    }
-                    println!("Saving result into {}", name);
-                    Ok(())
-                }
-                Err(errs) => {
-                    print_parsing_errors(errs, &content);
-                    Err(RootError::GlobalParsingError)
-                }
+    if verbose {
+        eprintln!("{}", "Analysing...".italic())
+    };
+
+    match new_parse(tokens, content.content.len()) {
+        Ok(ast) => {
+            Pretty::eprint(&ast);
+            let name = content.to_str();
+            if let Err(_) = CodeGenerator::compile(&ast, verbose, name) {
+                return Err(miette!("Failed to compile to code"));
             }
+            let raw_path = Path::new(".skribi").join(name).with_added_extension("ll");
+            let path = raw_path.to_str().expect("Compiled file not found");
+            if link_files(vec![path], name).is_err() {
+                return Err(miette!("Failed to link to code"));
+            }
+            println!("Saving result into {}", name);
+            Ok(())
         }
-        Err(err) => Err(RootError::FileError(extension, err)),
+        Err(errs) => {
+            print_parsing_errors(errs, &content);
+            Err(miette!("Failed to parse the code"))
+        }
     }
 }
 
+#[deprecated]
 pub fn execute(args: Vec<String>, verbose: bool) -> Result<(), RootError> {
     // parameters
     let extension: Vec<String> = vec!["skrb".to_string(), "skribi".to_string()];
