@@ -17,3 +17,4 @@ chumsky = "0.12"
 ariadne = "0.6"
 inkwell = { version = "0.9", features = ["llvm22-1"] }
 logos = "0.16.1"
+clap = "4.6.1"
