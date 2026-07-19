@@ -4,21 +4,14 @@
 // Skribi's shell //
 ////////////////////
 
-use std::env;
 use std::process::ExitCode;
 
 use skribi::execute;
 
 /// Launch the interpreter
 fn main() -> ExitCode {
-    // generic parameters
-    let args = env::args().collect::<Vec<_>>(); // get the command line arguments
-
-    match execute(args, true) {
+    match execute() {
         Ok(_) => ExitCode::SUCCESS,
-        Err(err) => {
-            eprintln!("\n{err}");
-            ExitCode::FAILURE
-        }
+        Err(_) => ExitCode::FAILURE,
     }
 }

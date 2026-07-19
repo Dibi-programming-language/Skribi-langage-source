@@ -1,5 +1,7 @@
 # Scribi-langage-source
 
+WARNING: this version of Skribi is not usable as a rework is in progress.
+
 Skribi is a programming language for writing code in the Dibi conlang.
 
 Links :
