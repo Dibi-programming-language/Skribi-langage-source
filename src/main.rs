@@ -4,14 +4,13 @@
 // Skribi's shell //
 ////////////////////
 
-use std::process::ExitCode;
+use miette::{Context, Result};
 
 use skribi::execute;
 
+
 /// Launch the interpreter
-fn main() -> ExitCode {
-    match execute() {
-        Ok(_) => ExitCode::SUCCESS,
-        Err(_) => ExitCode::FAILURE,
-    }
+fn main() -> Result<()> {
+    execute()
+        .context("Failed to execute your file.")
 }
