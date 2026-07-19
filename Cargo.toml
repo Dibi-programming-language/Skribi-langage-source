@@ -2,7 +2,3 @@
 name = "skribi"
 version = "0.1.0"
 edition = "2024"
-
-[dependencies]
-thiserror = "2"
-colored = "3"
