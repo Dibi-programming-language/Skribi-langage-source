@@ -1,7 +1,6 @@
 use log::{trace, warn};
 use miette::{Context, IntoDiagnostic, NamedSource, Result};
 
-
 pub struct File<'name> {
     pub(crate) name: &'name str,
     pub(crate) content: String,
@@ -21,10 +20,8 @@ impl File<'_> {
             content,
         })
     }
-}
 
-impl Into<NamedSource<String>> for File<'_> {
-    fn into(self) -> NamedSource<String> {
-        NamedSource::new(self.name, self.content)
+    pub fn into_named(&self) -> NamedSource<String> {
+        NamedSource::new(self.name, self.content.clone())
     }
 }

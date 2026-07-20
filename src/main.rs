@@ -9,7 +9,7 @@ use clap::Parser;
 use log::trace;
 use miette::{Context, Result, miette};
 
-use skribi::{execute, file::File};
+use skribi::{execute, file::File, source::SourceManager};
 
 /// The Skribi compiler CLI
 #[derive(Parser, Debug)]
@@ -26,6 +26,9 @@ struct Arguments {
     /// For fine-grained control over log levels, use the RUST_LOG variable.
     #[arg(long)]
     very_verbose: bool,
+    /// Run the code instead of compiling it.
+    #[arg(short, long)]
+    run: bool,
 }
 
 /// Launch the interpreter
@@ -43,11 +46,17 @@ fn main() -> Result<()> {
     trace!("Logger initialised, entenring main");
 
     if let Some(path) = args.source {
-        File::from_file(&path)
-            .context("While reading file passed as argument")?;
+        let file = File::from_file(&path).context("While reading file passed as argument")?;
+        let mut manager = SourceManager::empty();
+        manager.add_file(file);
+        if args.run {
+            manager.execute()?;
+        } else {
+            manager.compile()?;
+        }
     } else {
         return Err(miette!("STDIN is currently not supported."));
-    }
+    };
 
     execute().context("Failed to execute your file.")
 }
