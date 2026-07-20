@@ -8,9 +8,7 @@ use miette::{Context, Result};
 
 use skribi::execute;
 
-
 /// Launch the interpreter
 fn main() -> Result<()> {
-    execute()
-        .context("Failed to execute your file.")
+    execute().context("Failed to execute your file.")
 }
