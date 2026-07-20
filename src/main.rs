@@ -39,6 +39,5 @@ fn main() -> Result<()> {
 
     trace!("Logger initialised, entenring main");
 
-    execute()
-        .context("Failed to execute your file.")
+    execute().context("Failed to execute your file.")
 }
