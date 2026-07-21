@@ -46,8 +46,7 @@ fn main() -> Result<()> {
     trace!("Logger initialised, entenring main");
 
     if let Some(path) = args.source {
-        let file = File::from_file(&path)
-            .context("While reading file passed as argument")?;
+        let file = File::from_file(&path).context("While reading file passed as argument")?;
         let mut manager = SourceManager::empty();
         manager.add_file(file);
 
