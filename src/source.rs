@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use log::{info, trace};
 use miette::{Context, LabeledSpan, Result, Severity, miette};
 
-use crate::file::File;
+use crate::{file::File, lexer::tokenise};
 
 pub struct Source<'file> {
     file: File<'file>,
@@ -11,6 +11,13 @@ pub struct Source<'file> {
 
 impl Source<'_> {
     pub fn new<'file>(file: File<'file>) -> Source<'file> {
+        trace!("Entenring source creation for `{}`", file.name);
+        let tokens = tokenise(&file.content);
+        let size = tokens.size_hint();
+        info!(
+            "File `{}` splitted into at least {} tokens",
+            file.name, size.0,
+        );
         Source { file }
     }
 

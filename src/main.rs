@@ -4,10 +4,12 @@
 // Skribi's shell //
 ////////////////////
 
+use std::fs::create_dir_all;
+
 use clap::Parser;
 
-use log::trace;
-use miette::{Context, Result};
+use log::{info, trace};
+use miette::{Context, IntoDiagnostic, Result};
 
 use skribi::{file::File, source::SourceManager};
 
@@ -18,6 +20,10 @@ struct Arguments {
     /// The source file to use. Defaults to STDIN.
     /// STDIN is currently not supported.
     source: Option<String>,
+    /// Sets the path of the compilation folder.
+    /// Defaults to `.skribi`.
+    #[arg(short, long, default_value = ".skribi")]
+    compile_path: String,
     /// Log more information, set the level to INFO.
     /// For fine-grained control over log levels, use the RUST_LOG variable.
     #[arg(short, long)]
@@ -31,6 +37,17 @@ struct Arguments {
     run: bool,
 }
 
+/// Creates a folder to store everything
+fn create_skribi_directory(path: &str) -> Result<()> {
+    trace!("About to create hidden directory `{}`", path);
+    create_dir_all(path).into_diagnostic().context(format!(
+        "While creating hidden `{}` directory to store compiled files",
+        path
+    ))?;
+    info!("Hidden directory `{}` created for compiled files", path);
+    Ok(())
+}
+
 /// Launch the interpreter
 fn main() -> Result<()> {
     let args = Arguments::parse();
@@ -41,9 +58,11 @@ fn main() -> Result<()> {
     } else if args.very_verbose {
         logger.filter_level(log::LevelFilter::Trace);
     }
-    logger.init();
 
+    logger.init();
     trace!("Logger initialised, entenring main");
+
+    create_skribi_directory(&args.compile_path)?;
 
     if let Some(path) = args.source {
         let file = File::from_file(&path).context("While reading file passed as argument")?;
