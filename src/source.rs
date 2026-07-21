@@ -27,7 +27,7 @@ impl Source<'_> {
             .with_source_code(self.file.into_named());
             return Err(error);
         }
-        Ok(())
+        todo!("Finish execution (not the point for now)")
     }
 }
 
@@ -48,7 +48,7 @@ impl<'manager> SourceManager<'manager> {
     }
 
     pub fn compile(&self) -> Result<()> {
-        Err(miette!("Cannot compile for now"))
+        todo!("Cannot compile for now, planned later")
     }
 
     pub fn execute(&self) -> Result<()> {
@@ -59,6 +59,6 @@ impl<'manager> SourceManager<'manager> {
             file.execute()
                 .context(format!("While executing `{}`", name))?;
         }
-        Err(miette!("Cannot execute for now"))
+        todo!("Cannot exected for now, planned later")
     }
 }
