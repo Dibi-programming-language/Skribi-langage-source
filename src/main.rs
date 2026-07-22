@@ -8,7 +8,7 @@ use std::env::var_os;
 
 use clap::Parser;
 
-use log::trace;
+use log::{LevelFilter, trace};
 use miette::{Context, Result};
 
 use skribi::execute;
@@ -20,11 +20,13 @@ struct Arguments {
     /// Log more information. Fine-grained control.
     ///
     /// The RUST_LOG variable can also be used.
-    /// This variable overrides the argument.
+    /// The variable is overrided by the argument.
+    ///
+    /// With nothing set, defaults to warn.
     ///
     /// Possible values: off, error, warn, info, debug, trace
-    #[arg(short, long, default_value = "warn")]
-    verbose: log::LevelFilter,
+    #[arg(short, long)]
+    verbose: Option<LevelFilter>,
 }
 
 /// Launch the interpreter
@@ -32,8 +34,10 @@ fn main() -> Result<()> {
     let args = Arguments::parse();
 
     let mut logger = env_logger::Builder::from_default_env();
-    if let None = var_os("RUST_LOG") {
-        logger.filter_level(args.verbose);
+    if let Some(level) = args.verbose {
+        logger.filter_level(level);
+    } else if let None = var_os("RUST_LOG") {
+        logger.filter_level(LevelFilter::Warn);
     }
     logger.init();
 
