@@ -1,8 +1,9 @@
 use crate::ast::nodes::statements::Statement;
 
-pub mod statements;
-pub mod expressions;
 pub mod calls;
+pub mod deprecated;
+pub mod expressions;
+pub mod statements;
 
 pub struct FileTreeRoot<'tok> {
     pub content: Vec<Statement<'tok>>,

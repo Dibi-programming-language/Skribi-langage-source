@@ -2,15 +2,17 @@ use std::collections::HashMap;
 
 use log::{info, trace};
 use miette::{Context, LabeledSpan, Result, Severity, miette};
+use miette::Report;
 
-use crate::{file::File, lexer::tokenise};
+use crate::{ast::nodes::FileTreeRoot, file::File, lexer::tokenise, parse::parse};
 
 pub struct Source<'file> {
-    file: File<'file>,
+    file: &'file File<'file>,
+    root: FileTreeRoot<'file>,
 }
 
 impl Source<'_> {
-    pub fn new<'file>(file: File<'file>) -> Source<'file> {
+    pub fn new<'file>(file: &'file File<'file>) -> Result<Source<'file>> {
         trace!("Entenring source creation for `{}`", file.name);
         let tokens = tokenise(&file.content);
         let size = tokens.size_hint();
@@ -18,7 +20,17 @@ impl Source<'_> {
             "File `{}` splitted into at least {} tokens",
             file.name, size.0,
         );
-        Source { file }
+        // TODO: finish
+        let result = parse(tokens, file.content.len());
+        match result {
+            Ok(root) => Ok(Source {
+                file,
+                root,
+            }),
+            Err(err) => {
+                todo!()
+            }
+        }
     }
 
     pub fn execute(&self) -> Result<()> {
@@ -49,9 +61,10 @@ impl<'manager> SourceManager<'manager> {
         }
     }
 
-    pub fn add_file<'file: 'manager>(&mut self, file: File<'file>) {
+    pub fn add_file<'file: 'manager>(&mut self, file: &'file File<'file>) -> Result<()> {
         info!("Adding file {} into source files", file.name);
-        self.files.insert(file.name, Source::new(file));
+        self.files.insert(file.name, Source::new(file)?);
+        Ok(())
     }
 
     pub fn compile(&self) -> Result<()> {
