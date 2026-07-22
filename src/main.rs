@@ -4,6 +4,8 @@
 // Skribi's shell //
 ////////////////////
 
+use std::env::var_os;
+
 use clap::Parser;
 
 use log::trace;
@@ -15,14 +17,14 @@ use skribi::execute;
 #[derive(Parser, Debug)]
 #[command(version, about, long_about = None)]
 struct Arguments {
-    /// Log more information, set the level to INFO.
-    /// For fine-grained control over log levels, use the RUST_LOG variable.
-    #[arg(short, long)]
-    verbose: bool,
-    /// Log all information, set the level to TRACE.
-    /// For fine-grained control over log levels, use the RUST_LOG variable.
-    #[arg(long)]
-    very_verbose: bool,
+    /// Log more information. Fine-grained control.
+    ///
+    /// The RUST_LOG variable can also be used.
+    /// This variable overrides the argument.
+    ///
+    /// Possible values: off, error, warn, info, debug, trace
+    #[arg(short, long, default_value = "warn")]
+    verbose: log::LevelFilter,
 }
 
 /// Launch the interpreter
@@ -30,10 +32,8 @@ fn main() -> Result<()> {
     let args = Arguments::parse();
 
     let mut logger = env_logger::Builder::from_default_env();
-    if args.verbose {
-        logger.filter_level(log::LevelFilter::Info);
-    } else if args.very_verbose {
-        logger.filter_level(log::LevelFilter::Trace);
+    if let None = var_os("RUST_LOG") {
+        logger.filter_level(args.verbose);
     }
     logger.init();
 
