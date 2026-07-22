@@ -36,7 +36,7 @@ fn main() -> Result<()> {
     let mut logger = env_logger::Builder::from_default_env();
     if let Some(level) = args.verbose {
         logger.filter_level(level);
-    } else if let None = var_os("RUST_LOG") {
+    } else if var_os("RUST_LOG").is_none() {
         logger.filter_level(LevelFilter::Warn);
     }
     logger.init();
