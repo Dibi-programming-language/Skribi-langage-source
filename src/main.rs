@@ -9,7 +9,7 @@ use std::fs::create_dir_all;
 use clap::Parser;
 
 use log::{info, trace};
-use miette::{Context, IntoDiagnostic, Result};
+use miette::{Context, IntoDiagnostic, Result, set_hook};
 
 use skribi::{file::File, source::SourceManager};
 
@@ -61,6 +61,14 @@ fn main() -> Result<()> {
 
     logger.init();
     trace!("Logger initialised, entenring main");
+
+    set_hook(Box::new(|_| {
+        Box::new(
+            miette::MietteHandlerOpts::new()
+            .show_related_errors_as_nested()
+            .build(),
+        )
+    }))?;
 
     create_skribi_directory(&args.compile_path)?;
 

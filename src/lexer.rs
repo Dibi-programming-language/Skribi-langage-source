@@ -1,3 +1,5 @@
+use std::fmt::{Display, Formatter};
+
 use logos::{Logos, SpannedIter};
 
 #[derive(Logos, Clone, PartialEq)]
@@ -25,6 +27,19 @@ pub enum Tokens<'src> {
     /// mainly used when parsing bloc title
     #[regex(".", priority = 0)]
     Error(&'src str),
+}
+
+impl Display for Tokens<'_> {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        f.write_str(match self {
+            Self::Identifier(str) => str,
+            Self::LeftParenthesis => "(",
+            Self::RightParenthesis => ")",
+            Self::Ignore => " ",
+            Self::NativeCall => "skr_app",
+            Self::Error(err) => err,
+        })
+    }
 }
 
 /// Split a file content into tokens
