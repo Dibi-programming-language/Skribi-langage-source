@@ -42,7 +42,9 @@ where
             priority.clone(),
             function_call_parser().map(|x| Expression::FunctionCall(x)),
         ))
-    }).labelled("expression").as_context()
+    })
+    .labelled("expression")
+    .as_context()
 }
 
 fn statement_parser<'tok, 'src: 'tok, I>()

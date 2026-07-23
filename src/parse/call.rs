@@ -1,5 +1,12 @@
 use chumsky::{
-    Parser, error::Rich, extra::{self}, input::ValueInput, prelude::{empty, just}, recovery::via_parser, select, span::SimpleSpan
+    Parser,
+    error::Rich,
+    extra::{self},
+    input::ValueInput,
+    prelude::{empty, just},
+    recovery::via_parser,
+    select,
+    span::SimpleSpan,
 };
 
 use crate::{
@@ -17,15 +24,18 @@ where
     };
     // TODO: add a parser for chains
     let base = identifier;
-    let call = empty().delimited_by(
-        just(Tokens::LeftParenthesis),
-        just(Tokens::RightParenthesis)
+    let call = empty()
+        .delimited_by(
+            just(Tokens::LeftParenthesis),
+            just(Tokens::RightParenthesis)
                 .recover_with(via_parser(empty().to(Tokens::RightParenthesis))),
-    ).labelled("function call body");
+        )
+        .labelled("function call body");
 
     base.then_ignore(call)
         .map_with(|base, extra| FunctionCall::new(base, extra.span()))
-        .labelled("function call").as_context()
+        .labelled("function call")
+        .as_context()
 }
 
 pub fn native_parser<'tok, 'src: 'tok, I>()

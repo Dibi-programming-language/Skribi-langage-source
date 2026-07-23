@@ -1,11 +1,16 @@
 use std::collections::HashMap;
 
-use chumsky::{error::Rich};
+use chumsky::error::Rich;
 use log::{info, trace};
 use miette::{Context, Diagnostic, LabeledSpan, NamedSource, Result, Severity, SourceSpan, miette};
 use thiserror::Error;
 
-use crate::{ast::nodes::FileTreeRoot, file::File, lexer::{Tokens, tokenise}, parse::parse};
+use crate::{
+    ast::nodes::FileTreeRoot,
+    file::File,
+    lexer::{Tokens, tokenise},
+    parse::parse,
+};
 
 pub struct Source<'file> {
     file: &'file File<'file>,
@@ -26,9 +31,7 @@ struct ParsingSingleError {
 
 #[derive(Error, Debug, Diagnostic)]
 #[error("Parsing error")]
-#[diagnostic(
-    help("Always try to fix the first parsing error as they might be cascades")
-)]
+#[diagnostic(help("Always try to fix the first parsing error as they might be cascades"))]
 struct ParsingErrors {
     #[source_code]
     src: NamedSource<String>,
@@ -41,20 +44,23 @@ fn convert_to_err(file: &File<'_>, errs: Vec<Rich<'_, Tokens<'_>>>) -> ParsingEr
     // https://codeberg.org/zesterer/chumsky/src/branch/main/examples/nano_rust.rs
     ParsingErrors {
         src: file.into_named(),
-        related: errs.iter().map(
-            |err|
-            ParsingSingleError {
+        related: errs
+            .iter()
+            .map(|err| ParsingSingleError {
                 message: err.to_string(),
                 span: err.span().into_range().into(),
                 span_message: err.reason().to_string(),
-                spans: err.contexts().map(
-                    |(label, span)|
-                    LabeledSpan::new_with_span(
-                        Some(format!("parsing {label}")),
-                        span.into_range())
-                ).collect(),
-            }
-        ).collect(),
+                spans: err
+                    .contexts()
+                    .map(|(label, span)| {
+                        LabeledSpan::new_with_span(
+                            Some(format!("parsing {label}")),
+                            span.into_range(),
+                        )
+                    })
+                    .collect(),
+            })
+            .collect(),
     }
 }
 
@@ -69,13 +75,8 @@ impl Source<'_> {
         );
         let result = parse(tokens, file.content.len());
         match result {
-            Ok(root) => Ok(Source {
-                file,
-                root,
-            }),
-            Err(errs) => {
-                Err(convert_to_err(file, errs).into())
-            }
+            Ok(root) => Ok(Source { file, root }),
+            Err(errs) => Err(convert_to_err(file, errs).into()),
         }
     }
 

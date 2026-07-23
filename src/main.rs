@@ -65,8 +65,8 @@ fn main() -> Result<()> {
     set_hook(Box::new(|_| {
         Box::new(
             miette::MietteHandlerOpts::new()
-            .show_related_errors_as_nested()
-            .build(),
+                .show_related_errors_as_nested()
+                .build(),
         )
     }))?;
 
