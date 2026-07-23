@@ -21,10 +21,11 @@ where
         just(Tokens::LeftParenthesis),
         just(Tokens::RightParenthesis)
                 .recover_with(via_parser(empty().to(Tokens::RightParenthesis))),
-    );
+    ).labelled("function call body");
 
     base.then_ignore(call)
         .map_with(|base, extra| FunctionCall::new(base, extra.span()))
+        .labelled("function call").as_context()
 }
 
 pub fn native_parser<'tok, 'src: 'tok, I>()

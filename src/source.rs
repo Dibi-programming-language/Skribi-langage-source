@@ -37,6 +37,8 @@ struct ParsingErrors {
 }
 
 fn convert_to_err(file: &File<'_>, errs: Vec<Rich<'_, Tokens<'_>>>) -> ParsingErrors {
+    // Greatly inspired from
+    // https://codeberg.org/zesterer/chumsky/src/branch/main/examples/nano_rust.rs
     ParsingErrors {
         src: file.into_named(),
         related: errs.iter().map(
@@ -72,8 +74,6 @@ impl Source<'_> {
                 root,
             }),
             Err(errs) => {
-                // Greatly inspired from
-                // https://codeberg.org/zesterer/chumsky/src/branch/main/examples/nano_rust.rs
                 Err(convert_to_err(file, errs).into())
             }
         }
