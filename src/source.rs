@@ -1,10 +1,11 @@
 use std::collections::HashMap;
 
+use chumsky::{error::Rich};
 use log::{info, trace};
 use miette::{Context, Diagnostic, LabeledSpan, NamedSource, Result, Severity, SourceSpan, miette};
 use thiserror::Error;
 
-use crate::{ast::nodes::FileTreeRoot, file::File, lexer::tokenise, parse::parse};
+use crate::{ast::nodes::FileTreeRoot, file::File, lexer::{Tokens, tokenise}, parse::parse};
 
 pub struct Source<'file> {
     file: &'file File<'file>,
@@ -35,6 +36,26 @@ struct ParsingErrors {
     related: Vec<ParsingSingleError>,
 }
 
+fn convert_to_err(file: &File<'_>, errs: Vec<Rich<'_, Tokens<'_>>>) -> ParsingErrors {
+    ParsingErrors {
+        src: file.into_named(),
+        related: errs.iter().map(
+            |err|
+            ParsingSingleError {
+                message: err.to_string(),
+                span: err.span().into_range().into(),
+                span_message: err.reason().to_string(),
+                spans: err.contexts().map(
+                    |(label, span)|
+                    LabeledSpan::new_with_span(
+                        Some(format!("parsing {label}")),
+                        span.into_range())
+                ).collect(),
+            }
+        ).collect(),
+    }
+}
+
 impl Source<'_> {
     pub fn new<'file>(file: &'file File<'file>) -> Result<Source<'file>> {
         trace!("Entenring source creation for `{}`", file.name);
@@ -53,23 +74,7 @@ impl Source<'_> {
             Err(errs) => {
                 // Greatly inspired from
                 // https://codeberg.org/zesterer/chumsky/src/branch/main/examples/nano_rust.rs
-                Err(ParsingErrors {
-                    src: file.into_named(),
-                    related: errs.iter().map(
-                        |err|
-                        ParsingSingleError {
-                            message: err.to_string(),
-                            span: err.span().into_range().into(),
-                            span_message: err.reason().to_string(),
-                            spans: err.contexts().map(
-                                |(label, span)|
-                                LabeledSpan::new_with_span(
-                                    Some(format!("parsing {label}")),
-                                    span.into_range())
-                            ).collect(),
-                        }
-                        ).collect(),
-                }.into())
+                Err(convert_to_err(file, errs).into())
             }
         }
     }

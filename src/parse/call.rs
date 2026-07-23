@@ -1,11 +1,5 @@
 use chumsky::{
-    Parser,
-    error::Rich,
-    extra::{self},
-    input::ValueInput,
-    prelude::{empty, just},
-    select,
-    span::SimpleSpan,
+    Parser, error::Rich, extra::{self}, input::ValueInput, prelude::{empty, just}, recovery::via_parser, select, span::SimpleSpan
 };
 
 use crate::{
@@ -25,7 +19,8 @@ where
     let base = identifier;
     let call = empty().delimited_by(
         just(Tokens::LeftParenthesis),
-        just(Tokens::RightParenthesis),
+        just(Tokens::RightParenthesis)
+                .recover_with(via_parser(empty().to(Tokens::RightParenthesis))),
     );
 
     base.then_ignore(call)
