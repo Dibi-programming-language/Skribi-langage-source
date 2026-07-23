@@ -14,6 +14,8 @@ use crate::{
 
 pub struct Source<'file> {
     file: &'file File<'file>,
+    // TODO: add first user of the tree to remove this
+    #[allow(dead_code)]
     root: FileTreeRoot<'file>,
 }
 

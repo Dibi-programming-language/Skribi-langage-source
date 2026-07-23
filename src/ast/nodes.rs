@@ -6,6 +6,8 @@ pub mod expressions;
 pub mod statements;
 
 pub struct FileTreeRoot<'tok> {
+    // TODO: add first user of the tree to remove this
+    #[allow(dead_code)]
     pub content: Vec<Statement<'tok>>,
 }
 
