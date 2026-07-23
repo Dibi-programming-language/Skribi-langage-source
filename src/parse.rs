@@ -40,7 +40,7 @@ where
 
         choice((
             priority.clone(),
-            function_call_parser().map(|x| Expression::FunctionCall(x)),
+            function_call_parser().map(Expression::FunctionCall),
         ))
     })
     .labelled("expression")
@@ -53,7 +53,7 @@ where
     I: ValueInput<'tok, Token = Tokens<'src>, Span = SimpleSpan>,
 {
     choice((
-        native_parser().map(|x| Statement::Deprecated(x)),
+        native_parser().map(Statement::Deprecated),
         expression_parser().boxed().map(Statement::Expression),
     ))
     .boxed()

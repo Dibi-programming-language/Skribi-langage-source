@@ -11,6 +11,6 @@ pub struct FileTreeRoot<'tok> {
 
 impl FileTreeRoot<'_> {
     pub fn new<'tok>(content: Vec<Statement<'tok>>) -> FileTreeRoot<'tok> {
-        return FileTreeRoot { content };
+        FileTreeRoot { content }
     }
 }
