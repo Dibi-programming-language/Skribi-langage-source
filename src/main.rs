@@ -19,23 +19,6 @@ struct Arguments {
     /// The source file to use. Defaults to STDIN.
     /// STDIN is currently not supported.
     source: Option<String>,
-    /// Log more information, set the level to INFO.
-    /// For fine-grained control over log levels, use the RUST_LOG variable.
-    #[arg(short, long)]
-    verbose: bool,
-    /// Log all information, set the level to TRACE.
-    /// For fine-grained control over log levels, use the RUST_LOG variable.
-    #[arg(long)]
-    very_verbose: bool,
-    /// Run the code instead of compiling it.
-    #[arg(short, long)]
-    run: bool,
-}
-
-/// The Skribi compiler CLI
-#[derive(Parser, Debug)]
-#[command(version, about, long_about = None)]
-struct Arguments {
     /// Log more information. Fine-grained control.
     ///
     /// The SKRIBI_C_LOG variable can also be used.
@@ -47,6 +30,9 @@ struct Arguments {
     /// Possible values: off, error, warn, info, debug, trace
     #[arg(short, long)]
     verbose: Option<LevelFilter>,
+    /// Run the code instead of compiling it.
+    #[arg(short, long)]
+    run: bool,
 }
 
 /// Launch the interpreter
