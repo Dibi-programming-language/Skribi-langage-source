@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use log::{info, trace};
+use log::{debug, trace};
 use miette::{Context, LabeledSpan, Result, Severity, miette};
 
 use crate::file::File;
@@ -43,7 +43,7 @@ impl<'manager> SourceManager<'manager> {
     }
 
     pub fn add_file<'file: 'manager>(&mut self, file: File<'file>) {
-        info!("Adding file {} into source files", file.name);
+        debug!("Adding file {} into source files", file.name);
         self.files.insert(file.name, Source::new(file));
     }
 

@@ -12,13 +12,31 @@ use miette::{Context, Result};
 
 use skribi::{file::File, source::SourceManager};
 
+#[derive(Parser, Debug)]
+struct Build {
+    /// The source file to use. Defaults to STDIN.
+    /// STDIN is currently not supported.
+    source: Option<String>,
+}
+
+#[derive(Parser, Debug)]
+struct Run {
+    #[command(flatten)]
+    build: Build,
+}
+
+#[derive(Parser, Debug)]
+enum Command {
+    /// Build the source code into machine code
+    Build(Build),
+    /// Build the source code and run it directly after
+    Run(Run),
+}
+
 /// The Skribi compiler CLI
 #[derive(Parser, Debug)]
 #[command(version, about, long_about = None)]
 struct Arguments {
-    /// The source file to use. Defaults to STDIN.
-    /// STDIN is currently not supported.
-    source: Option<String>,
     /// Log more information. Fine-grained control.
     ///
     /// The SKRIBI_C_LOG variable can also be used.
@@ -28,11 +46,26 @@ struct Arguments {
     /// With nothing set, defaults to warn.
     ///
     /// Possible values: off, error, warn, info, debug, trace
-    #[arg(short, long)]
+    #[arg(short, long, global = true)]
     verbose: Option<LevelFilter>,
-    /// Run the code instead of compiling it.
-    #[arg(short, long)]
-    run: bool,
+    #[clap(subcommand)]
+    pub cmd: Command,
+}
+
+fn compile(path: Option<String>, run: bool) -> Result<()> {
+    if let Some(path) = path {
+        let file = File::from_file(&path).context("While reading file passed as argument")?;
+        let mut manager = SourceManager::empty();
+        manager.add_file(file);
+
+        if run {
+            manager.execute()
+        } else {
+            manager.compile()
+        }
+    } else {
+        todo!("STDIN is currently not supported")
+    }
 }
 
 /// Launch the interpreter
@@ -60,17 +93,8 @@ fn main() -> Result<()> {
 
     trace!("Logger initialised, entenring main");
 
-    if let Some(path) = args.source {
-        let file = File::from_file(&path).context("While reading file passed as argument")?;
-        let mut manager = SourceManager::empty();
-        manager.add_file(file);
-
-        if args.run {
-            manager.execute()
-        } else {
-            manager.compile()
-        }
-    } else {
-        todo!("STDIN is currently not supported")
+    match args.cmd {
+        Command::Build(build) => compile(build.source, false),
+        Command::Run(run) => compile(run.build.source, true),
     }
 }
