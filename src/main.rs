@@ -20,6 +20,7 @@ struct Build {
 }
 
 impl Build {
+	/// Compile the source code
 	fn exec(self) -> Result<()> {
 		if let Some(path) = self.source {
 			let file = File::from_file(&path).context("While reading file passed as argument")?;
@@ -40,6 +41,7 @@ struct Run {
 }
 
 impl Run {
+	/// Compile the source code, then execute the compiled code
 	fn exec(self) -> Result<()> {
 		self.build.exec()?;
 		todo!("Execute the compiled code")
@@ -55,6 +57,7 @@ enum Command {
 }
 
 impl Command {
+	/// Run the subcommand's specific code
 	fn exec(self) -> Result<()> {
 		match self {
 			Command::Build(build) => build.exec(),
