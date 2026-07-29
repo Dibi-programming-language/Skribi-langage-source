@@ -52,17 +52,13 @@ struct Arguments {
     pub cmd: Command,
 }
 
-fn compile(path: Option<String>, run: bool) -> Result<()> {
+fn compile(path: Option<String>) -> Result<()> {
     if let Some(path) = path {
         let file = File::from_file(&path).context("While reading file passed as argument")?;
         let mut manager = SourceManager::empty();
         manager.add_file(file);
 
-        if run {
-            manager.execute()
-        } else {
-            manager.compile()
-        }
+        manager.compile()
     } else {
         todo!("STDIN is currently not supported")
     }
@@ -94,7 +90,10 @@ fn main() -> Result<()> {
     trace!("Logger initialised, entenring main");
 
     match args.cmd {
-        Command::Build(build) => compile(build.source, false),
-        Command::Run(run) => compile(run.build.source, true),
+        Command::Build(build) => compile(build.source),
+        Command::Run(run) => {
+	        compile(run.build.source)?;
+			todo!("Execute the compiled code")
+		}
     }
 }
