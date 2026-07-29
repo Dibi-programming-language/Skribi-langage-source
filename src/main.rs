@@ -19,10 +19,31 @@ struct Build {
     source: Option<String>,
 }
 
+impl Build {
+	fn exec(self) -> Result<()> {
+		if let Some(path) = self.source {
+			let file = File::from_file(&path).context("While reading file passed as argument")?;
+			let mut manager = SourceManager::empty();
+			manager.add_file(file);
+
+			manager.compile()
+		} else {
+			todo!("STDIN is currently not supported")
+		}
+	}
+}
+
 #[derive(Parser, Debug)]
 struct Run {
     #[command(flatten)]
     build: Build,
+}
+
+impl Run {
+	fn exec(self) -> Result<()> {
+		self.build.exec()?;
+		todo!("Execute the compiled code")
+	}
 }
 
 #[derive(Parser, Debug)]
@@ -36,11 +57,8 @@ enum Command {
 impl Command {
 	fn exec(self) -> Result<()> {
 		match self {
-			Command::Build(build) => compile(build.source),
-			Command::Run(run) => {
-				compile(run.build.source)?;
-				todo!("Execute the compiled code")
-			}
+			Command::Build(build) => build.exec(),
+			Command::Run(run) => run.exec(),
 		}
 	}
 }
@@ -62,18 +80,6 @@ struct Arguments {
     verbose: Option<LevelFilter>,
     #[clap(subcommand)]
     pub cmd: Command,
-}
-
-fn compile(path: Option<String>) -> Result<()> {
-    if let Some(path) = path {
-        let file = File::from_file(&path).context("While reading file passed as argument")?;
-        let mut manager = SourceManager::empty();
-        manager.add_file(file);
-
-        manager.compile()
-    } else {
-        todo!("STDIN is currently not supported")
-    }
 }
 
 /// Launch the interpreter
