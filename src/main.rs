@@ -33,6 +33,18 @@ enum Command {
     Run(Run),
 }
 
+impl Command {
+	fn exec(self) -> Result<()> {
+		match self {
+			Command::Build(build) => compile(build.source),
+			Command::Run(run) => {
+				compile(run.build.source)?;
+				todo!("Execute the compiled code")
+			}
+		}
+	}
+}
+
 /// The Skribi compiler CLI
 #[derive(Parser, Debug)]
 #[command(version, about, long_about = None)]
@@ -89,11 +101,5 @@ fn main() -> Result<()> {
 
     trace!("Logger initialised, entenring main");
 
-    match args.cmd {
-        Command::Build(build) => compile(build.source),
-        Command::Run(run) => {
-	        compile(run.build.source)?;
-			todo!("Execute the compiled code")
-		}
-    }
+	args.cmd.exec()
 }
