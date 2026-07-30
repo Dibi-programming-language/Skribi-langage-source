@@ -35,6 +35,9 @@ struct Arguments {
     /// Run the code instead of compiling it.
     #[arg(short, long)]
     run: bool,
+    /// Pretty printe the code instead of compiling it.
+    #[arg(short, long)]
+    pretty: bool,
 }
 
 /// Creates a folder to store everything
@@ -79,6 +82,8 @@ fn main() -> Result<()> {
 
         if args.run {
             manager.execute()
+        } else if args.pretty {
+            manager.pretty()
         } else {
             manager.compile()
         }

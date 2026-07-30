@@ -130,4 +130,11 @@ impl<'manager> SourceManager<'manager> {
         }
         todo!("Cannot exected for now, planned later")
     }
+
+    pub fn pretty(&self) -> Result<()> {
+        for (name, file) in &self.files {
+            std::println!("File {} AST is:\n{}", name, file.root);
+        }
+        Ok(())
+    }
 }

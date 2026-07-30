@@ -27,6 +27,8 @@ use crate::ast::nodes::expressions::Expression;
 use crate::ast::nodes::calls::functions::FunctionCall;
 use miette::Result;
 
+pub mod pretty;
+
 /// A enum that indicated why we need the default value of T.
 pub enum DefaultCause {
     ZeroElements,
@@ -45,11 +47,11 @@ macro_rules! make_ast_visitor {
         /// - AstMutVisitor for mutable visitor
         /// - MutAstMutVisitor for both mutable
         #[allow(dead_code)]
-        pub trait $trait_name<'life, T> {
+        pub trait $trait_name<'life, T, R = miette::Error> {
             /// Called if returning a default value is needed.
             /// Considere it lazy: you can throw an exception
             /// if it should never be reached.
-            fn default_t(cause: DefaultCause) -> Result<T>;
+            fn default_t(cause: DefaultCause) -> Result<T, R>;
 
             fn aggregate_t(mut current: Option<T>, new: T) -> Option<T> {
                 // To avoid unused warnings
@@ -60,14 +62,14 @@ macro_rules! make_ast_visitor {
             fn visit_file_tree_root(
                 &$($self_mutable)? self,
                 file_tree_root: &$($mutable)? FileTreeRoot<'life>,
-            ) -> Result<T> {
+            ) -> Result<T, R> {
                 self.default_file_tree_root(file_tree_root)
             }
 
             fn default_file_tree_root(
                 &$($self_mutable)? self,
                 file_tree_root: &$($mutable)? FileTreeRoot<'life>,
-            ) -> Result<T> {
+            ) -> Result<T, R> {
                 let mut res = None;
                 for statement in &$($mutable)? file_tree_root.content {
                     res = Self::aggregate_t(res, self.visit_statement(statement)?);
@@ -82,14 +84,14 @@ macro_rules! make_ast_visitor {
             fn visit_statement(
                 &$($self_mutable)? self,
                 statement: &$($mutable)? Statement<'life>,
-            ) -> Result<T> {
+            ) -> Result<T, R> {
                 self.default_statement(statement)
             }
 
             fn default_statement(
                 &$($self_mutable)? self,
                 statement: &$($mutable)? Statement<'life>,
-            ) -> Result<T> {
+            ) -> Result<T, R> {
                 match statement {
                     Statement::Expression(expression) => self.visit_expression(expression),
                     Statement::Deprecated(deprecated) => self.visit_deprecated(deprecated),
@@ -99,7 +101,7 @@ macro_rules! make_ast_visitor {
             fn visit_deprecated(
                 &$($self_mutable)? self,
                 deprecated: &$($mutable)? Deprecated,
-            ) -> Result<T> {
+            ) -> Result<T, R> {
                 self.default_deprecated(deprecated)
             }
 
@@ -107,21 +109,21 @@ macro_rules! make_ast_visitor {
                 &$($self_mutable)? self,
                 #[allow(unused)]
                 deprecated: &$($mutable)? Deprecated,
-            ) -> Result<T> {
+            ) -> Result<T, R> {
                 Self::default_t(DefaultCause::Deprecated)
             }
 
             fn visit_expression(
                 &$($self_mutable)? self,
                 expression: &$($mutable)? Expression<'life>,
-            ) -> Result<T> {
+            ) -> Result<T, R> {
                 self.default_expression(expression)
             }
 
             fn default_expression(
                 &$($self_mutable)? self,
                 expression: &$($mutable)? Expression<'life>,
-            ) -> Result<T> {
+            ) -> Result<T, R> {
                 match expression {
                     Expression::FunctionCall(function_call) => self.visit_function_call(function_call),
                 }
@@ -130,7 +132,7 @@ macro_rules! make_ast_visitor {
             fn visit_function_call(
                 &$($self_mutable)? self,
                 function_call: &$($mutable)? FunctionCall<'life>,
-            ) -> Result<T> {
+            ) -> Result<T, R> {
                 self.default_function_call(function_call)
             }
 
@@ -139,7 +141,7 @@ macro_rules! make_ast_visitor {
                 // Remove this when adding arguments and full path
                 #[allow(unused)]
                 function_call: &$($mutable)? FunctionCall<'life>,
-            ) -> Result<T> {
+            ) -> Result<T, R> {
                 Self::default_t(DefaultCause::FunctionCall)
             }
         }

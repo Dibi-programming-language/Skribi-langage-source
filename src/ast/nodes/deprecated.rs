@@ -3,7 +3,7 @@ use chumsky::span::SimpleSpan;
 /// Represents a deprecated parsing feature
 #[derive(PartialEq, Clone)]
 pub struct Deprecated {
-    message: &'static str,
+    pub message: &'static str,
     span: SimpleSpan,
 }
 
