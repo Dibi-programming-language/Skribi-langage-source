@@ -5,11 +5,11 @@
 ////////////////////
 
 /// Arguments of the main program
-pub mod cli;
+mod cli;
 /// This module handles reading from inputs
-pub mod file;
+mod file;
 /// This module handles multi sources
-pub mod source;
+mod source;
 
 use clap::Parser;
 
@@ -17,7 +17,7 @@ use env_logger::{Builder, Env};
 use log::trace;
 use miette::Result;
 
-use crate::cli::Arguments;
+use cli::Arguments;
 
 /// Launch the interpreter
 fn main() -> Result<()> {

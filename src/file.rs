@@ -21,7 +21,7 @@ impl File<'_> {
         })
     }
 
-    pub fn into_named(&self) -> NamedSource<String> {
+    pub fn create_source(&self) -> NamedSource<String> {
         NamedSource::new(self.name, self.content.clone())
     }
 }

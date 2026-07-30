@@ -24,7 +24,7 @@ impl Source<'_> {
                 labels = vec![LabeledSpan::at(index..(index + 7), "There"),],
                 "Found deprecated skr_app"
             )
-            .with_source_code(self.file.into_named());
+            .with_source_code(self.file.create_source());
             return Err(error);
         }
         todo!("Finish execution (not the point for now)")
@@ -56,10 +56,5 @@ impl<'manager> SourceManager<'manager> {
                 .context(format!("While executing `{}`", name))?;
         }
         todo!("Cannot compile for now, planned later")
-    }
-
-    pub fn execute(&self) -> Result<()> {
-        trace!("Start executing sources");
-        todo!("Cannot execute for now, planned later")
     }
 }
