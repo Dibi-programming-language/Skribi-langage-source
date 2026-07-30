@@ -20,18 +20,18 @@ struct Build {
 }
 
 impl Build {
-	/// Compile the source code
-	fn exec(self) -> Result<()> {
-		if let Some(path) = self.source {
-			let file = File::from_file(&path).context("While reading file passed as argument")?;
-			let mut manager = SourceManager::empty();
-			manager.add_file(file);
+    /// Compile the source code
+    fn exec(self) -> Result<()> {
+        if let Some(path) = self.source {
+            let file = File::from_file(&path).context("While reading file passed as argument")?;
+            let mut manager = SourceManager::empty();
+            manager.add_file(file);
 
-			manager.compile()
-		} else {
-			todo!("STDIN is currently not supported")
-		}
-	}
+            manager.compile()
+        } else {
+            todo!("STDIN is currently not supported")
+        }
+    }
 }
 
 #[derive(Parser, Debug)]
@@ -41,11 +41,11 @@ struct Run {
 }
 
 impl Run {
-	/// Compile the source code, then execute the compiled code
-	fn exec(self) -> Result<()> {
-		self.build.exec()?;
-		todo!("Execute the compiled code")
-	}
+    /// Compile the source code, then execute the compiled code
+    fn exec(self) -> Result<()> {
+        self.build.exec()?;
+        todo!("Execute the compiled code")
+    }
 }
 
 #[derive(Parser, Debug)]
@@ -57,13 +57,13 @@ enum Command {
 }
 
 impl Command {
-	/// Run the subcommand's specific code
-	fn exec(self) -> Result<()> {
-		match self {
-			Command::Build(build) => build.exec(),
-			Command::Run(run) => run.exec(),
-		}
-	}
+    /// Run the subcommand's specific code
+    fn exec(self) -> Result<()> {
+        match self {
+            Command::Build(build) => build.exec(),
+            Command::Run(run) => run.exec(),
+        }
+    }
 }
 
 /// The Skribi compiler CLI
@@ -110,5 +110,5 @@ fn main() -> Result<()> {
 
     trace!("Logger initialised, entenring main");
 
-	args.cmd.exec()
+    args.cmd.exec()
 }
