@@ -3,8 +3,8 @@ use log::LevelFilter;
 use crate::file::File;
 use crate::source::SourceManager;
 
-use miette::{Result, Context};
 use clap::Parser;
+use miette::{Context, Result};
 
 #[derive(Parser, Debug)]
 pub(crate) struct Build {

@@ -4,12 +4,12 @@
 // Skribi's shell //
 ////////////////////
 
+/// Arguments of the main program
+pub mod cli;
 /// This module handles reading from inputs
 pub mod file;
 /// This module handles multi sources
 pub mod source;
-/// Arguments of the main program
-pub mod cli;
 
 use clap::Parser;
 
