@@ -1,25 +1,43 @@
-use log::LevelFilter;
+use log::{LevelFilter, info, trace};
 
 use crate::file::File;
 use crate::source::SourceManager;
 
 use clap::Parser;
-use miette::{Context, Result};
+use miette::{Context, IntoDiagnostic, Result};
 
 #[derive(Parser, Debug)]
 pub(crate) struct Build {
     /// The source file to use. Defaults to STDIN.
     /// STDIN is currently not supported.
     pub(crate) source: Option<String>,
+    /// Sets the path of the compilation folder.
+    #[arg(short, long, default_value = ".skribi")]
+    compile_path: String,
+}
+
+use std::fs::create_dir_all;
+
+/// Creates a folder to store everything
+fn create_skribi_directory(path: &str) -> Result<()> {
+    trace!("About to create hidden directory `{}`", path);
+    create_dir_all(path).into_diagnostic().context(format!(
+        "While creating hidden `{}` directory to store compiled files",
+        path
+    ))?;
+    info!("Hidden directory `{}` created for compiled files", path);
+    Ok(())
 }
 
 impl Build {
     /// Compile the source code
     pub(crate) fn execute(self) -> Result<()> {
+        create_skribi_directory(&self.compile_path)?;
+
         if let Some(path) = self.source {
             let file = File::from_file(&path).context("While reading file passed as argument")?;
             let mut manager = SourceManager::empty();
-            manager.add_file(file);
+            manager.add_file(&file)?;
 
             manager.compile()
         } else {
