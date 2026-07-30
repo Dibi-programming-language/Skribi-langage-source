@@ -4,24 +4,24 @@
 // Skribi's shell //
 ////////////////////
 
+/// This module is used to store ast structs
+mod ast;
 /// Arguments of the main program
 mod cli;
 /// This module handles reading from inputs
 mod file;
-/// This module handles multi sources
-mod source;
-/// This module is used to store ast structs
-mod ast;
 /// Used to lex the files
 mod lexer;
 /// To parse the tokens into an AST
 mod parse;
+/// This module handles multi sources
+mod source;
 
 use clap::Parser;
 
-use log::{trace};
-use miette::{Result, set_hook};
 use env_logger::{Builder, Env};
+use log::trace;
+use miette::{Result, set_hook};
 
 use cli::Arguments;
 

@@ -1,10 +1,10 @@
 use std::collections::HashMap;
 
 use chumsky::error::Rich;
+use log::debug;
 use log::{info, trace};
 use miette::{Context, Diagnostic, LabeledSpan, NamedSource, Result, Severity, SourceSpan, miette};
 use thiserror::Error;
-use log::debug;
 
 use crate::{
     ast::nodes::FileTreeRoot,
