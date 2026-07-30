@@ -8,8 +8,9 @@ use std::fs::create_dir_all;
 
 use clap::Parser;
 
-use log::{info, trace};
+use log::{LevelFilter, info, trace};
 use miette::{Context, IntoDiagnostic, Result, set_hook};
+use env_logger::{Builder, Env};
 
 use skribi::{file::File, source::SourceManager};
 
@@ -24,14 +25,17 @@ struct Arguments {
     /// Defaults to `.skribi`.
     #[arg(short, long, default_value = ".skribi")]
     compile_path: String,
-    /// Log more information, set the level to INFO.
-    /// For fine-grained control over log levels, use the RUST_LOG variable.
+    /// Log more information. Fine-grained control.
+    ///
+    /// The SKRIBI_C_LOG variable can also be used.
+    /// To specify a style, use SKRIBI_C_LOG_STYLE.
+    /// The variable is overriden by the argument.
+    ///
+    /// With nothing set, defaults to warn.
+    ///
+    /// Possible values: off, error, warn, info, debug, trace
     #[arg(short, long)]
-    verbose: bool,
-    /// Log all information, set the level to TRACE.
-    /// For fine-grained control over log levels, use the RUST_LOG variable.
-    #[arg(long)]
-    very_verbose: bool,
+    verbose: Option<LevelFilter>,
     /// Run the code instead of compiling it.
     #[arg(short, long)]
     run: bool,
@@ -55,11 +59,21 @@ fn create_skribi_directory(path: &str) -> Result<()> {
 fn main() -> Result<()> {
     let args = Arguments::parse();
 
-    let mut logger = env_logger::Builder::from_default_env();
-    if args.verbose {
-        logger.filter_level(log::LevelFilter::Info);
-    } else if args.very_verbose {
-        logger.filter_level(log::LevelFilter::Trace);
+    let mut logger = Builder::from_env(
+        Env::default()
+            .filter_or("SKRIBI_C_LOG", "warn")
+            .write_style("SKRIBI_C_LOG_STYLE"),
+    );
+
+    // To ignore the env variable in production:
+    // #[cfg(not (debug_assertions))]
+    // logger.filter_level(LevelFilter::Warn);
+    // Or detect special values?
+    // Did not add the env to clap as this would be a double with from_env
+    // in debug mode.
+
+    if let Some(level) = args.verbose {
+        logger.filter_level(level);
     }
 
     logger.init();
