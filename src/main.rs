@@ -25,7 +25,7 @@ struct Arguments {
     #[arg(short, long, default_value = ".skribi")]
     compile_path: String,
     /// Sets the name of the output program.
-    #[arg(short, long, default_value = "out")]
+    #[arg(short, long, default_value = ".skribi/out")]
     output: String,
     /// Log more information. Fine-grained control.
     ///

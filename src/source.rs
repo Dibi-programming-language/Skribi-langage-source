@@ -2,7 +2,9 @@ use std::{collections::HashMap, path::Path, process::Command};
 
 use chumsky::error::Rich;
 use log::{info, trace};
-use miette::{Context, Diagnostic, IntoDiagnostic, LabeledSpan, NamedSource, Report, Result, SourceSpan};
+use miette::{
+    Context, Diagnostic, IntoDiagnostic, LabeledSpan, NamedSource, Report, Result, SourceSpan,
+};
 use thiserror::Error;
 
 use crate::{
@@ -129,8 +131,9 @@ impl<'manager> SourceManager<'manager> {
     pub fn compile(&self, folder: &str, output: &str) -> Result<()> {
         let mut paths = vec![];
         for (name, file) in &self.files {
+            info!("Compiling `{}`", name);
             CodeGenerator::compile(&file.root, name, folder)
-                .context(format!("While compiling file {}", name))?;
+                .context(format!("While compiling file `{}`", name))?;
             let name = Path::new(".skribi")
                 .join(name)
                 .with_added_extension("ll")

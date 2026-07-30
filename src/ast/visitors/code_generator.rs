@@ -1,3 +1,4 @@
+use std::fs::create_dir_all;
 use std::path::Path;
 
 use inkwell::context::Context as InkContext;
@@ -33,11 +34,20 @@ impl CodeGenerator<'_> {
         };
         compiler.visit_file_tree_root(root)?;
 
+        let path = Path::new(folder).join(name).with_added_extension("ll");
+        let parent = path.as_path().parent().context("No parent folder")?;
+        create_dir_all(parent)
+            .into_diagnostic()
+            .context(format!("Cannot create folders for `{}`", name))?;
+        let path_str = path.to_str().context("Invalid path format")?.to_owned();
         compiler
             .module
-            .print_to_file(Path::new(folder).join(name).with_added_extension("ll"))
+            .print_to_file(path)
             .into_diagnostic()
-            .context("Failed to save program in HIR format")?;
+            .context(format!(
+                "Failed to save program in HIR format file {}",
+                path_str
+            ))?;
         Ok(())
     }
 }
