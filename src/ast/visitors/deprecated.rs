@@ -37,7 +37,7 @@ impl DeprecatedNodesVisitor {
     pub fn find(file_tree_root: &FileTreeRoot) -> Result<Option<DeprecatedError>> {
         let mut visitor = DeprecatedNodesVisitor::default();
         visitor.visit_file_tree_root(file_tree_root)?;
-        if visitor.spans.len() > 0 {
+        if !visitor.spans.is_empty() {
             Ok(Some(DeprecatedError {
                 spans: visitor.spans,
             }))
