@@ -26,6 +26,16 @@
         skribiBuild = (pkgs.callPackage naersk {}).buildPackage {
           src = ./.;
           doCheck = true;
+          nativeBuildInputs = with pkgs; [
+            llvm_22
+            libffi
+            libxml2
+          ];
+          buildInputs = with pkgs; [
+            clang
+            lld
+          ];
+
         };
       in
       {
@@ -40,6 +50,7 @@
             clippy
             rustfmt
             rustc
+            clang
           ];
         };
       }
