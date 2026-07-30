@@ -2,11 +2,11 @@ use std::collections::HashMap;
 
 use chumsky::error::Rich;
 use log::{info, trace};
-use miette::{Context, Diagnostic, LabeledSpan, NamedSource, Result, Severity, SourceSpan, miette};
+use miette::{Context, Diagnostic, LabeledSpan, NamedSource, Report, Result, SourceSpan};
 use thiserror::Error;
 
 use crate::{
-    ast::nodes::FileTreeRoot,
+    ast::{nodes::FileTreeRoot, visitors::deprecated::DeprecatedNodesVisitor},
     file::File,
     lexer::{Tokens, tokenise},
     parse::parse,
@@ -86,14 +86,9 @@ impl Source<'_> {
         // Placeholder for later checks
         // May be moved later to the new function
         // Only do not do too much on a pull request
-        if let Some(index) = self.file.content.find("skr_app") {
-            let error = miette!(
-                severity = Severity::Warning,
-                labels = vec![LabeledSpan::at(index..(index + 7), "There"),],
-                "Found deprecated skr_app"
-            )
-            .with_source_code(self.file.into_named());
-            return Err(error);
+        if let Some(error) = DeprecatedNodesVisitor::find(&self.root)? {
+            let report: Report = error.into();
+            return Err(report.with_source_code(self.file.into_named()));
         }
         todo!("Finish execution (not the point for now)")
     }

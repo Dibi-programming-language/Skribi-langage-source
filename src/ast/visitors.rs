@@ -27,6 +27,7 @@ use crate::ast::nodes::expressions::Expression;
 use crate::ast::nodes::statements::Statement;
 use miette::Result;
 
+pub mod deprecated;
 pub mod pretty;
 
 /// A enum that indicated why we need the default value of T.

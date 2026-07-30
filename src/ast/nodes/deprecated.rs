@@ -4,7 +4,7 @@ use chumsky::span::SimpleSpan;
 #[derive(PartialEq, Clone)]
 pub struct Deprecated {
     pub message: &'static str,
-    span: SimpleSpan,
+    pub span: SimpleSpan,
 }
 
 impl Deprecated {
