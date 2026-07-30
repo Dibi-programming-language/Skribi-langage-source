@@ -4,30 +4,20 @@
 // Skribi's shell //
 ////////////////////
 
+/// Arguments of the main program
+mod cli;
+/// This module handles reading from inputs
+mod file;
+/// This module handles multi sources
+mod source;
+
 use clap::Parser;
 
 use env_logger::{Builder, Env};
-use log::{LevelFilter, trace};
-use miette::{Context, Result};
+use log::trace;
+use miette::Result;
 
-use skribi::execute;
-
-/// The Skribi compiler CLI
-#[derive(Parser, Debug)]
-#[command(version, about, long_about = None)]
-struct Arguments {
-    /// Log more information. Fine-grained control.
-    ///
-    /// The SKRIBI_C_LOG variable can also be used.
-    /// To specify a style, use SKRIBI_C_LOG_STYLE.
-    /// The variable is overriden by the argument.
-    ///
-    /// With nothing set, defaults to warn.
-    ///
-    /// Possible values: off, error, warn, info, debug, trace
-    #[arg(short, long)]
-    verbose: Option<LevelFilter>,
-}
+use cli::Arguments;
 
 /// Launch the interpreter
 fn main() -> Result<()> {
@@ -54,5 +44,5 @@ fn main() -> Result<()> {
 
     trace!("Logger initialised, entenring main");
 
-    execute().context("Failed to execute your file.")
+    args.cmd.execute()
 }
