@@ -4,18 +4,27 @@
 // Skribi's shell //
 ////////////////////
 
+use std::fs::create_dir_all;
+
 use clap::Parser;
 
 use env_logger::{Builder, Env};
-use log::{LevelFilter, trace};
-use miette::{Context, Result};
+use log::{LevelFilter, info, trace};
+use miette::{Context, IntoDiagnostic, Result, set_hook};
 
-use skribi::execute;
+use skribi::{file::File, source::SourceManager};
 
 /// The Skribi compiler CLI
 #[derive(Parser, Debug)]
 #[command(version, about, long_about = None)]
 struct Arguments {
+    /// The source file to use. Defaults to STDIN.
+    /// STDIN is currently not supported.
+    source: Option<String>,
+    /// Sets the path of the compilation folder.
+    /// Defaults to `.skribi`.
+    #[arg(short, long, default_value = ".skribi")]
+    compile_path: String,
     /// Log more information. Fine-grained control.
     ///
     /// The SKRIBI_C_LOG variable can also be used.
@@ -27,6 +36,23 @@ struct Arguments {
     /// Possible values: off, error, warn, info, debug, trace
     #[arg(short, long)]
     verbose: Option<LevelFilter>,
+    /// Run the code instead of compiling it.
+    #[arg(short, long)]
+    run: bool,
+    /// Pretty printe the code instead of compiling it.
+    #[arg(short, long)]
+    pretty: bool,
+}
+
+/// Creates a folder to store everything
+fn create_skribi_directory(path: &str) -> Result<()> {
+    trace!("About to create hidden directory `{}`", path);
+    create_dir_all(path).into_diagnostic().context(format!(
+        "While creating hidden `{}` directory to store compiled files",
+        path
+    ))?;
+    info!("Hidden directory `{}` created for compiled files", path);
+    Ok(())
 }
 
 /// Launch the interpreter
@@ -51,8 +77,31 @@ fn main() -> Result<()> {
     }
 
     logger.init();
-
     trace!("Logger initialised, entenring main");
 
-    execute().context("Failed to execute your file.")
+    set_hook(Box::new(|_| {
+        Box::new(
+            miette::MietteHandlerOpts::new()
+                .show_related_errors_as_nested()
+                .build(),
+        )
+    }))?;
+
+    create_skribi_directory(&args.compile_path)?;
+
+    if let Some(path) = args.source {
+        let file = File::from_file(&path).context("While reading file passed as argument")?;
+        let mut manager = SourceManager::empty();
+        manager.add_file(&file)?;
+
+        if args.run {
+            manager.execute()
+        } else if args.pretty {
+            manager.pretty()
+        } else {
+            manager.compile()
+        }
+    } else {
+        todo!("STDIN is currently not supported")
+    }
 }
