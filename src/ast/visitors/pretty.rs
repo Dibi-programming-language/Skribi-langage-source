@@ -17,9 +17,11 @@ impl Display for FileTreeRoot<'_> {
     }
 }
 
+const IDENT: usize = 6;
+
 macro_rules! write_self_indent {
     ($self: ident, $content: expr) => {
-        write!($self.f, "{:-<1$}", $content, $self.indent)
+        write!($self.f, "{: <1$}", $content, $self.indent)
     };
 }
 
@@ -40,10 +42,10 @@ impl AstMutVisitor<'_, (), Error> for PrettyPrinterVisitor<'_, '_> {
     }
 
     fn visit_expression(&mut self,expression: &crate::ast::nodes::expressions::Expression<'_>,) -> miette::Result<(),Error> {
-        self.indent += 4;
+        self.indent += IDENT;
         write_self_indent!(self, "(\n")?;
         self.default_expression(expression)?;
-        self.indent -= 4;
+        self.indent -= IDENT;
         write_self_indent!(self, "\n")?;
         write_self!(self, ")")
     }
