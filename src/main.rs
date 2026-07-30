@@ -8,9 +8,9 @@ use std::fs::create_dir_all;
 
 use clap::Parser;
 
+use env_logger::{Builder, Env};
 use log::{LevelFilter, info, trace};
 use miette::{Context, IntoDiagnostic, Result, set_hook};
-use env_logger::{Builder, Env};
 
 use skribi::{file::File, source::SourceManager};
 

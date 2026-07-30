@@ -21,10 +21,10 @@
 //! Visitors are the heart of a compiler.
 
 use crate::ast::nodes::FileTreeRoot;
-use crate::ast::nodes::statements::Statement;
+use crate::ast::nodes::calls::functions::FunctionCall;
 use crate::ast::nodes::deprecated::Deprecated;
 use crate::ast::nodes::expressions::Expression;
-use crate::ast::nodes::calls::functions::FunctionCall;
+use crate::ast::nodes::statements::Statement;
 use miette::Result;
 
 pub mod pretty;
