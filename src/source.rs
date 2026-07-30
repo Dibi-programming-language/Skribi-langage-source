@@ -108,7 +108,7 @@ fn link_files(inputs: Vec<String>, output: &str) -> Result<()> {
     let command = Command::new("clang")
         // For nix
         .arg("-Wno-unused-command-line-argument")
-        .args(&["-o", output.to_str().expect("Cannot create output")])
+        .args(["-o", output.to_str().expect("Cannot create output")])
         .args(inputs)
         .status();
     command.into_diagnostic().context("While linking files")?;
