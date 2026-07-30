@@ -27,6 +27,7 @@ use crate::ast::nodes::expressions::Expression;
 use crate::ast::nodes::statements::Statement;
 use miette::Result;
 
+pub mod code_generator;
 pub mod deprecated;
 pub mod pretty;
 

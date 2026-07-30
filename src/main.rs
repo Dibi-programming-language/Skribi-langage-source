@@ -22,9 +22,11 @@ struct Arguments {
     /// STDIN is currently not supported.
     source: Option<String>,
     /// Sets the path of the compilation folder.
-    /// Defaults to `.skribi`.
     #[arg(short, long, default_value = ".skribi")]
     compile_path: String,
+    /// Sets the name of the output program.
+    #[arg(short, long, default_value = "out")]
+    output: String,
     /// Log more information. Fine-grained control.
     ///
     /// The SKRIBI_C_LOG variable can also be used.
@@ -99,7 +101,7 @@ fn main() -> Result<()> {
         } else if args.pretty {
             manager.pretty()
         } else {
-            manager.compile()
+            manager.compile(&args.compile_path, &args.output)
         }
     } else {
         todo!("STDIN is currently not supported")

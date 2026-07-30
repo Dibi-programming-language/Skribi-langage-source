@@ -1,12 +1,15 @@
-use std::collections::HashMap;
+use std::{collections::HashMap, path::Path, process::Command};
 
 use chumsky::error::Rich;
 use log::{info, trace};
-use miette::{Context, Diagnostic, LabeledSpan, NamedSource, Report, Result, SourceSpan};
+use miette::{Context, Diagnostic, IntoDiagnostic, LabeledSpan, NamedSource, Report, Result, SourceSpan};
 use thiserror::Error;
 
 use crate::{
-    ast::{nodes::FileTreeRoot, visitors::deprecated::DeprecatedNodesVisitor},
+    ast::{
+        nodes::FileTreeRoot,
+        visitors::{code_generator::CodeGenerator, deprecated::DeprecatedNodesVisitor},
+    },
     file::File,
     lexer::{Tokens, tokenise},
     parse::parse,
@@ -98,6 +101,18 @@ pub struct SourceManager<'sources> {
     files: HashMap<&'sources str, Source<'sources>>,
 }
 
+fn link_files(inputs: Vec<String>, output: &str) -> Result<()> {
+    let output = Path::new(output).with_added_extension("out");
+    let command = Command::new("clang")
+        // For nix
+        .arg("-Wno-unused-command-line-argument")
+        .args(&["-o", output.to_str().expect("Cannot create output")])
+        .args(inputs)
+        .status();
+    command.into_diagnostic().context("While linking files")?;
+    Ok(())
+}
+
 impl<'manager> SourceManager<'manager> {
     pub fn empty() -> Self {
         SourceManager {
@@ -111,8 +126,23 @@ impl<'manager> SourceManager<'manager> {
         Ok(())
     }
 
-    pub fn compile(&self) -> Result<()> {
-        todo!("Cannot compile for now, planned later")
+    pub fn compile(&self, folder: &str, output: &str) -> Result<()> {
+        let mut paths = vec![];
+        for (name, file) in &self.files {
+            CodeGenerator::compile(&file.root, name, folder)
+                .context(format!("While compiling file {}", name))?;
+            let name = Path::new(".skribi")
+                .join(name)
+                .with_added_extension("ll")
+                .to_str()
+                .context("Compiled file has an invalid name")?
+                .to_owned();
+            paths.push(name);
+        }
+        link_files(paths, output)
+            .context(format!("After building all files needed for {}", output))?;
+        info!("Result saved into {}", output);
+        Ok(())
     }
 
     pub fn execute(&self) -> Result<()> {
