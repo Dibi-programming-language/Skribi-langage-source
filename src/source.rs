@@ -14,7 +14,7 @@ impl Source<'_> {
         Source { file }
     }
 
-    pub fn execute(&self) -> Result<()> {
+    pub fn compile(&self) -> Result<()> {
         // Placeholder for later checks
         // May be moved later to the new function
         // Only do not do too much on a pull request
@@ -48,17 +48,18 @@ impl<'manager> SourceManager<'manager> {
     }
 
     pub fn compile(&self) -> Result<()> {
+        trace!("Start compiling sources");
+        // This is just a simple "Hello, World!" to see that the file
+        // reading is working.
+        for (name, file) in &self.files {
+            file.compile()
+                .context(format!("While executing `{}`", name))?;
+        }
         todo!("Cannot compile for now, planned later")
     }
 
     pub fn execute(&self) -> Result<()> {
         trace!("Start executing sources");
-        // This is just a simple "Hello, World!" to see that the file
-        // reading is working.
-        for (name, file) in &self.files {
-            file.execute()
-                .context(format!("While executing `{}`", name))?;
-        }
-        todo!("Cannot exected for now, planned later")
+        todo!("Cannot execute for now, planned later")
     }
 }

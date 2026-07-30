@@ -15,7 +15,7 @@ pub(crate) struct Build {
 
 impl Build {
     /// Compile the source code
-    pub(crate) fn exec(self) -> Result<()> {
+    pub(crate) fn execute(self) -> Result<()> {
         if let Some(path) = self.source {
             let file = File::from_file(&path).context("While reading file passed as argument")?;
             let mut manager = SourceManager::empty();
@@ -36,8 +36,8 @@ pub(crate) struct Run {
 
 impl Run {
     /// Compile the source code, then execute the compiled code
-    pub(crate) fn exec(self) -> Result<()> {
-        self.build.exec()?;
+    pub(crate) fn execute(self) -> Result<()> {
+        self.build.execute()?;
         todo!("Execute the compiled code")
     }
 }
@@ -52,10 +52,10 @@ pub(crate) enum Command {
 
 impl Command {
     /// Run the subcommand's specific code
-    pub(crate) fn exec(self) -> Result<()> {
+    pub(crate) fn execute(self) -> Result<()> {
         match self {
-            Command::Build(build) => build.exec(),
-            Command::Run(run) => run.exec(),
+            Command::Build(build) => build.execute(),
+            Command::Run(run) => run.execute(),
         }
     }
 }

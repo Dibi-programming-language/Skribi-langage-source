@@ -44,5 +44,5 @@ fn main() -> Result<()> {
 
     trace!("Logger initialised, entenring main");
 
-    args.cmd.exec()
+    args.cmd.execute()
 }
