@@ -8,6 +8,8 @@
 mod cli;
 /// This module handles reading from inputs
 mod file;
+/// Used to lex the files
+mod lexer;
 /// This module handles multi sources
 mod source;
 
@@ -15,7 +17,7 @@ use clap::Parser;
 
 use env_logger::{Builder, Env};
 use log::trace;
-use miette::Result;
+use miette::{Result, set_panic_hook};
 
 use cli::Arguments;
 
@@ -29,6 +31,10 @@ fn main() -> Result<()> {
             .write_style("SKRIBI_C_LOG_STYLE"),
     );
 
+    // Allows to render panics using miette
+    // Allows an uniform representation of errors
+    set_panic_hook();
+
     // To ignore the env variable in production:
     // #[cfg(not (debug_assertions))]
     // logger.filter_level(LevelFilter::Warn);
@@ -41,7 +47,6 @@ fn main() -> Result<()> {
     }
 
     logger.init();
-
     trace!("Logger initialised, entenring main");
 
     args.cmd.execute()
