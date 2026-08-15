@@ -1,9 +1,9 @@
 use std::collections::HashMap;
 
-use log::{debug, trace};
+use log::{debug, info, trace, warn};
 use miette::{Context, LabeledSpan, Result, Severity, miette};
 
-use crate::file::File;
+use crate::{file::File, lexer::tokenise};
 
 pub struct Source<'file> {
     file: File<'file>,
@@ -11,6 +11,19 @@ pub struct Source<'file> {
 
 impl Source<'_> {
     pub fn new<'file>(file: File<'file>) -> Source<'file> {
+        trace!("Entenring source creation for `{}`", file.name);
+        let tokens = tokenise(&file.content);
+        let size = tokens.size_hint();
+        // Not used for anything else right now
+        // Will be directly used in parser in next PR
+        info!(
+            // In general, 0 is detected as we have an indefinite size
+            // The tokens are parsed on demand I suppose
+            "File `{}` splitted into at least {} tokens",
+            file.name, size.0,
+        );
+        // Added to see something
+        trace!("Tokens: {:?}", tokens.map(|(r, _)| r).collect::<Vec<_>>());
         Source { file }
     }
 
@@ -25,7 +38,8 @@ impl Source<'_> {
                 "Found deprecated skr_app"
             )
             .with_source_code(self.file.create_source());
-            return Err(error);
+
+            warn!("Warning: {:?}", error);
         }
         todo!("Finish execution (not the point for now)")
     }
