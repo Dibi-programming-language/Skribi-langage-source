@@ -13,10 +13,12 @@ env:
 jobs:
   build:
 
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
 
     steps:
     - uses: actions/checkout@v7
+    - name: Install basics
+      run: sudo apt-get install llvm-22 llvm-22-dev clang-21
     - name: Setup Rust
       uses: dtolnay/rust-toolchain@master
       with:
