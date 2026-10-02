@@ -1,18 +1,19 @@
-use std::collections::HashMap;
+use std::{collections::HashMap, sync::Arc};
 
 use log::{debug, info, trace, warn};
 use miette::{Context, LabeledSpan, Result, Severity, miette};
+use string_interner::DefaultStringInterner;
 
 use crate::{file::File, lexer::tokenise};
 
-pub struct Source<'file> {
-    file: File<'file>,
+pub struct Source {
+    file: File,
 }
 
-impl Source<'_> {
-    pub fn new<'file>(file: File<'file>) -> Source<'file> {
+impl Source {
+    pub fn new(file: File, interner: &mut DefaultStringInterner) -> Source {
         trace!("Entenring source creation for `{}`", file.name);
-        let tokens = tokenise(&file.content);
+        let tokens = tokenise(&file.content, interner);
         let size = tokens.size_hint();
         // Not used for anything else right now
         // Will be directly used in parser in next PR
@@ -45,20 +46,23 @@ impl Source<'_> {
     }
 }
 
-pub struct SourceManager<'sources> {
-    files: HashMap<&'sources str, Source<'sources>>,
+pub struct SourceManager {
+    interner: DefaultStringInterner,
+    files: HashMap<Arc<str>, Source>,
 }
 
-impl<'manager> SourceManager<'manager> {
+impl SourceManager {
     pub fn empty() -> Self {
         SourceManager {
+            interner: DefaultStringInterner::default(),
             files: HashMap::new(),
         }
     }
 
-    pub fn add_file<'file: 'manager>(&mut self, file: File<'file>) {
+    pub fn add_file(&mut self, file: File) {
         debug!("Adding file {} into source files", file.name);
-        self.files.insert(file.name, Source::new(file));
+        self.files
+            .insert(file.name.clone(), Source::new(file, &mut self.interner));
     }
 
     pub fn compile(&self) -> Result<()> {
