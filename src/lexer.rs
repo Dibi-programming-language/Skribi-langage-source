@@ -15,7 +15,7 @@ use string_interner::Symbol;
 #[logos(extras = &'s mut DefaultStringInterner)]
 pub enum Tokens {
     /// Names: variables, functions, ...
-    #[regex(r#"[a-zA-Z_][a-zA-Z0-9_]*"#, |lex| lex.extras.get_or_intern(lex.slice()))]
+    #[regex(r#"[a-zA-Z_][a-zA-Z0-9_-]*"#, |lex| lex.extras.get_or_intern(lex.slice()))]
     Identifier(DefaultSymbol),
     /// Deprecated keyword to detect native calls,
     /// still there to test compatibility
